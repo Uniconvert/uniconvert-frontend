@@ -1,0 +1,24 @@
+:root {
+  --uc-color-page: #06111a;
+  --uc-color-panel: #3b4d5b;
+  --uc-color-panel-border: rgba(255, 255, 255, 0.65);
+  --uc-color-blue: #6aafe8;
+  --uc-color-blue-soft: #b9ddf7;
+  --uc-color-blue-pale: #e5f4ff;
+  --uc-color-navy: #10293b;
+  --uc-color-slate: #3f6380;
+  --uc-color-gray: #9a9a9a;
+  --uc-color-gray-dark: #575757;
+  --uc-color-gray-light: #e7e7e7;
+  --uc-color-gray-muted: #a0a0a0;
+  --uc-color-white: #ffffff;
+  --uc-color-black: #000000;
+
+  --uc-radius-sm: 6px;
+  --uc-radius-md: 12px;
+  --uc-radius-lg: 14px;
+  --uc-radius-pill: 999px;
+
+  --uc-shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  --uc-font: 'Helvetica', 'TeX Gyre Heros', 'Pretendard', sans-serif;
+}
