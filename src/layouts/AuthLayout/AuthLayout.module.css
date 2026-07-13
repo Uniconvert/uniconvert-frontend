@@ -1,0 +1,10 @@
+.layout {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: var(--space-6);
+  background:
+    radial-gradient(circle at 10% 20%, rgba(169, 232, 202, 0.35), transparent 28rem),
+    radial-gradient(circle at 90% 15%, rgba(102, 169, 228, 0.24), transparent 30rem),
+    var(--color-auth-background);
+}

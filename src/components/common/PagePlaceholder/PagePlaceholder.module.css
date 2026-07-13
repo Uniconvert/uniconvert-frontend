@@ -1,0 +1,32 @@
+.placeholder {
+  display: grid;
+  width: min(100%, 48rem);
+  gap: var(--space-3);
+  margin: auto;
+  padding: var(--space-7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.placeholder span {
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.placeholder h1,
+.placeholder p {
+  margin: 0;
+}
+
+.placeholder h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.2;
+}
+
+.placeholder p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
