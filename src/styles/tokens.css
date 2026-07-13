@@ -1,24 +1,44 @@
 :root {
-  --uc-color-page: #06111a;
-  --uc-color-panel: #3b4d5b;
-  --uc-color-panel-border: rgba(255, 255, 255, 0.65);
-  --uc-color-blue: #6aafe8;
-  --uc-color-blue-soft: #b9ddf7;
-  --uc-color-blue-pale: #e5f4ff;
-  --uc-color-navy: #10293b;
-  --uc-color-slate: #3f6380;
-  --uc-color-gray: #9a9a9a;
-  --uc-color-gray-dark: #575757;
-  --uc-color-gray-light: #e7e7e7;
-  --uc-color-gray-muted: #a0a0a0;
-  --uc-color-white: #ffffff;
-  --uc-color-black: #000000;
+  --color-primary: #66a9e4;
+  --color-primary-hover: #5598d4;
+  --color-primary-pressed: #478bc7;
+  --color-primary-light: #dcebfa;
+  --color-mint: #a9e8ca;
 
-  --uc-radius-sm: 6px;
-  --uc-radius-md: 12px;
-  --uc-radius-lg: 14px;
-  --uc-radius-pill: 999px;
+  --color-background: #f5f8fc;
+  --color-auth-background: #eaf8f6;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f7f7f7;
 
-  --uc-shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  --uc-font: 'Helvetica', 'TeX Gyre Heros', 'Pretendard', sans-serif;
+  --color-text-primary: #303030;
+  --color-text-secondary: #777777;
+  --color-text-muted: #aaaaaa;
+  --color-border: #dedede;
+  --color-error: #ef5b62;
+  --color-success: #62c494;
+
+  --font-family-base: 'Uniconvert Helvetica', 'Pretendard', Arial, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.75rem;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 2px 8px rgba(54, 104, 148, 0.08);
+  --shadow-md: 0 12px 32px rgba(54, 104, 148, 0.12);
+
+  --sidebar-width: 19.875rem;
+  --content-max-width: 100rem;
+  --transition-fast: 150ms ease;
 }
