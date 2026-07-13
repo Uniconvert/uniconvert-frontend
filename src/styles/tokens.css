@@ -3,19 +3,24 @@
   --color-primary-hover: #5598d4;
   --color-primary-pressed: #478bc7;
   --color-primary-light: #dcebfa;
+  --color-primary-light-hover: #cfe4f8;
   --color-mint: #a9e8ca;
 
   --color-background: #f5f8fc;
   --color-auth-background: #eaf8f6;
   --color-surface: #ffffff;
   --color-surface-subtle: #f7f7f7;
+  --color-surface-translucent: rgba(255, 255, 255, 0.72);
 
   --color-text-primary: #303030;
   --color-text-secondary: #777777;
   --color-text-muted: #aaaaaa;
   --color-border: #dedede;
+  --color-border-strong: #c3cbd3;
   --color-error: #ef5b62;
   --color-success: #62c494;
+  --color-focus-ring: rgba(102, 169, 228, 0.16);
+  --color-error-ring: rgba(239, 91, 98, 0.12);
 
   --font-family-base: 'Uniconvert Helvetica', 'Pretendard', Arial, sans-serif;
   --font-weight-regular: 400;
