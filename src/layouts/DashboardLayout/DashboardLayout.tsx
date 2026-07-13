@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router'
-import { ROUTE_PATHS } from '../../routes/routePaths'
+import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './DashboardLayout.module.css'
 
 const navigationItems = [

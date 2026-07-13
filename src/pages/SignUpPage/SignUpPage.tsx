@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../components/common/PagePlaceholder/PagePlaceholder'
+import PagePlaceholder from '@/components/common/PagePlaceholder/PagePlaceholder'
 
 function SignUpPage() {
   return (
