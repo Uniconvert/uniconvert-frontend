@@ -59,7 +59,7 @@
 
 .button:disabled {
   color: var(--color-text-muted);
-  background: var(--color-surface-subtle);
+  background: var(--color-control-disabled);
   border-color: var(--color-border);
   box-shadow: none;
   opacity: 0.8;

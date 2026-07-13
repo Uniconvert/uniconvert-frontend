@@ -11,6 +11,7 @@
   --color-surface: #ffffff;
   --color-surface-subtle: #f7f7f7;
   --color-surface-translucent: rgba(255, 255, 255, 0.72);
+  --color-control-disabled: #e7e7e7;
 
   --color-text-primary: #303030;
   --color-text-secondary: #777777;

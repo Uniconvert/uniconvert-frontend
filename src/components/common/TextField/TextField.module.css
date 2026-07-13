@@ -94,6 +94,7 @@
   width: 1.5rem;
   height: 1.5rem;
   object-fit: contain;
+  filter: brightness(0.35);
 }
 
 .helperText,

@@ -2,9 +2,14 @@
   display: grid;
   min-height: 100svh;
   place-items: center;
+  position: relative;
+  overflow: hidden;
   padding: var(--space-6);
-  background:
-    radial-gradient(circle at 10% 20%, rgba(169, 232, 202, 0.35), transparent 28rem),
-    radial-gradient(circle at 90% 15%, rgba(102, 169, 228, 0.24), transparent 30rem),
-    var(--color-auth-background);
+  background: linear-gradient(110deg, #f0fbf7 0%, #eaf8f6 32%, #dcefff 100%);
+}
+
+@media (max-width: 40rem) {
+  .layout {
+    padding: var(--space-4);
+  }
 }
