@@ -1,0 +1,428 @@
+.page {
+  display: grid;
+  min-width: 0;
+  min-height: 100%;
+  grid-template-columns: minmax(28rem, 32rem) minmax(0, 1fr);
+  gap: 3rem;
+}
+
+.srOnly {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.leftColumn,
+.rightColumn {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.625rem;
+}
+
+.assetCard,
+.recentCard,
+.monthlyCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px rgba(54, 104, 148, 0.03);
+}
+
+.assetCard {
+  min-height: 30rem;
+  position: relative;
+  padding: 2rem 2.5rem;
+}
+
+.assetRing {
+  width: 16.25rem;
+  height: 16.25rem;
+  position: absolute;
+  top: 2.25rem;
+  left: 50%;
+  background: conic-gradient(
+    #66a9e4 0 19%, transparent 19% 25%,
+    #9ecbf2 25% 44%, transparent 44% 50%,
+    #62c494 50% 69%, transparent 69% 75%,
+    #a9e8ca 75% 94%, transparent 94% 100%
+  );
+  border-radius: 50%;
+  transform: translateX(-50%) rotate(-20deg);
+  -webkit-mask: radial-gradient(circle, transparent 61%, #000 62%);
+  mask: radial-gradient(circle, transparent 61%, #000 62%);
+}
+
+.assetCenter {
+  display: grid;
+  width: 100%;
+  position: absolute;
+  top: 6.5rem;
+  left: 0;
+  place-items: center;
+  gap: 0.875rem;
+  text-align: center;
+}
+
+.assetCenter h2 {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-regular);
+}
+
+.assetCenter strong {
+  color: #366894;
+  font-size: 2rem;
+}
+
+.assetCenter span {
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+}
+
+.budgetSummary {
+  width: calc(100% - 5rem);
+  position: absolute;
+  right: 2.5rem;
+  bottom: 2.5rem;
+  left: 2.5rem;
+}
+
+.budgetHeader,
+.remainingBudget {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.budgetHeader {
+  font-size: 1.125rem;
+}
+
+.budgetHeader strong {
+  font-size: 1.25rem;
+}
+
+.progressTrack {
+  height: 0.75rem;
+  margin-top: 0.75rem;
+  overflow: hidden;
+  background: var(--color-control-disabled);
+  border-radius: var(--radius-pill);
+}
+
+.progressTrack span {
+  display: block;
+  width: 72.8%;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: inherit;
+}
+
+.remainingBudget {
+  margin-top: 1.25rem;
+  font-size: 0.9375rem;
+}
+
+.remainingBudget strong {
+  font-size: 1rem;
+}
+
+.recentCard {
+  min-height: 20rem;
+  padding: 1.75rem 2.25rem;
+}
+
+.cardHeader,
+.monthlyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardHeader > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.cardHeader h2,
+.monthlyHeader h2 {
+  font-size: 1.375rem;
+}
+
+.cardHeader div > span {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+}
+
+.cardHeader select,
+.monthlyHeader select {
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+}
+
+.recentList {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  list-style: none;
+}
+
+.recentList button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 3.25rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.recentList button:hover {
+  background: var(--color-surface-subtle);
+}
+
+.expenseIcon {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.expenseIcon img {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.recentList button > span:nth-child(2) {
+  font-size: 1.125rem;
+}
+
+.recentList strong {
+  font-size: 1rem;
+}
+
+.monthlyCard {
+  min-height: 26.625rem;
+  padding: 2rem 2.375rem;
+}
+
+.monthlyBody {
+  display: grid;
+  grid-template-columns: minmax(19rem, 0.9fr) minmax(24rem, 1.1fr);
+  align-items: center;
+  gap: 2.75rem;
+  margin-top: 1.75rem;
+}
+
+.donutWrap {
+  width: 17rem;
+  height: 17rem;
+  position: relative;
+}
+
+.donut {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  border-radius: 50%;
+  background: conic-gradient(from -90deg,
+    #66a9e4 0 55%,
+    #366384 55% 79%,
+    #153047 79% 89%,
+    #a9cbfa 89% 97%,
+    #e2efff 97% 100%
+  );
+}
+
+.donut::after {
+  width: 7.625rem;
+  height: 7.625rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  content: '';
+  background: var(--color-surface);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.donut > span {
+  position: absolute;
+  z-index: 1;
+  color: var(--color-surface);
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.percent55 { top: 2.25rem; left: 5.5rem; }
+.percent24 { bottom: 2.75rem; left: 3.75rem; }
+.percent10 { right: 3.75rem; bottom: 2.75rem; }
+.percent8 { top: 8.25rem; right: 1.75rem; }
+.percent2 { top: 6.25rem; right: 0.75rem; color: #366894 !important; }
+
+.donutCenter {
+  display: grid;
+  width: 7.5rem;
+  height: 7.5rem;
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  place-content: center;
+  gap: 0.375rem;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.donutCenter span {
+  color: var(--color-text-muted);
+}
+
+.donutCenter strong {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.categorySummary {
+  display: grid;
+  list-style: none;
+}
+
+.categorySummary li {
+  display: grid;
+  min-height: 3.9375rem;
+  grid-template-columns: 1fr 4rem 7.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #eeeeee;
+  font-size: 1.125rem;
+}
+
+.categorySummary li:last-child {
+  border-bottom: 0;
+}
+
+.categoryName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.categoryName i {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+}
+
+.categoryPercentage {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.categorySummary strong {
+  text-align: right;
+}
+
+.mascotArea {
+  min-height: 16rem;
+  position: relative;
+  flex: 1;
+}
+
+.mascotArea p {
+  position: absolute;
+  right: 7.75rem;
+  bottom: 7.25rem;
+  padding: 0.65rem 1.5rem;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: var(--radius-pill);
+  font-size: 1.125rem;
+}
+
+.thoughtSmall,
+.thoughtLarge {
+  position: absolute;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: 50%;
+}
+
+.thoughtSmall { width: 0.9rem; height: 0.9rem; right: 5.4rem; bottom: 5.55rem; }
+.thoughtLarge { width: 1.15rem; height: 1.15rem; right: 6.65rem; bottom: 6.45rem; }
+
+.mascotArea img {
+  width: 8rem;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+@media (max-width: 87.5rem) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .leftColumn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .rightColumn {
+    display: contents;
+  }
+
+  .monthlyCard {
+    grid-row: 1;
+  }
+
+  .mascotArea {
+    display: none;
+  }
+}
+
+@media (max-width: 48rem) {
+  .leftColumn {
+    display: flex;
+  }
+
+  .monthlyBody {
+    grid-template-columns: 1fr;
+  }
+
+  .donutWrap {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 40rem) {
+  .assetCard,
+  .recentCard,
+  .monthlyCard {
+    padding: 1.5rem;
+  }
+
+  .monthlyBody {
+    gap: 1rem;
+  }
+
+  .categorySummary li {
+    grid-template-columns: 1fr 3rem auto;
+    font-size: 0.95rem;
+  }
+}

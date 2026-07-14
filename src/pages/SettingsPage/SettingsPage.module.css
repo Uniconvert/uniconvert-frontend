@@ -1,0 +1,454 @@
+.page {
+  display: grid;
+  min-width: 0;
+  min-height: 100%;
+  grid-template-columns: 34rem minmax(26rem, 34.5rem);
+  grid-template-rows: auto 1fr;
+  justify-content: space-between;
+  column-gap: 3rem;
+}
+
+.page > h1 {
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+}
+
+.leftColumn {
+  display: flex;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 2;
+  flex-direction: column;
+}
+
+.emailSetting {
+  display: grid;
+  min-height: 5.625rem;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.emailIcon {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  color: var(--color-surface);
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.emailIcon svg,
+.sendReportButton svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.emailSetting h2 {
+  font-size: 1rem;
+  font-weight: var(--font-weight-regular);
+}
+
+.emailSetting p {
+  margin-top: 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.toggle {
+  width: 2.75rem;
+  height: 1.5rem;
+  position: relative;
+  padding: 0.1875rem;
+  background: var(--color-control-disabled);
+  border: 0;
+  border-radius: var(--radius-pill);
+  transition: background-color var(--transition-fast);
+}
+
+.toggle span {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: var(--color-surface);
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+}
+
+.toggleOn {
+  background: var(--color-primary);
+}
+
+.toggleOn span {
+  transform: translateX(1.25rem);
+}
+
+.profileCard {
+  min-height: 31.875rem;
+  margin-top: 2.5rem;
+  padding: 2rem 1.75rem 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.profileCard h2 {
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+.avatarWrap {
+  width: 11.25rem;
+  height: 11.25rem;
+  position: relative;
+  margin: 1.75rem auto 2.375rem;
+}
+
+.profileAvatar {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  place-items: center;
+  color: #366894;
+  background: linear-gradient(145deg, #fff4cc, #d9efff);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  font-size: 4rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.profileAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.changePhotoButton {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  position: absolute;
+  right: 0;
+  bottom: 0.25rem;
+  place-items: center;
+  color: var(--color-surface);
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+}
+
+.changePhotoButton svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.avatarWrap input[type='file'] {
+  display: none;
+}
+
+.profileFields {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.profileFields label {
+  display: grid;
+  grid-template-columns: 4.25rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profileFields input {
+  min-width: 0;
+  min-height: 3.125rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+}
+
+.profileFields input[readonly] {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+
+.profileActions {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.profileActions p {
+  color: var(--color-success);
+  font-size: 0.8rem;
+}
+
+.profileActions button {
+  min-width: 5.75rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+
+.version {
+  margin-top: auto;
+  padding-top: 2rem;
+  color: var(--color-text-muted);
+}
+
+.reportPanel {
+  min-height: 52.375rem;
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  padding: 7.25rem 3.875rem 2.5rem;
+  background: linear-gradient(180deg, #f5faff 0%, #a8d2f3 100%);
+  border-radius: 3.75rem;
+}
+
+.emailIllustration {
+  width: 12.5rem;
+  height: auto;
+  position: absolute;
+  z-index: 2;
+  top: 2.25rem;
+  right: 2.25rem;
+}
+
+.reportCard {
+  min-height: 42.5rem;
+  padding: 2rem 1.875rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.reportCard h2 {
+  color: #366894;
+  text-align: center;
+  font-size: 1.375rem;
+}
+
+.reportMonth {
+  margin-top: 0.75rem;
+  color: #9fbfda;
+  text-align: center;
+  font-size: 1.125rem;
+}
+
+.reportTotal {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2.75rem;
+}
+
+.reportTotal span {
+  color: #8aaed0;
+}
+
+.reportTotal strong {
+  color: #366894;
+  font-size: 1.5rem;
+}
+
+.reportCard hr {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid #ccdae6;
+}
+
+.reportCard h3 {
+  font-size: 1rem;
+  font-weight: var(--font-weight-regular);
+}
+
+.reportList {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+  list-style: none;
+}
+
+.reportList li {
+  display: grid;
+  grid-template-columns: 2.875rem 1fr;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.reportCategoryIcon {
+  display: grid;
+  width: 2.875rem;
+  height: 2.875rem;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.reportCategoryIcon img {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+.reportCategoryInfo {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reportCategoryInfo > span:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.reportCategoryInfo b,
+.reportCategoryInfo strong {
+  font-size: 0.95rem;
+}
+
+.reportProgress {
+  height: 0.375rem;
+  overflow: hidden;
+  background: var(--color-control-disabled);
+  border-radius: var(--radius-pill);
+}
+
+.reportProgress i {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: inherit;
+}
+
+.sendReportButton {
+  min-height: 3.125rem;
+  margin-top: 2.5rem;
+  font-size: 1rem;
+}
+
+.sendReportButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.offVisual {
+  min-height: 20rem;
+  position: relative;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+}
+
+.offVisual p {
+  position: absolute;
+  right: 7.5rem;
+  bottom: 7.5rem;
+  padding: 0.625rem 1.5rem;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: var(--radius-pill);
+  font-size: 1.125rem;
+}
+
+.thoughtLarge,
+.thoughtSmall {
+  position: absolute;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: 50%;
+}
+
+.thoughtLarge { width: 1.15rem; height: 1.15rem; right: 6.25rem; bottom: 6.5rem; }
+.thoughtSmall { width: 0.875rem; height: 0.875rem; right: 5.25rem; bottom: 5.75rem; }
+
+.offVisual img {
+  width: 8rem;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+@media (max-width: 87.5rem) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .page > h1 {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .leftColumn,
+  .reportPanel,
+  .offVisual {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 2rem;
+  }
+
+  .offVisual {
+    display: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .page > h1 {
+    font-size: 1.5rem;
+  }
+
+  .emailSetting {
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .toggle {
+    grid-column: 2;
+  }
+
+  .profileCard {
+    padding-inline: 1rem;
+  }
+
+  .profileFields label {
+    grid-template-columns: 1fr;
+  }
+
+  .profileActions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .profileActions p {
+    grid-column: 1 / -1;
+  }
+
+  .reportPanel {
+    min-height: auto;
+    padding: 6rem 1rem 1rem;
+    border-radius: 2rem;
+  }
+
+  .reportCard {
+    padding: 1.5rem 1rem;
+  }
+}

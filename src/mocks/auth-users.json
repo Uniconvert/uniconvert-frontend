@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "userId": 1,
+      "email": "test@uniconvert.com",
+      "password": "test1234",
+      "nickname": "hamster",
+      "profileImage": "/assets/profiles/hamster.png",
+      "isEmailVerified": true,
+      "isOnboardingCompleted": true
+    },
+    {
+      "userId": 2,
+      "email": "onboarding@uniconvert.com",
+      "password": "test1234",
+      "nickname": "온보딩 사용자",
+      "profileImage": "",
+      "isEmailVerified": true,
+      "isOnboardingCompleted": false
+    },
+    {
+      "userId": 3,
+      "email": "unverified@uniconvert.com",
+      "password": "test1234",
+      "nickname": "미인증 사용자",
+      "profileImage": "",
+      "isEmailVerified": false,
+      "isOnboardingCompleted": false
+    }
+  ]
+}

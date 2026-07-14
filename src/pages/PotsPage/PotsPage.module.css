@@ -1,0 +1,35 @@
+.page { width: 100%; min-width: 0; padding-right: 2.75rem; padding-left: .3125rem; }
+.page h1 { margin-bottom: 1.75rem; font-size: 1.75rem; line-height: 1.25; }
+.dashboardGrid { display: grid; grid-template-columns: minmax(0, 1fr) 24rem; gap: clamp(2.5rem, 4.5vw, 5.5rem); align-items: start; }
+.mainColumn { display: grid; min-width: 0; gap: 4rem; }
+.createButton { display: inline-flex; width: 100%; min-height: 4.875rem; align-items: center; justify-content: center; gap: .75rem; margin-top: -1.5rem; color: var(--color-surface); background: var(--color-primary); border: 0; border-radius: var(--radius-md); font-size: 1.25rem; transition: background-color var(--transition-fast), transform var(--transition-fast); }
+.createButton span { font-size: 2rem; font-weight: 300; line-height: 1; }
+.createButton:hover { background: var(--color-primary-hover); }
+.createButton:active { transform: translateY(1px); }
+.sideColumn { display: grid; gap: 1.875rem; }
+.walletIllustration { display: grid; min-height: 19.375rem; place-items: center; overflow: hidden; background: linear-gradient(145deg, #f7fbff 0%, #c4e3ff 100%); border-radius: 3.25rem; }
+.walletIllustration img { width: min(112%, 26rem); max-width: none; height: auto; filter: drop-shadow(0 1rem 1.5rem rgba(77, 139, 195, .14)); }
+.encouragement { min-height: 12rem; position: relative; }
+.encouragement img { width: 8.75rem; position: absolute; right: .25rem; bottom: -.5rem; }
+.speechBubble { width: fit-content; margin: 1.25rem 5rem 0 auto; padding: .55rem 1.4rem; background: var(--color-surface); border: 2px solid #91caff; border-radius: var(--radius-pill); color: var(--color-text-primary); font-size: 1rem; white-space: nowrap; }
+.bubbleDotLarge, .bubbleDotSmall { position: absolute; border: 2px solid #91caff; border-radius: 50%; background: var(--color-surface); }
+.bubbleDotLarge { width: 1.125rem; height: 1.125rem; top: 3.6rem; right: 4.1rem; }
+.bubbleDotSmall { width: .75rem; height: .75rem; top: 4.7rem; right: 3.15rem; }
+@media (max-width: 90rem) {
+  .page { padding-right: 0; padding-left: 0; }
+  .dashboardGrid { grid-template-columns: minmax(0, 1.9fr) minmax(16rem, .8fr); gap: 2rem; }
+  .mainColumn { gap: 2.5rem; }
+  .walletIllustration { min-height: 16rem; border-radius: 2.5rem; }
+  .createButton { margin-top: 0; }
+}
+@media (max-width: 70rem) {
+  .dashboardGrid { grid-template-columns: 1fr; }
+  .sideColumn { grid-template-columns: minmax(14rem, .8fr) minmax(18rem, 1.2fr); }
+  .encouragement { display: none; }
+}
+@media (max-width: 48rem) {
+  .page h1 { margin-bottom: 1.25rem; font-size: 1.5rem; }
+  .mainColumn { gap: 1.5rem; }
+  .sideColumn { grid-template-columns: 1fr; }
+  .walletIllustration { min-height: 13rem; }
+}

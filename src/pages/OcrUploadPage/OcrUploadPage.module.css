@@ -1,0 +1,7 @@
+.page { display: grid; width: 100%; min-height: 100%; place-items: center; }
+.previewCard { display: grid; width: min(100%,48rem); gap: 1rem; padding: 3rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.previewCard > span { color: var(--color-primary); font-weight: var(--font-weight-bold); }
+.previewCard h1 { font-size: 2.25rem; }
+.previewCard p { color: var(--color-text-secondary); line-height: 1.6; }
+.previewCard button { justify-self: start; margin-top: 1rem; }
+.status { color: var(--color-success) !important; }

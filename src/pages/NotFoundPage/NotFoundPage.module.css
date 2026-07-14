@@ -1,0 +1,27 @@
+.page {
+  display: grid;
+  min-height: 100svh;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.page span {
+  color: var(--color-primary);
+  font-size: 4rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.page p {
+  color: var(--color-text-secondary);
+}
+
+.page a {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-surface);
+  font-weight: var(--font-weight-bold);
+}
