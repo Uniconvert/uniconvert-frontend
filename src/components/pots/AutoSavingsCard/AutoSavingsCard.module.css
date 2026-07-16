@@ -1,0 +1,14 @@
+.card { overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.card h2 { min-height: 4.5rem; padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--color-border); font-size: 1.05rem; }
+.content { display: grid; min-height: 7rem; grid-template-columns: 3.5rem 1fr auto; align-items: center; gap: 1rem; padding: 1.25rem; }
+.thumbnail { width: 3.5rem; height: 4.25rem; object-fit: cover; border-radius: .5rem; }
+.details { display: grid; gap: .5rem; }
+.details strong { font-size: .95rem; }
+.details span { color: var(--color-text-muted); font-size: .8rem; }
+.content p { white-space: nowrap; }
+.content p strong { font-size: .95rem; }
+.content p span { color: var(--color-success); font-size: .85rem; }
+@media (max-width: 90rem) {
+  .content { grid-template-columns: 3rem 1fr; }
+  .content p { grid-column: 2; }
+}
