@@ -1,20 +1,45 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import { login } from '@/api/auth'
 import Button from '@/components/common/Button/Button'
 import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
 import TextField from '@/components/common/TextField/TextField'
+import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './LoginPage.module.css'
 
 function LoginPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const canSubmit = email.trim().length > 0 && password.length > 0
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!canSubmit || isLoading) return
 
-    // TODO: Swagger 수신 후 자체 로그인 API 요청으로 교체한다.
-    setStatusMessage('로그인 API 연결 전입니다.')
+    setIsLoading(true)
+    setStatusMessage('')
+
+    try {
+      const result = await login({ email, password })
+      sessionStorage.setItem('uniconvert.mockUser', JSON.stringify(result.user))
+      sessionStorage.setItem('uniconvert.mockAccessToken', result.accessToken)
+      sessionStorage.setItem('uniconvert.mockRefreshToken', result.refreshToken)
+
+      if (!result.user.isEmailVerified) {
+        navigate(ROUTE_PATHS.verifyEmail)
+      } else if (!result.user.isOnboardingCompleted) {
+        navigate(ROUTE_PATHS.onboardingBaseCurrency)
+      } else {
+        navigate(ROUTE_PATHS.home)
+      }
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : '로그인에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleLogin = () => {
@@ -94,6 +119,7 @@ function LoginPage() {
             type="submit"
             fullWidth
             disabled={!canSubmit}
+            isLoading={isLoading}
           >
             로그인
           </Button>

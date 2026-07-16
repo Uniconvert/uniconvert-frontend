@@ -5,7 +5,6 @@ import CalculatorPage from '@/pages/CalculatorPage/CalculatorPage'
 import ExpenseDetailPage from '@/pages/ExpenseDetailPage/ExpenseDetailPage'
 import ExpenseHistoryPage from '@/pages/ExpenseHistoryPage/ExpenseHistoryPage'
 import ExpenseInputPage from '@/pages/ExpenseInputPage/ExpenseInputPage'
-import HomePage from '@/pages/HomePage/HomePage'
 import LandingPage from '@/pages/LandingPage/LandingPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
 import NotFoundPage from '@/pages/NotFoundPage/NotFoundPage'
@@ -13,6 +12,7 @@ import OcrUploadPage from '@/pages/OcrUploadPage/OcrUploadPage'
 import BaseCurrencyPage from '@/pages/onboarding/BaseCurrencyPage/BaseCurrencyPage'
 import BudgetSetupPage from '@/pages/onboarding/BudgetSetupPage/BudgetSetupPage'
 import LocalCurrenciesPage from '@/pages/onboarding/LocalCurrenciesPage/LocalCurrenciesPage'
+import ProfileSetupPage from '@/pages/onboarding/ProfileSetupPage/ProfileSetupPage'
 import PotsPage from '@/pages/PotsPage/PotsPage'
 import ReportPage from '@/pages/ReportPage/ReportPage'
 import SettingsPage from '@/pages/SettingsPage/SettingsPage'
@@ -45,13 +45,16 @@ export const router = createBrowserRouter([
         path: ROUTE_PATHS.onboardingBudget,
         Component: BudgetSetupPage,
       },
+      {
+        path: ROUTE_PATHS.onboardingProfile,
+        Component: ProfileSetupPage,
+      },
     ],
   },
   {
     Component: DashboardLayout,
     children: [
-      { path: ROUTE_PATHS.home, Component: HomePage },
-      { path: ROUTE_PATHS.expenseCreate, Component: ExpenseInputPage },
+      { path: ROUTE_PATHS.home, Component: ExpenseInputPage },
       { path: ROUTE_PATHS.expenses, Component: ExpenseHistoryPage },
       { path: ROUTE_PATHS.expenseDetail, Component: ExpenseDetailPage },
       { path: ROUTE_PATHS.pots, Component: PotsPage },
