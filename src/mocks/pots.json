@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "data": {
+    "homeCurrency": "KRW",
+    "monthlyBudget": 1250000,
+    "allocatedAmount": 340000,
+    "availableAmount": 910000,
+    "pots": [
+      {
+        "potId": "pot-001",
+        "name": "삿포로 여행",
+        "icon": "✈️",
+        "imageSrc": "/assets/images/pots/sapporo-trip.png",
+        "targetAmount": 800000,
+        "savedAmount": 340000,
+        "monthlyContribution": 340000,
+        "autoSavingRate": 15
+      }
+    ]
+  }
+}

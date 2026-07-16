@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "data": {
+    "yearMonth": "2026-07",
+    "homeCurrency": "KRW",
+    "monthlyBudgetHome": 1250000,
+    "monthlyExpenseHome": 750000,
+    "remainingBudgetHome": 910000,
+    "budgetUsagePercent": 72.8,
+    "categories": [
+      { "categoryId": "housing", "categoryName": "주거", "percentage": 55, "amountHome": 412500, "color": "#66a9e4" },
+      { "categoryId": "food", "categoryName": "식비", "percentage": 24, "amountHome": 180000, "color": "#366384" },
+      { "categoryId": "education", "categoryName": "학업", "percentage": 10, "amountHome": 75000, "color": "#153047" },
+      { "categoryId": "transport", "categoryName": "교통", "percentage": 8, "amountHome": 60000, "color": "#a9cbfa" },
+      { "categoryId": "other", "categoryName": "기타", "percentage": 2, "amountHome": 15000, "color": "#e2efff" }
+    ],
+    "recentExpenses": [
+      { "expenseId": "expense-001", "categoryName": "식비", "convertedAmountHome": 25000, "iconKey": "food", "spentAt": "2026-07-14T12:30:00+09:00" },
+      { "expenseId": "expense-002", "categoryName": "교통", "convertedAmountHome": 12000, "iconKey": "transport", "spentAt": "2026-07-14T09:10:00+09:00" },
+      { "expenseId": "expense-003", "categoryName": "학비", "convertedAmountHome": 150000, "iconKey": "education", "spentAt": "2026-07-13T15:00:00+09:00" },
+      { "expenseId": "expense-004", "categoryName": "몰라", "convertedAmountHome": 150000, "iconKey": "education", "spentAt": "2026-07-13T15:00:00+09:00" }
+    ]
+  }
+}
