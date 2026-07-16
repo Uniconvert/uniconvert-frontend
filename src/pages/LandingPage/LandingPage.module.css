@@ -23,25 +23,21 @@
   width: 15rem;
   height: 15rem;
   content: '';
-  border: 2.25rem solid transparent;
+  border: 2.25rem solid;
   border-radius: 50%;
   pointer-events: none;
 }
 
 .hero::before {
-  top: 57%;
-  left: -10rem;
-  border-top-color: rgba(169, 232, 202, 0.32);
-  border-right-color: rgba(169, 232, 202, 0.32);
-  transform: rotate(-25deg);
+  top: 58%;
+  left: -9.5rem;
+  border-color: rgba(169, 232, 202, 0.32);
 }
 
 .hero::after {
-  top: 16%;
-  right: -10rem;
-  border-bottom-color: rgba(102, 169, 228, 0.17);
-  border-left-color: rgba(102, 169, 228, 0.17);
-  transform: rotate(-25deg);
+  top: 17%;
+  right: -9.5rem;
+  border-color: rgba(102, 169, 228, 0.17);
 }
 
 .header {
@@ -52,7 +48,7 @@
   z-index: 5;
   top: 2.5rem;
   left: 50%;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: clamp(2rem, 4vw, 5rem);
   padding: 0.875rem 3.75rem;
@@ -90,27 +86,14 @@
   height: auto;
 }
 
-.navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  gap: clamp(1.5rem, 3vw, 4rem);
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-bold);
-}
-
-.navigation a,
 .authActions a {
   transition: color var(--transition-fast), background-color var(--transition-fast);
-}
-
-.navigation a:hover {
-  color: var(--color-primary);
 }
 
 .authActions {
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: 1.75rem;
 }
 
@@ -248,19 +231,15 @@
 }
 
 .features::before {
-  top: -10rem;
-  right: -5rem;
-  border-bottom-color: rgba(98, 196, 148, 0.38);
-  border-left-color: rgba(98, 196, 148, 0.38);
-  transform: rotate(-20deg);
+  top: -10.5rem;
+  right: -9.5rem;
+  border-color: rgba(98, 196, 148, 0.38);
 }
 
 .features::after {
-  bottom: -11rem;
-  left: -9rem;
-  border-bottom-color: rgba(102, 169, 228, 0.62);
-  border-left-color: rgba(102, 169, 228, 0.62);
-  transform: rotate(10deg);
+  bottom: -11.5rem;
+  left: -9.5rem;
+  border-color: rgba(102, 169, 228, 0.62);
 }
 
 .featuresTitle {
@@ -326,10 +305,6 @@
     padding-inline: 2rem;
   }
 
-  .navigation {
-    gap: 1.5rem;
-  }
-
   .authActions {
     gap: 0.75rem;
   }
@@ -351,10 +326,6 @@
 }
 
 @media (max-width: 60rem) {
-  .navigation {
-    display: none;
-  }
-
   .header {
     grid-template-columns: 1fr auto;
   }

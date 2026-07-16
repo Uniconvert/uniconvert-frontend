@@ -58,14 +58,6 @@ function LandingPage() {
             />
           </Link>
 
-          <nav className={styles.navigation} aria-label="서비스 메뉴">
-            <Link to={ROUTE_PATHS.home}>홈</Link>
-            <Link to={ROUTE_PATHS.expenses}>지출내역</Link>
-            <Link to={ROUTE_PATHS.report}>리포트</Link>
-            <Link to={ROUTE_PATHS.calculator}>계산기</Link>
-            <Link to={ROUTE_PATHS.settings}>설정</Link>
-          </nav>
-
           <div className={styles.authActions}>
             <Link className={styles.loginLink} to={ROUTE_PATHS.login}>
               로그인
