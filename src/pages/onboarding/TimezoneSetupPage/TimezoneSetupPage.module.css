@@ -1,17 +1,17 @@
 .page { display: grid; width: 100%; min-height: calc(100svh - (var(--space-6) * 2)); position: relative; place-items: center; }
-.card { display: flex; width: min(47.5rem, calc(100vw - 4rem)); min-height: 42.5rem; z-index: 1; flex-direction: column; padding: 3rem 4.375rem; background: rgba(255,255,255,.96); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.card { display: flex; width: min(47.5rem, calc(100vw - 4rem)); min-height: 40.5rem; z-index: 1; flex-direction: column; padding: 3rem 4.375rem; background: rgba(255,255,255,.96); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
 .progress { display: grid; grid-template-columns: repeat(4,1fr); gap: .625rem; }
 .progress span { height: .625rem; background: var(--color-primary); border-radius: var(--radius-pill); }
-.progress span.pending { background: var(--color-control-disabled); }
 .card h1 { margin-top: 1.75rem; font-size: 2rem; }
 .description { margin-top: .75rem; color: var(--color-text-muted); font-size: 1.125rem; }
-.budgetLabel { margin-top: 3rem; font-size: 1.125rem; font-weight: var(--font-weight-bold); }
-.notice { margin-top: .5rem; color: var(--color-primary); font-size: 1rem; }
-.amountField { display: flex; min-height: 5rem; align-items: center; gap: 1rem; margin-top: 1.75rem; padding: 0 1.5rem; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); }
-.amountField span { font-size: 1.75rem; }
-.amountField input { width: 100%; border: 0; outline: 0; text-align: right; font-size: 1.5rem; }
+.card h2 { margin-top: 3rem; font-size: 1.125rem; }
+.timezoneCard { display: flex; min-height: 5.25rem; align-items: center; gap: 1.25rem; margin-top: 1.5rem; padding: .75rem 1.5rem; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); }
+.flag { display: grid; width: 4rem; height: 3rem; place-items: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .625rem; font-size: 2.25rem; }
+.timezoneCard div { display: grid; gap: .35rem; }
+.timezoneCard strong { font-size: 1.125rem; }
+.timezoneCard span:last-child { color: var(--color-text-muted); }
 .help { margin: 1.75rem 0 3rem; color: var(--color-text-muted); }
-.help strong { color: var(--color-primary); font-size: 1rem; }
+.help strong { color: var(--color-primary); }
 .help p { margin-top: .75rem; font-size: .875rem; line-height: 1.6; }
 .coinDecoration,.exchangeDecoration { position: absolute; height: auto; pointer-events: none; }
 .coinDecoration { top: 13.5%; left: 2.5%; width: clamp(16rem,18vw,21rem); }

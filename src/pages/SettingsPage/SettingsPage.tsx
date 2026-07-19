@@ -4,6 +4,7 @@ import { getSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import type { AuthUser } from '@/types/auth'
 import type { EmailReportData } from '@/types/emailReport'
+import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './SettingsPage.module.css'
 
 const categoryIconPath = (iconKey: string) => `/assets/icons/categories/category-${iconKey}.png`
@@ -141,7 +142,7 @@ function SettingsPage() {
             <p className={styles.reportMonth}>{emailReport?.yearMonth.replace('-', '.') ?? '-'}</p>
             <div className={styles.reportTotal}>
               <span>총 지출 금액</span>
-              <strong>₩ {emailReport?.totalExpenseHome.toLocaleString('ko-KR') ?? '0'}</strong>
+              <strong>{emailReport ? formatCurrencyAmount(emailReport.totalExpenseHome, emailReport.homeCurrency) : '-'}</strong>
             </div>
             <hr />
             <h3>카테고리별 지출</h3>
@@ -150,7 +151,7 @@ function SettingsPage() {
                 <li key={category.categoryId}>
                   <span className={styles.reportCategoryIcon}><img src={categoryIconPath(category.iconKey)} alt="" aria-hidden="true" /></span>
                   <span className={styles.reportCategoryInfo}>
-                    <span><b>{category.categoryName}</b><strong>₩ {category.amountHome.toLocaleString('ko-KR')}</strong></span>
+                    <span><b>{category.categoryName}</b><strong>{formatCurrencyAmount(category.amountHome, emailReport.homeCurrency)}</strong></span>
                     <span className={styles.reportProgress}><i style={{ width: `${category.ratio}%` }} /></span>
                   </span>
                 </li>

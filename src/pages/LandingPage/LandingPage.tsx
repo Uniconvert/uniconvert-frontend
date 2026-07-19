@@ -62,7 +62,7 @@ function LandingPage() {
             <Link className={styles.loginLink} to={ROUTE_PATHS.login}>
               로그인
             </Link>
-            <Link className={styles.signUpLink} to={ROUTE_PATHS.terms}>
+            <Link className={styles.signUpLink} to={ROUTE_PATHS.signUp}>
               회원가입
             </Link>
           </div>
@@ -83,7 +83,7 @@ function LandingPage() {
             <br />
             내가 <strong>사용할 예산</strong>을 언제나 명확하게
           </p>
-          <Link className={styles.startLink} to={ROUTE_PATHS.terms}>
+          <Link className={styles.startLink} to={ROUTE_PATHS.login}>
             시작하기
           </Link>
         </div>

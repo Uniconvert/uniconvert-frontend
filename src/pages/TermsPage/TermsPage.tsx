@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { ensureMockOnboardingSession, updateOnboardingSettings } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './TermsPage.module.css'
@@ -42,6 +43,9 @@ function TermsPage() {
       return
     }
 
+    ensureMockOnboardingSession()
+    sessionStorage.setItem('uniconvert.termsAgreements', JSON.stringify(agreements))
+    updateOnboardingSettings({ termsAgreements: agreements })
     // TODO: Swagger 확정 후 약관 동의 상태 저장 API를 연결합니다.
     navigate(ROUTE_PATHS.onboardingBaseCurrency)
   }

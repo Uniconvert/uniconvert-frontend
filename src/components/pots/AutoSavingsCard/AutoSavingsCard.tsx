@@ -1,8 +1,9 @@
 import styles from './AutoSavingsCard.module.css'
+import { formatCurrencyAmount } from '@/utils/currency'
 
-interface AutoSavingsCardProps { name: string; imageSrc: string; monthlyContribution: number; autoSavingRate: number }
+interface AutoSavingsCardProps { name: string; imageSrc: string; monthlyContribution: number; autoSavingRate: number; currency: string }
 
-function AutoSavingsCard({ name, imageSrc, monthlyContribution, autoSavingRate }: AutoSavingsCardProps) {
+function AutoSavingsCard({ name, imageSrc, monthlyContribution, autoSavingRate, currency }: AutoSavingsCardProps) {
   return (
     <section className={styles.card} aria-labelledby="auto-saving-title">
       <h2 id="auto-saving-title">자동 적립 현황</h2>
@@ -12,7 +13,7 @@ function AutoSavingsCard({ name, imageSrc, monthlyContribution, autoSavingRate }
           <strong>{name}</strong>
           <span>예산의 {autoSavingRate}%</span>
         </div>
-        <p><strong>₩ {monthlyContribution.toLocaleString('ko-KR')}</strong><span> / 월</span></p>
+        <p><strong>{formatCurrencyAmount(monthlyContribution, currency)}</strong><span> / 월</span></p>
       </div>
     </section>
   )

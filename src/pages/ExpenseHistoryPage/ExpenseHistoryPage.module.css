@@ -25,12 +25,45 @@
 
 .assetCard,
 .recentCard,
-.monthlyCard {
+.monthlyCard,
+.savedCard {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 2px rgba(54, 104, 148, 0.03);
 }
+
+.savedCard { width: min(32rem, 100%); padding: 1.75rem 2.25rem; }
+.savedCard header { display: flex; align-items: center; justify-content: space-between; }
+.savedCard h2 { font-size: 1.25rem; }
+.savedCard header span { color: var(--color-text-muted); }
+.savedCard ul { display: grid; margin-top: 1rem; list-style: none; }
+.savedCard li { display: grid; grid-template-columns: 3.25rem 1fr auto; align-items: center; gap: .85rem; padding: .75rem 0; border-bottom: 1px solid var(--color-border); }
+.savedCard li > span:nth-child(2), .savedExpenseMain > span:nth-child(2) { display: grid; gap: .2rem; }
+.savedCard small, .savedExpenseMain small { color: var(--color-text-muted); }
+.savedCard > button { display: block; margin: 1rem auto 0; color: var(--color-text-muted); background: transparent; border: 0; text-decoration: underline; }
+
+.modalBackdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(218, 237, 252, .82); backdrop-filter: blur(5px); }
+.savedModal { width: min(43rem, 100%); max-height: calc(100svh - 3rem); overflow: auto; padding: 2rem 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.savedModal header { display: flex; align-items: flex-start; gap: .75rem; }
+.savedModal header > div { display: grid; flex: 1; gap: .75rem; }
+.savedModal header h2 { font-size: 1.375rem; }
+.monthPicker { position: relative; width: fit-content; }
+.monthPicker > button { padding: .35rem 0; background: transparent; border: 0; font-size: 1rem; }
+.monthMenu { display: grid; width: 6.4rem; max-height: 14rem; position: absolute; z-index: 3; top: 2.25rem; left: -.75rem; overflow-y: auto; padding: .35rem 0; background: white; border: 1px solid #a9c8e7; border-radius: .5rem; box-shadow: var(--shadow-sm); }
+.monthMenu button { padding: .45rem .75rem; text-align: left; background: transparent; border: 0; }
+.monthMenu button:hover, .monthMenu button[aria-selected='true'] { color: var(--color-primary); background: #eff7ff; }
+.manageButton { padding: .35rem; color: var(--color-primary); background: transparent; border: 0; font-size: 1rem; }
+.savedModal ul { margin-top: 1rem; list-style: none; }
+.savedModal li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .75rem; min-height: 6rem; border-bottom: 1px solid var(--color-border); }
+.savedModal li[draggable='true'] { grid-template-columns: auto 1fr auto auto; cursor: grab; }
+.savedModal li.dragging { opacity: .45; background: #eff7ff; }
+.savedExpenseMain { display: grid; grid-template-columns: 3.25rem 1fr; align-items: center; gap: .85rem; padding: 0; text-align: left; background: transparent; border: 0; }
+.dragHandle { color: var(--color-text-muted); font-size: 1.4rem; }
+.savedExpenseMain b i { margin-left: .45rem; color: var(--color-primary); font-style: normal; }
+.modalDelete { color: #ff5d5d; background: transparent; border: 0; font-size: 1.15rem; }
+.closeModalButton { display: block; margin: 1.25rem auto 0; padding: .5rem 2rem; background: transparent; border: 0; font-size: 1.1rem; }
+.emptySaved { display: block !important; padding: 2rem 0; text-align: center; }
 
 .assetCard {
   min-height: 30rem;
@@ -44,16 +77,8 @@
   position: absolute;
   top: 2.25rem;
   left: 50%;
-  background: conic-gradient(
-    #66a9e4 0 19%, transparent 19% 25%,
-    #9ecbf2 25% 44%, transparent 44% 50%,
-    #62c494 50% 69%, transparent 69% 75%,
-    #a9e8ca 75% 94%, transparent 94% 100%
-  );
-  border-radius: 50%;
+  overflow: visible;
   transform: translateX(-50%) rotate(-20deg);
-  -webkit-mask: radial-gradient(circle, transparent 61%, #000 62%);
-  mask: radial-gradient(circle, transparent 61%, #000 62%);
 }
 
 .assetCenter {
@@ -115,7 +140,6 @@
 
 .progressTrack span {
   display: block;
-  width: 72.8%;
   height: 100%;
   background: var(--color-primary);
   border-radius: inherit;
@@ -217,7 +241,7 @@
 }
 
 .monthlyCard {
-  min-height: 26.625rem;
+  min-height: 31rem;
   padding: 2rem 2.375rem;
 }
 
@@ -230,8 +254,8 @@
 }
 
 .donutWrap {
-  width: 17rem;
-  height: 17rem;
+  width: clamp(21.5rem, 24vw, 23rem);
+  height: clamp(21.5rem, 24vw, 23rem);
   position: relative;
 }
 
@@ -239,46 +263,14 @@
   width: 100%;
   height: 100%;
   position: absolute;
-  border-radius: 50%;
-  background: conic-gradient(from -90deg,
-    #66a9e4 0 55%,
-    #366384 55% 79%,
-    #153047 79% 89%,
-    #a9cbfa 89% 97%,
-    #e2efff 97% 100%
-  );
+  overflow: visible;
 }
-
-.donut::after {
-  width: 7.625rem;
-  height: 7.625rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  content: '';
-  background: var(--color-surface);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.donut > span {
-  position: absolute;
-  z-index: 1;
-  color: var(--color-surface);
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-bold);
-}
-
-.percent55 { top: 2.25rem; left: 5.5rem; }
-.percent24 { bottom: 2.75rem; left: 3.75rem; }
-.percent10 { right: 3.75rem; bottom: 2.75rem; }
-.percent8 { top: 8.25rem; right: 1.75rem; }
-.percent2 { top: 6.25rem; right: 0.75rem; color: #366894 !important; }
+.donut text { font-size: .95rem; font-weight: var(--font-weight-bold); pointer-events: none; }
 
 .donutCenter {
   display: grid;
-  width: 7.5rem;
-  height: 7.5rem;
+  width: 9.25rem;
+  height: 9.25rem;
   position: absolute;
   z-index: 2;
   top: 50%;
@@ -321,6 +313,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+  white-space: nowrap;
 }
 
 .categoryName i {
@@ -373,6 +366,12 @@
   bottom: 0;
 }
 
+@media (max-width: 100rem) and (min-width: 87.501rem) {
+  .page { grid-template-columns: minmax(24rem, 26rem) minmax(0, 1fr); gap: 2rem; }
+  .monthlyBody { grid-template-columns: minmax(15rem, .85fr) minmax(14rem, 1.15fr); gap: 1rem; }
+  .categorySummary li { grid-template-columns: minmax(6rem, 1fr) 3rem auto; gap: .5rem; font-size: 1rem; }
+}
+
 @media (max-width: 87.5rem) {
   .page {
     grid-template-columns: 1fr;
@@ -391,6 +390,16 @@
     grid-row: 1;
   }
 
+  .monthlyBody {
+    grid-template-columns: minmax(20rem, 0.95fr) minmax(0, 1.05fr);
+    gap: 1.5rem;
+  }
+
+  .donutWrap {
+    width: 21rem;
+    height: 21rem;
+  }
+
   .mascotArea {
     display: none;
   }
@@ -406,6 +415,9 @@
   }
 
   .donutWrap {
+    width: min(21rem, 100%);
+    height: auto;
+    aspect-ratio: 1;
     margin: 0 auto;
   }
 }

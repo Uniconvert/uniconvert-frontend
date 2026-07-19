@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router'
-import { getSessionUser } from '@/auth/session'
+import { clearSession, getSessionUser } from '@/auth/session'
+import { getMockAssetSummary } from '@/mocks/dashboardStore'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './DashboardLayout.module.css'
 
@@ -64,25 +65,6 @@ const homeTabs = [
   },
 ]
 
-// TODO: Swagger 수신 후 GET /dashboard 응답의 자산 요약으로 교체한다.
-const currencyAssets = [
-  {
-    flagSrc: '/assets/icons/currencies/currency-usd.png',
-    code: 'USD',
-    amount: '1,499.07',
-  },
-  {
-    flagSrc: '/assets/icons/currencies/currency-eur.png',
-    code: 'EUR',
-    amount: '1,711.83',
-  },
-  {
-    flagSrc: '/assets/icons/currencies/currency-jpy.png',
-    code: 'JPY',
-    amount: '9.23',
-  },
-]
-
 function NavigationIcon({ name }: { name: NavigationIconName }) {
   if (name === 'home') {
     return (
@@ -120,7 +102,10 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
 
 function DashboardLayout() {
   const { pathname } = useLocation()
+  const now = new Date()
+  const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
   const sessionUser = getSessionUser()
+  const assetSummary = getMockAssetSummary()
   const displayName = sessionUser?.nickname || '사용자'
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
@@ -164,6 +149,11 @@ function DashboardLayout() {
           />
         </Link>
 
+        <div className={styles.headerScene} aria-hidden="true">
+          <img className={styles.flightPath} src="/assets/illustrations/header-flight-path.png" alt="" />
+          <img className={styles.airport} src="/assets/illustrations/airport.png" alt="" />
+        </div>
+
         <div className={styles.userChip} aria-label={`현재 사용자 ${displayName}`}>
           <span className={styles.avatar} aria-hidden="true">
             {sessionUser?.profileImage
@@ -196,30 +186,15 @@ function DashboardLayout() {
                 className={styles.assetSummary}
                 aria-labelledby="asset-summary-title"
               >
+                <div className={styles.assetRing} aria-hidden="true"><img src="/assets/icons/pots/pot-wallet.png" alt="" /><small>{currentYearMonth}</small></div>
                 <h2 id="asset-summary-title">총 보유 자산</h2>
                 <p className={styles.assetTotal}>
-                  1,250,000 <span>KRW</span>
+                  {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString('ko-KR')}
                 </p>
-                <p className={styles.assetUsd}>912.50 USD</p>
-
-                <ul className={styles.currencyList}>
-                  {currencyAssets.map((currency) => (
-                    <li key={currency.code}>
-                      <span className={styles.currencyName}>
-                        <img
-                          src={currency.flagSrc}
-                          alt=""
-                          aria-hidden="true"
-                        />
-                        {currency.code}
-                      </span>
-                      <span>{currency.amount}</span>
-                    </li>
-                  ))}
-                </ul>
+                <p className={styles.assetUsd}>({assetSummary.secondaryLabel})</p>
               </section>
 
-              <Link className={styles.logoutLink} to={ROUTE_PATHS.login}>
+              <Link className={styles.logoutLink} to={ROUTE_PATHS.login} onClick={clearSession}>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9" />
                 </svg>

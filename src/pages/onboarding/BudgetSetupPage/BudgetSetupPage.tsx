@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import Button from '@/components/common/Button/Button'
+import { getOnboardingSettings, updateOnboardingSettings } from '@/auth/session'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './BudgetSetupPage.module.css'
 
@@ -14,8 +15,9 @@ const currencyDetails: Record<string, { name: string; symbol: string; locale: st
 
 function BudgetSetupPage() {
   const navigate = useNavigate()
-  const [budget, setBudget] = useState('')
-  const baseCurrencyCode = sessionStorage.getItem('uniconvert.baseCurrency') ?? ''
+  const onboardingSettings = getOnboardingSettings()
+  const [budget, setBudget] = useState(() => onboardingSettings.monthlyBudget ? String(onboardingSettings.monthlyBudget) : '')
+  const baseCurrencyCode = onboardingSettings.baseCurrency ?? sessionStorage.getItem('uniconvert.baseCurrency') ?? ''
   const baseCurrency = currencyDetails[baseCurrencyCode]
   const formattedBudget = budget && baseCurrency
     ? Number(budget).toLocaleString(baseCurrency.locale)
@@ -23,7 +25,9 @@ function BudgetSetupPage() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    navigate(ROUTE_PATHS.onboardingProfile)
+    sessionStorage.setItem('uniconvert.monthlyBudget', budget)
+    updateOnboardingSettings({ monthlyBudget: Number(budget) })
+    navigate(ROUTE_PATHS.onboardingTimezone)
   }
 
   return (
@@ -31,8 +35,8 @@ function BudgetSetupPage() {
       <img className={styles.coinDecoration} src="/assets/icons/login_coin.png" alt="" aria-hidden="true" />
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
       <form className={styles.card} onSubmit={handleSubmit}>
-        <div className={styles.progress} aria-label="온보딩 3단계 중 3단계">
-          <span /><span /><span />
+        <div className={styles.progress} aria-label="온보딩 4단계 중 3단계">
+          <span /><span /><span /><span className={styles.pending} />
         </div>
         <h1 id="budget-title">이번 달 예산을 설정하세요</h1>
         <p className={styles.description}>
@@ -56,7 +60,7 @@ function BudgetSetupPage() {
           <strong>ⓘ 도움말</strong>
           <p>고정 지출과 변동 지출을 구분해 예산을 설정하면 더욱 효율적으로 지출을 관리할 수 있습니다.</p>
         </div>
-        <Button type="submit" fullWidth disabled={!baseCurrency || Number(budget) <= 0}>프로필 생성하기</Button>
+        <Button type="submit" fullWidth disabled={!baseCurrency || Number(budget) <= 0}>다음</Button>
       </form>
     </section>
   )

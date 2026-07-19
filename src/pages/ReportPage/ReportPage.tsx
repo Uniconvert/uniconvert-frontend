@@ -1,56 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { getMonthlyReport, sendMonthlyReport } from '@/api/reports'
 import Button from '@/components/common/Button/Button'
+import type { MonthlyReportData, ReportCategory } from '@/types/report'
+import { formatCurrencyAmount, getCurrentYearMonth } from '@/utils/currency'
 import styles from './ReportPage.module.css'
 
-interface MonthlyExpense {
-  month: string
-  amount: number
-  isCurrent?: boolean
-}
-
-interface CategoryExpense {
-  id: string
-  label: string
-  amount: number
-  ratio: number
-  iconSrc: string
-}
-
-// TODO: Swagger 연동 후 월별·카테고리별 리포트 응답으로 교체합니다.
-const monthlyExpenses: MonthlyExpense[] = [
-  { month: '1월', amount: 1850000 },
-  { month: '2월', amount: 2200000 },
-  { month: '3월', amount: 2000000 },
-  { month: '4월', amount: 2500000 },
-  { month: '5월', amount: 2200000 },
-  { month: '6월', amount: 1455000, isCurrent: true },
-]
-
-const categoryExpenses: CategoryExpense[] = [
-  { id: 'food', label: '식비', amount: 350000, ratio: 30, iconSrc: '/assets/icons/categories/category-food.png' },
-  { id: 'transport', label: '교통', amount: 120000, ratio: 10, iconSrc: '/assets/icons/categories/category-transport.png' },
-  { id: 'education', label: '학비', amount: 150000, ratio: 13, iconSrc: '/assets/icons/categories/category-education.png' },
-  { id: 'travel', label: '여행', amount: 800000, ratio: 72, iconSrc: '/assets/icons/categories/category-travel.png' },
-  { id: 'medical', label: '의료', amount: 35000, ratio: 3, iconSrc: '/assets/icons/categories/category-medical.png' },
-]
-
-const chartMaximum = 2750000
-
-function CategoryList({ compact = false }: { compact?: boolean }) {
+function CategoryList({ categories, currency, compact = false }: { categories: ReportCategory[]; currency: string; compact?: boolean }) {
   return (
     <ul className={`${styles.categoryList} ${compact ? styles.compactCategoryList : ''}`}>
-      {categoryExpenses.map((category) => (
-        <li key={category.id}>
+      {categories.map((category) => (
+        <li key={category.categoryId}>
           <span className={styles.categoryIcon}>
-            <img src={category.iconSrc} alt="" aria-hidden="true" />
+            <img src={`/assets/icons/categories/category-${category.iconKey}.png`} alt="" aria-hidden="true" />
           </span>
           <span className={styles.categoryInfo}>
             <span className={styles.categoryHeading}>
-              <b>{category.label}</b>
-              <strong>₩ {category.amount.toLocaleString('ko-KR')}</strong>
+              <b>{category.name}</b>
+              <strong>{formatCurrencyAmount(category.amountHome, currency)}</strong>
             </span>
             <span className={styles.progressTrack} aria-hidden="true">
-              <i style={{ width: `${category.ratio}%` }} />
+              <i style={{ width: `${category.percent}%` }} />
             </span>
           </span>
         </li>
@@ -60,11 +29,75 @@ function CategoryList({ compact = false }: { compact?: boolean }) {
 }
 
 function ReportPage() {
+  const [report, setReport] = useState<MonthlyReportData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
   const [sendMessage, setSendMessage] = useState('')
+  const [isSending, setIsSending] = useState(false)
 
-  const handleSendReport = () => {
-    setSendMessage('이메일 리포트 전송을 요청했습니다.')
-    // TODO: Swagger 이메일 리포트 전송 API를 연결합니다.
+  useEffect(() => {
+    let isActive = true
+
+    getMonthlyReport(getCurrentYearMonth())
+      .then((response) => {
+        if (isActive) setReport(response)
+      })
+      .catch((error) => {
+        if (isActive) {
+          setErrorMessage(error instanceof Error ? error.message : '리포트를 불러오지 못했습니다.')
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  const chartMaximum = useMemo(() => {
+    const maximum = Math.max(...(report?.monthlyExpenses.map((expense) => expense.amountHome) ?? [0]))
+    return maximum > 0 ? maximum * 1.1 : 1
+  }, [report])
+
+  const axisLabels = useMemo(
+    () => [0.8, 0.6, 0.4, 0.2, 0].map((ratio) => Math.round(chartMaximum * ratio)),
+    [chartMaximum],
+  )
+
+  const handleSendReport = async () => {
+    if (!report || isSending) return
+
+    setIsSending(true)
+    setSendMessage('')
+
+    try {
+      await sendMonthlyReport(report.yearMonth)
+      setSendMessage('이메일 리포트 전송을 요청했습니다.')
+    } catch (error) {
+      setSendMessage(error instanceof Error ? error.message : '리포트 전송에 실패했습니다.')
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <section className={styles.page} aria-busy="true">
+        <h1>리포트</h1>
+        <p>리포트를 불러오는 중입니다.</p>
+      </section>
+    )
+  }
+
+  if (errorMessage || !report) {
+    return (
+      <section className={styles.page}>
+        <h1>리포트</h1>
+        <p role="alert">{errorMessage || '리포트 데이터가 없습니다.'}</p>
+      </section>
+    )
   }
 
   return (
@@ -76,33 +109,34 @@ function ReportPage() {
           <h2 id="monthly-chart-title">월별 지출 추이</h2>
           <div className={styles.chartBody}>
             <div className={styles.axisLabels} aria-hidden="true">
-              <span>2,200,000</span>
-              <span>1,650,000</span>
-              <span>1,100,000</span>
-              <span>550,000</span>
-              <span>0</span>
+              {axisLabels.map((label) => <span key={label}>{label.toLocaleString('ko-KR')}</span>)}
             </div>
             <div className={styles.barChart}>
-              {monthlyExpenses.map((expense) => (
-                <div className={styles.barColumn} key={expense.month}>
-                  <span
-                    className={`${styles.bar} ${expense.isCurrent ? styles.currentBar : ''}`}
-                    style={{ height: `${(expense.amount / chartMaximum) * 100}%` }}
-                    title={`${expense.month} ${expense.amount.toLocaleString('ko-KR')}원`}
-                  />
-                  <span className={expense.isCurrent ? styles.currentMonth : undefined}>{expense.month}</span>
-                </div>
-              ))}
+              {report.monthlyExpenses.map((expense) => {
+                const month = `${Number(expense.yearMonth.slice(5))}월`
+                const isCurrent = expense.yearMonth === report.yearMonth
+
+                return (
+                  <div className={styles.barColumn} key={expense.yearMonth}>
+                    <span
+                      className={`${styles.bar} ${isCurrent ? styles.currentBar : ''}`}
+                      style={{ height: `${(expense.amountHome / chartMaximum) * 100}%` }}
+                      title={`${month} ${expense.amountHome.toLocaleString('ko-KR')}원`}
+                    />
+                    <span className={isCurrent ? styles.currentMonth : undefined}>{month}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
           <p className={styles.srOnly}>
-            {monthlyExpenses.map((expense) => `${expense.month} ${expense.amount.toLocaleString('ko-KR')}원`).join(', ')}
+            {report.monthlyExpenses.map((expense) => `${Number(expense.yearMonth.slice(5))}월 ${expense.amountHome.toLocaleString('ko-KR')}원`).join(', ')}
           </p>
         </section>
 
         <section className={styles.categoryCard} aria-labelledby="category-report-title">
           <h2 id="category-report-title">카테고리별 지출</h2>
-          <CategoryList />
+          <CategoryList categories={report.categoryBreakdown} currency={report.homeCurrency} />
         </section>
       </div>
 
@@ -110,15 +144,21 @@ function ReportPage() {
         <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
         <section className={styles.previewCard}>
           <h2>리포트 미리보기</h2>
-          <p className={styles.reportMonth}>2026.06</p>
+          <p className={styles.reportMonth}>{report.yearMonth.replace('-', '.')}</p>
           <div className={styles.reportTotal}>
             <span>총 지출 금액</span>
-            <strong>₩ 1,455,000</strong>
+            <strong>{formatCurrencyAmount(report.totalExpenseHome, report.homeCurrency)}</strong>
           </div>
           <hr />
           <h3>카테고리별 지출</h3>
-          <CategoryList compact />
-          <Button className={styles.sendButton} fullWidth onClick={handleSendReport}>
+          <CategoryList categories={report.categoryBreakdown} currency={report.homeCurrency} compact />
+          <Button
+            className={styles.sendButton}
+            fullWidth
+            onClick={handleSendReport}
+            disabled={isSending}
+            isLoading={isSending}
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="m4 7 8 6 8-6" />

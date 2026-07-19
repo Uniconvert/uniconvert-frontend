@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { deleteExpense, getExpenseDetail, updateExpense } from '@/api/expenses'
+import { deleteExpense, getExpenseDetail, getExpenseHistory, updateExpense } from '@/api/expenses'
 import Button from '@/components/common/Button/Button'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import type { ExpenseDetail } from '@/types/expense'
+import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './ExpenseDetailPage.module.css'
 
 const categoryOptions = [
@@ -25,17 +26,29 @@ function ExpenseDetailPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [budgetSummary, setBudgetSummary] = useState({ homeCurrency: 'KRW', monthlyBudgetHome: 0 })
 
   useEffect(() => {
     let isActive = true
 
     getExpenseDetail(expenseId)
-      .then((response) => {
+      .then(async (response) => {
         if (isActive) {
           setExpense(response)
           setDraft(response)
-          setIsLoading(false)
         }
+        if (response) {
+          const history = await getExpenseHistory(response.spentAt.slice(0, 7), 'month')
+          if (isActive) {
+            setBudgetSummary({ homeCurrency: history.homeCurrency, monthlyBudgetHome: history.monthlyBudgetHome })
+          }
+        }
+      })
+      .catch(() => {
+        if (isActive) setErrorMessage('지출 상세를 불러오지 못했습니다.')
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false)
       })
 
     return () => {
@@ -122,11 +135,11 @@ function ExpenseDetailPage() {
             <div>
               <span>결제 금액</span>
               <strong>{expense.currency} {expense.originalAmount.toLocaleString('en-US', { maximumFractionDigits: 2 })}</strong>
-              <p>KRW {expense.convertedAmountHome.toLocaleString('ko-KR')}</p>
+              <p>{formatCurrencyAmount(expense.convertedAmountHome, budgetSummary.homeCurrency)}</p>
             </div>
             <div className={styles.rateInfo}>
               <span>적용 환율</span>
-              <strong>{expense.appliedRate.toLocaleString('ko-KR')} KRW</strong>
+              <strong>{expense.appliedRate.toLocaleString('ko-KR')} {budgetSummary.homeCurrency}</strong>
             </div>
           </section>
 
@@ -137,7 +150,7 @@ function ExpenseDetailPage() {
               <label>
                 <span>통화</span>
                 <select value={draft.currency} onChange={(event) => setDraft({ ...draft, currency: event.target.value as ExpenseDetail['currency'] })}>
-                  <option value="USD">USD</option><option value="EUR">EUR</option><option value="JPY">JPY</option><option value="KRW">KRW</option>
+                  <option value="USD">USD</option><option value="EUR">EUR</option><option value="JPY">JPY</option><option value="CNY">CNY</option><option value="KRW">KRW</option>
                 </select>
               </label>
               <label>
@@ -183,10 +196,13 @@ function ExpenseDetailPage() {
           <section className={styles.summaryCard}>
             <h2>결제 요약</h2>
             <div><span>원 결제 금액</span><strong>{expense.currency} {expense.originalAmount.toLocaleString('en-US', { maximumFractionDigits: 2 })}</strong></div>
-            <div><span>환산 금액</span><strong className={styles.primaryText}>₩ {expense.convertedAmountHome.toLocaleString('ko-KR')}</strong></div>
+            <div><span>환산 금액</span><strong className={styles.primaryText}>{formatCurrencyAmount(expense.convertedAmountHome, budgetSummary.homeCurrency)}</strong></div>
             <div><span>예산 반영</span><strong>반영 완료</strong></div>
             <hr />
-            <p>이 지출은 7월 예산의 <strong>{((expense.convertedAmountHome / 1250000) * 100).toFixed(1)}%</strong>를 사용했습니다.</p>
+            <p>
+              이 지출은 {Number(expense.spentAt.slice(5, 7))}월 예산의{' '}
+              <strong>{budgetSummary.monthlyBudgetHome > 0 ? ((expense.convertedAmountHome / budgetSummary.monthlyBudgetHome) * 100).toFixed(1) : '0.0'}%</strong>를 사용했습니다.
+            </p>
           </section>
         </aside>
       </div>
