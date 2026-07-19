@@ -1,7 +1,9 @@
 import expenseHistoryMock from '@/mocks/expense-history.json'
 import { createStoredExpense, deleteStoredExpense, getStoredExpenses, updateStoredExpense } from '@/mocks/expenseStore'
+import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
+import { getStoredSavedExpenses, saveStoredSavedExpenses } from '@/mocks/savedExpenseStore'
 import type { ApiResponse } from '@/types/api'
-import type { CreateExpenseInput, ExpenseDetail, ExpenseHistoryData, UpdateExpenseInput } from '@/types/expense'
+import type { CreateExpenseInput, ExpenseDetail, ExpenseHistoryData, SavedExpense, UpdateExpenseInput } from '@/types/expense'
 import { apiRequest, isUsingMockApi } from './client'
 
 const categoryColors: Record<string, string> = {
@@ -10,7 +12,12 @@ const categoryColors: Record<string, string> = {
 }
 
 function buildMockHistory(yearMonth: string): ExpenseHistoryData {
-  const base = (expenseHistoryMock as ApiResponse<ExpenseHistoryData>).data
+  const mockBase = (expenseHistoryMock as ApiResponse<ExpenseHistoryData>).data
+  const base: ExpenseHistoryData = {
+    ...mockBase,
+    homeCurrency: getMockHomeCurrency(),
+    monthlyBudgetHome: getMockMonthlyBudget(),
+  }
   const expenses = getStoredExpenses()
     .filter((expense) => expense.spentAt.startsWith(yearMonth))
     .sort((a, b) => b.spentAt.localeCompare(a.spentAt))
@@ -42,6 +49,7 @@ function buildMockHistory(yearMonth: string): ExpenseHistoryData {
     })),
     recentExpenses: expenses.map((expense) => ({
       expenseId: expense.expenseId,
+      merchantName: expense.merchantName,
       categoryName: expense.categoryName,
       convertedAmountHome: expense.convertedAmountHome,
       iconKey: expense.iconKey,
@@ -80,4 +88,28 @@ export function updateExpense(expenseId: string, input: UpdateExpenseInput) {
 export function deleteExpense(expenseId: string) {
   if (isUsingMockApi) return Promise.resolve(deleteStoredExpense(expenseId))
   return apiRequest(`/expenses/${expenseId}`, { success: true, data: true }, { method: 'DELETE' })
+}
+
+export function getSavedExpenses() {
+  if (isUsingMockApi) return Promise.resolve(getStoredSavedExpenses())
+  return apiRequest<SavedExpense[]>('/saved-expenses', { success: true, data: [] })
+}
+
+export function updateSavedExpenseOrder(expenses: SavedExpense[]) {
+  if (isUsingMockApi) {
+    saveStoredSavedExpenses(expenses)
+    return Promise.resolve(expenses)
+  }
+  return apiRequest<SavedExpense[]>('/saved-expenses/order', { success: true, data: expenses }, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expenseIds: expenses.map((expense) => expense.expenseId) }),
+  })
+}
+
+export function deleteSavedExpense(expenseId: string) {
+  if (isUsingMockApi) {
+    const next = getStoredSavedExpenses().filter((expense) => expense.expenseId !== expenseId)
+    saveStoredSavedExpenses(next)
+    return Promise.resolve(true)
+  }
+  return apiRequest(`/saved-expenses/${expenseId}`, { success: true, data: true }, { method: 'DELETE' })
 }

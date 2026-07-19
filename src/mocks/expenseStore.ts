@@ -1,18 +1,21 @@
 import expenseDetailsMock from '@/mocks/expense-details.json'
+import { getMockStorageKey, isSeededMockUser } from '@/mocks/mockScenario'
 import type { ApiResponse } from '@/types/api'
 import type { CreateExpenseInput, ExpenseDetail, UpdateExpenseInput } from '@/types/expense'
 
-const STORAGE_KEY = 'uniconvert.mockExpenses.v1'
+const STORAGE_KEY = 'uniconvert.mockExpenses.v2'
 
 function seedExpenses() {
+  if (!isSeededMockUser()) return []
   return structuredClone((expenseDetailsMock as ApiResponse<ExpenseDetail[]>).data)
 }
 
 export function getStoredExpenses(): ExpenseDetail[] {
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const storageKey = getMockStorageKey(STORAGE_KEY)
+  const stored = localStorage.getItem(storageKey)
   if (!stored) {
     const initialExpenses = seedExpenses()
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialExpenses))
+    localStorage.setItem(storageKey, JSON.stringify(initialExpenses))
     return initialExpenses
   }
 
@@ -20,13 +23,13 @@ export function getStoredExpenses(): ExpenseDetail[] {
     return JSON.parse(stored) as ExpenseDetail[]
   } catch {
     const initialExpenses = seedExpenses()
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialExpenses))
+    localStorage.setItem(storageKey, JSON.stringify(initialExpenses))
     return initialExpenses
   }
 }
 
 function saveExpenses(expenses: ExpenseDetail[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses))
+  localStorage.setItem(getMockStorageKey(STORAGE_KEY), JSON.stringify(expenses))
 }
 
 export function createStoredExpense(input: CreateExpenseInput) {

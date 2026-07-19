@@ -14,6 +14,7 @@ function toLoginResult(user: MockAuthUser): LoginResult {
       profileImage: user.profileImage,
       isEmailVerified: user.isEmailVerified,
       isOnboardingCompleted: user.isOnboardingCompleted,
+      mockDataMode: user.mockDataMode,
     },
   }
 }
@@ -34,6 +35,8 @@ export function login(credentials: LoginCredentials) {
 
   const emptyMockResponse: ApiResponse<LoginResult> = {
     success: true,
+    code: 'SUCCESS',
+    message: '로그인에 성공했습니다.',
     data: {
       accessToken: '',
       refreshToken: '',

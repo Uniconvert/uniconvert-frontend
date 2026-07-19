@@ -6,10 +6,10 @@
     "homeCurrency": "KRW",
     "totalExpenseHome": 1455000,
     "categories": [
-      { "categoryId": "food", "categoryName": "식비", "amountHome": 350000, "ratio": 30, "iconKey": "food" },
-      { "categoryId": "transport", "categoryName": "교통", "amountHome": 120000, "ratio": 10, "iconKey": "transport" },
-      { "categoryId": "education", "categoryName": "학비", "amountHome": 150000, "ratio": 13, "iconKey": "education" },
-      { "categoryId": "travel", "categoryName": "여행", "amountHome": 800000, "ratio": 72, "iconKey": "travel" },
+      { "categoryId": "food", "categoryName": "식비", "amountHome": 350000, "ratio": 24, "iconKey": "food" },
+      { "categoryId": "transport", "categoryName": "교통", "amountHome": 120000, "ratio": 8, "iconKey": "transport" },
+      { "categoryId": "education", "categoryName": "학비", "amountHome": 150000, "ratio": 10, "iconKey": "education" },
+      { "categoryId": "travel", "categoryName": "여행", "amountHome": 800000, "ratio": 55, "iconKey": "travel" },
       { "categoryId": "medical", "categoryName": "의료", "amountHome": 35000, "ratio": 3, "iconKey": "medical" }
     ]
   }
