@@ -96,7 +96,7 @@
 .profileCard {
   min-height: 31.875rem;
   margin-top: 2.5rem;
-  padding: 2rem 1.75rem 1.75rem;
+  padding: 2.5rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -122,7 +122,7 @@
   color: #366894;
   background: linear-gradient(145deg, #fff4cc, #d9efff);
   border: 2px solid var(--color-primary);
-  border-radius: 50%;
+  border-radius: 25%;
   font-size: 4rem;
   font-weight: var(--font-weight-bold);
 }
@@ -138,8 +138,8 @@
   width: 2.75rem;
   height: 2.75rem;
   position: absolute;
-  right: 0;
-  bottom: 0.25rem;
+  right: -0.5rem;
+  bottom: -0.25rem;
   place-items: center;
   color: var(--color-surface);
   background: var(--color-primary);
@@ -214,26 +214,27 @@
 }
 
 .reportPanel {
-  min-height: 52.375rem;
   position: relative;
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: start;
-  padding: 7.25rem 3.875rem 2.5rem;
-  background: linear-gradient(180deg, #f5faff 0%, #a8d2f3 100%);
+  padding: 5.25rem 2.5rem 2.5rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, #6AADEA 100%); /* 색상 통일 */
   border-radius: 3.75rem;
 }
 
 .emailIllustration {
-  width: 12.5rem;
+  width: 15rem;
   height: auto;
   position: absolute;
   z-index: 2;
-  top: 2.25rem;
-  right: 2.25rem;
+  top: 0rem;
+  right: -1.5rem;
 }
 
 .reportCard {
+  max-width: 26rem;
+  margin: 0 auto;
   min-height: 42.5rem;
   padding: 2rem 1.875rem;
   background: var(--color-surface);
@@ -285,6 +286,7 @@
   gap: 0.625rem;
   margin-top: 1.25rem;
   list-style: none;
+  padding: 0; 
 }
 
 .reportList li {
@@ -306,7 +308,7 @@
 .reportCategoryIcon img {
   width: 1.75rem;
   height: 1.75rem;
-  object-fit: contain;
+  object-fit: contain;  
 }
 
 .reportCategoryInfo {

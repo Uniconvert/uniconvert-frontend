@@ -1,18 +1,24 @@
+/* ReportPage.module.css */
+
 .page {
   display: grid;
   min-width: 0;
   min-height: 100%;
-  grid-template-columns: minmax(40rem, 54rem) minmax(28rem, 34.5rem);
+  grid-template-columns: 1fr;
   grid-template-rows: auto 1fr;
-  justify-content: space-between;
-  column-gap: 3rem;
 }
 
-.page > h1 {
-  grid-column: 1;
-  grid-row: 1;
-  margin-bottom: 2.5rem;
+.pageHeader h1 {
+  margin: 0 0 0.75rem;
   font-size: 1.75rem;
+  color: var(--color-primary, #66a9e4);
+}
+
+.pageHeader p {
+  margin: 0;
+  color: var(--color-text-muted, #9a9a9a);
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
 }
 
 .reportContent {
@@ -21,82 +27,341 @@
   grid-column: 1;
   grid-row: 2;
   flex-direction: column;
-  gap: 1.75rem;
-}
-
-.chartCard,
-.categoryCard {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  gap: 1rem;
 }
 
 .chartCard {
-  min-height: 19.625rem;
-  padding: 1.25rem 1.875rem 1rem;
+  position: relative;
+  width: 100%;
+  min-height: 22rem;
+  box-sizing: border-box;
+  padding: 1.5rem 1.875rem 1rem;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: var(--radius-md, 0.75rem);
+  background: #fff;
+  max-width: 60rem;
 }
 
-.chartCard h2,
-.categoryCard h2 {
+.chartCard h2 {
+  margin: 0;
+  color: var(--color-primary, #62a9e8);
   font-size: 1.125rem;
-  font-weight: var(--font-weight-regular);
+  font-weight: 500;
+}
+
+/* 제목 하이라이트 색상 */
+.highlightTitle {
+  color: #3C688E;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selectorBtn {
+  display: inline-flex;
+  gap: 0.625rem;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted, #9a9a9a);
+  cursor: pointer;
+  font-size: 1.125rem;
+}
+
+.selectorBtn span {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid #666; /* 화살표 색상 */
+  border-bottom: 2px solid #666;
+  transform: translateY(-15%) rotate(45deg); /* 아래 방향으로 꺾인 모양 만들기 */
+  transition: transform 0.2s ease-in-out; /* 부드럽게 돌아가는 애니메이션 */
+  margin-left: 0.25rem;
+}
+
+.selectorBtn[aria-expanded="true"] span {
+  transform: translateY(25%) rotate(225deg);
+}
+
+.dropdownBox {
+  position: absolute;
+  z-index: 10;
+  top: 4rem;
+  right: 1.875rem;
+  width: 17rem; /* 달력이 들어가도록 넓이 수정 */
+  padding: 1.25rem;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: var(--radius-md, 0.75rem);
+  background: #fff;
+  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 10%);
+}
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.calendarTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #222;
+}
+
+/* 2026.07 옆에 있는 작은 꺾쇠 */
+.calendarTitle::after {
+  content: '';
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 2px solid #999;
+  border-bottom: 2px solid #999;
+  transform: translateY(-25%) rotate(45deg);
+}
+
+/* < | > 버튼 영역 */
+.calendarNav {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.calendarNav button {
+  background: #fff;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+  transition: background 0.2s;
+}
+
+.calendarNav button:hover {
+  background: #f0f4f8;
+}
+
+.calendarNav span {
+  width: 1px;
+  height: 0.8rem;
+  background: var(--color-border, #d8dde1);
+}
+
+/* 7x6 달력 바둑판 배열 */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 0.75rem;
+  text-align: center;
+}
+
+.calendarWeekday {
+  font-size: 0.875rem;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.calendarDay {
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.calendarDay:hover {
+  background: #f0f4f8;
+}
+
+.calendarDayEmpty {
+  visibility: hidden;
+}
+
+/* 파란색으로 하이라이트된 날짜 (1~7일) */
+.calendarDaySelected {
+  color: var(--color-primary, #6AADEA);
+}
+
+.monthList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* 위아래 간격 */
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.monthListItem {
+  background: none;
+  border: none;
+  font-size: 1.125rem;
+  color: #333;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.monthListItem:hover {
+  color: var(--color-primary, #62a9e8);
+}
+
+/* 선택된 월(파란색 텍스트) */
+.monthListItemSelected {
+  color: #3C688E; /* highlightTitle과 같은 차분한 파란색 적용 */
+  font-weight: 500;
+}
+
+/* 맨 아래 더보기(아래 꺾쇠) 버튼 */
+.monthListMoreBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.monthListMoreBtn::after {
+  content: '';
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-right: 2px solid #aaa;
+  border-bottom: 2px solid #aaa;
+  transform: rotate(45deg);
 }
 
 .chartBody {
   display: grid;
   height: 14.25rem;
-  grid-template-columns: 4.5rem 1fr;
-  gap: 1rem;
-  margin-top: 1.25rem;
+  grid-template-columns: 4.75rem 1fr;
+  gap: 0.75rem;
+  margin-top: 3.5rem;
 }
 
 .axisLabels {
   display: flex;
-  height: 11.25rem;
+  height: 10.25rem;
   flex-direction: column;
   justify-content: space-between;
-  padding-top: 0.125rem;
-  color: var(--color-text-muted);
+  padding-top: 0.1rem;
+  color: var(--color-text-muted, #999);
   text-align: right;
   font-size: 0.875rem;
+  position: relative;
 }
 
-.barChart {
+/* 각 세로축 눈금(Tick mark) 생성 */
+.axisLabels span {
+  position: relative;
+}
+
+.axisLabels span::after {
+  content: '';
+  position: absolute;
+  right: -0.8rem;
+  top: 50%;
+  width: 0.35rem;
+  height: 1px;
+  background-color: #d8dde1;
+}
+
+.timeBarChart,
+.monthlyBarChart {
+  position: relative;
   display: grid;
   height: 12.75rem;
-  grid-template-columns: repeat(6, minmax(2rem, 1fr));
+  grid-auto-columns: minmax(2.5rem, 1fr);
+  grid-auto-flow: column;
   align-items: end;
-  gap: clamp(1.25rem, 3vw, 4rem);
+  gap: clamp(1rem, 3vw, 4rem);
   padding: 0 1rem;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(25% - 1px),
-    #edf0f2 calc(25% - 1px),
-    #edf0f2 25%
-  );
-  border-bottom: 1px solid #d8dde1;
+  border-bottom: none; 
+}
+
+/* 세로축 통짜 선 */
+.timeBarChart::before,
+.monthlyBarChart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 2rem; 
+  left: 0;
+  width: 1px;
+  background-color: #d8dde1;
+}
+
+/* 가로축 통짜 선 */
+.timeBarChart::after,
+.monthlyBarChart::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2rem; 
+  height: 1px;
+  background-color: #d8dde1;
+}
+
+.monthlyBarChart {
+  grid-auto-columns: minmax(2rem, 1fr);
+  gap: clamp(1rem, 2vw, 3rem);
 }
 
 .barColumn {
   display: grid;
   height: 100%;
   grid-template-rows: 1fr 2rem;
-  align-items: end;
   justify-items: center;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted, #999);
+}
+
+.barArea {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: end;
+  justify-content: center;
 }
 
 .bar {
   display: block;
   width: 100%;
   max-width: 3.75rem;
-  align-self: end;
-  background: #a7c0d5;
+  background: #a8c1d6;
   border-radius: 0.625rem 0.625rem 0 0;
 }
 
 .currentBar {
-  background: var(--color-primary);
+  background: var(--color-primary, #62a9e8);
+}
+
+.amountTooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  width: max-content;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--color-primary, #62a9e8);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--color-primary, #62a9e8);
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .barColumn > span:last-child {
@@ -105,256 +370,74 @@
   font-size: 1rem;
 }
 
-.barColumn .currentMonth {
-  color: #366894;
-  font-weight: var(--font-weight-bold);
-}
-
-.categoryCard {
-  width: 31.125rem;
-  min-height: 26.5rem;
-  padding: 2rem 2.5rem;
-}
-
-.categoryList {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  list-style: none;
-}
-
-.categoryList li {
-  display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr);
-  align-items: center;
-  gap: 1rem;
-}
-
-.categoryIcon {
-  display: grid;
-  width: 3.25rem;
-  height: 3.25rem;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-.categoryIcon img {
-  width: 2rem;
-  height: 2rem;
-  object-fit: contain;
-}
-
-.categoryInfo {
-  display: grid;
-  min-width: 0;
-  gap: 0.625rem;
-}
-
-.categoryHeading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.categoryHeading b,
-.categoryHeading strong {
-  font-size: 1rem;
-}
-
-.progressTrack {
-  display: block;
-  height: 0.4375rem;
-  overflow: hidden;
-  background: var(--color-control-disabled);
-  border-radius: var(--radius-pill);
-}
-
-.progressTrack i {
-  display: block;
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: inherit;
-}
-
-.previewPanel {
-  min-height: 52.375rem;
-  position: relative;
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: start;
-  padding: 7.25rem 3.875rem 2.5rem;
-  background: linear-gradient(180deg, #f5faff 0%, #a8d2f3 100%);
-  border-radius: 3.75rem;
-}
-
-.emailIllustration {
-  width: 12.5rem;
-  position: absolute;
-  z-index: 2;
-  top: 2.25rem;
-  right: 2.25rem;
-}
-
-.previewCard {
-  min-height: 42.5rem;
-  padding: 2rem 1.875rem 1.25rem;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-}
-
-.previewCard h2 {
-  color: #366894;
-  text-align: center;
-  font-size: 1.375rem;
-}
-
-.reportMonth {
-  margin-top: 0.75rem;
-  color: #9fbfda;
-  text-align: center;
-  font-size: 1.125rem;
-}
-
-.reportTotal {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 2.75rem;
-}
-
-.reportTotal span {
-  color: #8aaed0;
-}
-
-.reportTotal strong {
-  color: #366894;
-  font-size: 1.5rem;
-}
-
-.previewCard hr {
-  margin: 1.5rem 0;
-  border: 0;
-  border-top: 1px solid #ccdae6;
-}
-
-.previewCard h3 {
-  font-size: 1rem;
-  font-weight: var(--font-weight-regular);
-}
-
-.compactCategoryList {
-  gap: 0.625rem;
-  margin-top: 1.25rem;
-}
-
-.compactCategoryList li {
-  grid-template-columns: 2.875rem minmax(0, 1fr);
-  gap: 0.875rem;
-}
-
-.compactCategoryList .categoryIcon {
-  width: 2.875rem;
-  height: 2.875rem;
-}
-
-.compactCategoryList .categoryIcon img {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-
-.compactCategoryList .categoryInfo {
-  gap: 0.5rem;
-}
-
-.compactCategoryList .categoryHeading b,
-.compactCategoryList .categoryHeading strong {
-  font-size: 0.95rem;
-}
-
-.sendButton {
-  min-height: 3.125rem;
-  margin-top: 2.5rem;
-  font-size: 1rem;
-}
-
-.sendButton svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
-.sendStatus {
-  min-height: 1.25rem;
-  margin-top: 0.5rem;
-  color: #366894;
-  text-align: center;
-  font-size: 0.75rem;
+.barColumn .currentLabel {
+  color: var(--color-primary, #62a9e8);
+  font-weight: 600;
+  font-size: 1.25rem !important; 
 }
 
 .srOnly {
+  position: absolute;
   width: 1px;
   height: 1px;
-  position: absolute;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
 }
 
-@media (max-width: 87.5rem) {
-  .page {
-    grid-template-columns: 1fr;
-  }
+.mascotArea {
+  position: relative;
+  min-height: 16rem;
+  flex: 1;
+  margin-top: -15rem; 
+}
 
-  .page > h1,
-  .reportContent,
-  .previewPanel {
-    grid-column: 1;
-    grid-row: auto;
-  }
+.mascotArea p {
+  position: absolute;
+  right: 7.75rem;
+  bottom: 7.25rem;
+  padding: 0.65rem 1.5rem;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: var(--radius-pill);
+  font-size: 1.125rem;
+}
 
-  .previewPanel {
-    width: min(100%, 34.5rem);
-    margin-top: 2rem;
-  }
+.thoughtSmall,
+.thoughtLarge {
+  position: absolute;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: 50%;
+}
+
+.thoughtSmall { width: 0.9rem; height: 0.9rem; right: 5.4rem; bottom: 5.55rem; }
+.thoughtLarge { width: 1.15rem; height: 1.15rem; right: 6.65rem; bottom: 6.45rem; }
+
+.mascotArea img {
+  width: 8rem;
+  position: absolute;
+  right: 0;
+  bottom: 0;
 }
 
 @media (max-width: 48rem) {
-  .page > h1 {
-    font-size: 1.5rem;
-  }
-
   .chartCard {
     padding-inline: 1rem;
   }
 
   .chartBody {
     grid-template-columns: 3.75rem 1fr;
+  }
+
+  .timeBarChart,
+  .monthlyBarChart {
     gap: 0.5rem;
+    padding-inline: 0.25rem;
   }
 
-  .barChart {
-    gap: 0.75rem;
-    padding-inline: 0.5rem;
-  }
-
-  .categoryCard {
-    width: 100%;
-    padding-inline: 1rem;
-  }
-
-  .previewPanel {
-    min-height: auto;
-    padding: 6rem 1rem 1rem;
-    border-radius: 2rem;
-  }
-
-  .previewCard {
-    padding-inline: 1rem;
+  .amountTooltip {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
   }
 }

@@ -1,133 +1,226 @@
+// ReportPage.tsx
 import { useState } from 'react'
-import Button from '@/components/common/Button/Button'
 import styles from './ReportPage.module.css'
 
-interface MonthlyExpense {
-  month: string
-  amount: number
-  isCurrent?: boolean
-}
-
-interface CategoryExpense {
-  id: string
+interface Expense {
   label: string
   amount: number
-  ratio: number
-  iconSrc: string
 }
 
-// TODO: Swagger 연동 후 월별·카테고리별 리포트 응답으로 교체합니다.
-const monthlyExpenses: MonthlyExpense[] = [
-  { month: '1월', amount: 1850000 },
-  { month: '2월', amount: 2200000 },
-  { month: '3월', amount: 2000000 },
-  { month: '4월', amount: 2500000 },
-  { month: '5월', amount: 2200000 },
-  { month: '6월', amount: 1455000, isCurrent: true },
+const timeData: Expense[] = [
+  { label: '1', amount: 40000 },
+  { label: '2', amount: 70000 },
+  { label: '3', amount: 20000 },
+  { label: '4', amount: 10000 },
+  { label: '5', amount: 30000 },
+  { label: '6', amount: 50000 },
+  { label: '7', amount: 60000 },
 ]
 
-const categoryExpenses: CategoryExpense[] = [
-  { id: 'food', label: '식비', amount: 350000, ratio: 30, iconSrc: '/assets/icons/categories/category-food.png' },
-  { id: 'transport', label: '교통', amount: 120000, ratio: 10, iconSrc: '/assets/icons/categories/category-transport.png' },
-  { id: 'education', label: '학비', amount: 150000, ratio: 13, iconSrc: '/assets/icons/categories/category-education.png' },
-  { id: 'travel', label: '여행', amount: 800000, ratio: 72, iconSrc: '/assets/icons/categories/category-travel.png' },
-  { id: 'medical', label: '의료', amount: 35000, ratio: 3, iconSrc: '/assets/icons/categories/category-medical.png' },
+const monthlyData: Expense[] = [
+  { label: '1월', amount: 1000000 },
+  { label: '2월', amount: 800000 },
+  { label: '3월', amount: 900000 },
+  { label: '4월', amount: 1250000 },
+  { label: '5월', amount: 1150000 },
+  { label: '6월', amount: 1005000 },
+  { label: '7월', amount: 1050000 },
 ]
 
-const chartMaximum = 2750000
+interface BarChartProps {
+  titlePrefix: string
+  titleSuffix: string
+  data: Expense[]
+  chartClass: string
+  type: 'date' | 'month'
+  selectorText: string
+}
 
-function CategoryList({ compact = false }: { compact?: boolean }) {
+function BarChart({
+  titlePrefix,
+  titleSuffix,
+  data,
+  chartClass,
+  type,
+  selectorText,
+}: BarChartProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const maxAmount = data.length > 0 ? Math.max(...data.map((item) => item.amount)) : 0
+
+  const axisValues = [
+    maxAmount,                    // 100%
+    Math.round(maxAmount * 0.75), // 75%
+    Math.round(maxAmount * 0.5),  // 50%
+    Math.round(maxAmount * 0.25), // 25%
+    0,                            // 0%
+  ]
+
   return (
-    <ul className={`${styles.categoryList} ${compact ? styles.compactCategoryList : ''}`}>
-      {categoryExpenses.map((category) => (
-        <li key={category.id}>
-          <span className={styles.categoryIcon}>
-            <img src={category.iconSrc} alt="" aria-hidden="true" />
-          </span>
-          <span className={styles.categoryInfo}>
-            <span className={styles.categoryHeading}>
-              <b>{category.label}</b>
-              <strong>₩ {category.amount.toLocaleString('ko-KR')}</strong>
-            </span>
-            <span className={styles.progressTrack} aria-hidden="true">
-              <i style={{ width: `${category.ratio}%` }} />
-            </span>
-          </span>
-        </li>
-      ))}
-    </ul>
+    <section className={styles.chartCard}>
+      <div className={styles.chartHeader}>
+        <h2>
+          {titlePrefix}
+          <span className={styles.highlightTitle}>{titleSuffix}</span>
+        </h2>
+
+        <button
+          type="button"
+          className={styles.selectorBtn}
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-expanded={isOpen}
+        >
+          {selectorText}
+          <span aria-hidden="true" />
+        </button>
+      </div>
+
+      {isOpen && (
+        <div 
+          className={styles.dropdownBox} 
+          style={type === 'month' ? { width: '8rem', padding: '1rem 0' } : {}}
+        >
+          {type === 'date' ? (
+            <div>
+              <div className={styles.calendarHeader}>
+                <div className={styles.calendarTitle}>2026.07</div>
+                <div className={styles.calendarNav}>
+                  <button type="button">{'<'}</button>
+                  <span />
+                  <button type="button">{'>'}</button>
+                </div>
+              </div>
+
+              <div className={styles.calendarGrid}>
+                {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                  <div key={day} className={styles.calendarWeekday}>{day}</div>
+                ))}
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={`empty-${i}`} className={styles.calendarDayEmpty} />
+                ))}
+                {Array.from({ length: 31 }).map((_, i) => {
+                  const day = i + 1
+                  const isSelected = day >= 1 && day <= 7
+                  return (
+                    <div
+                      key={day}
+                      className={`${styles.calendarDay} ${
+                        isSelected ? styles.calendarDaySelected : ''
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {day}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.monthList}>
+              {['2026.07', '2026.06', '2026.05', '2026.04', '2026.03'].map((monthStr, index) => {
+                const isSelected = index === 0; 
+                
+                return (
+                  <button 
+                    key={monthStr} 
+                    type="button" 
+                    className={`${styles.monthListItem} ${isSelected ? styles.monthListItemSelected : ''}`}
+                    onClick={() => setIsOpen(false)} 
+                  >
+                    {monthStr}
+                  </button>
+                )
+              })}
+              
+              {/* 더보기 꺾쇠 버튼 */}
+              <button 
+                type="button" 
+                className={styles.monthListMoreBtn} 
+                aria-label="이전 달 더보기"
+              />
+            </div>
+          )}
+        </div>
+      )}
+      <div className={styles.chartBody}>
+        <div className={styles.axisLabels} aria-hidden="true">
+          {axisValues.map((value, index) => (
+            <span key={`${value}-${index}`}>{value.toLocaleString('ko-KR')}</span>
+          ))}
+        </div>
+
+        <div className={chartClass}>
+          {data.map((item, index) => {
+            const height = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0
+            
+            const isHighest = item.amount === maxAmount && maxAmount > 0
+
+            const isLabelHighlighted = type === 'date' 
+              ? index === data.length - 1 
+              : isHighest
+
+            return (
+              <div className={styles.barColumn} key={item.label}>
+                <div className={styles.barArea}>
+                  {isHighest && (
+                    <span className={styles.amountTooltip}>
+                      ₩ {item.amount.toLocaleString('ko-KR')}
+                    </span>
+                  )}
+
+                  <span
+                    className={`${styles.bar} ${isHighest ? styles.currentBar : ''}`}
+                    style={{ height: `${height}%` }}
+                    title={`${item.label} ${item.amount.toLocaleString('ko-KR')}원`}
+                  />
+                </div>
+
+                <span className={isLabelHighlighted ? styles.currentLabel : undefined}>
+                  {item.label}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
   )
 }
 
 function ReportPage() {
-  const [sendMessage, setSendMessage] = useState('')
-
-  const handleSendReport = () => {
-    setSendMessage('이메일 리포트 전송을 요청했습니다.')
-    // TODO: Swagger 이메일 리포트 전송 API를 연결합니다.
-  }
-
   return (
-    <section className={styles.page} aria-labelledby="report-title">
-      <h1 id="report-title">리포트</h1>
-
-      <div className={styles.reportContent}>
-        <section className={styles.chartCard} aria-labelledby="monthly-chart-title">
-          <h2 id="monthly-chart-title">월별 지출 추이</h2>
-          <div className={styles.chartBody}>
-            <div className={styles.axisLabels} aria-hidden="true">
-              <span>2,200,000</span>
-              <span>1,650,000</span>
-              <span>1,100,000</span>
-              <span>550,000</span>
-              <span>0</span>
-            </div>
-            <div className={styles.barChart}>
-              {monthlyExpenses.map((expense) => (
-                <div className={styles.barColumn} key={expense.month}>
-                  <span
-                    className={`${styles.bar} ${expense.isCurrent ? styles.currentBar : ''}`}
-                    style={{ height: `${(expense.amount / chartMaximum) * 100}%` }}
-                    title={`${expense.month} ${expense.amount.toLocaleString('ko-KR')}원`}
-                  />
-                  <span className={expense.isCurrent ? styles.currentMonth : undefined}>{expense.month}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className={styles.srOnly}>
-            {monthlyExpenses.map((expense) => `${expense.month} ${expense.amount.toLocaleString('ko-KR')}원`).join(', ')}
-          </p>
-        </section>
-
-        <section className={styles.categoryCard} aria-labelledby="category-report-title">
-          <h2 id="category-report-title">카테고리별 지출</h2>
-          <CategoryList />
-        </section>
+    <section className={styles.page}>
+      <div className={styles.pageHeader}>
+        <h1 style={{ color: 'var(--color-primary)' }}>리포트</h1>
+        <p>나의 지출 흐름을 한눈에 확인해보세요.</p>
       </div>
 
-      <aside className={styles.previewPanel} aria-label="이메일 리포트 미리보기">
-        <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
-        <section className={styles.previewCard}>
-          <h2>리포트 미리보기</h2>
-          <p className={styles.reportMonth}>2026.06</p>
-          <div className={styles.reportTotal}>
-            <span>총 지출 금액</span>
-            <strong>₩ 1,455,000</strong>
-          </div>
-          <hr />
-          <h3>카테고리별 지출</h3>
-          <CategoryList compact />
-          <Button className={styles.sendButton} fullWidth onClick={handleSendReport}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2" />
-              <path d="m4 7 8 6 8-6" />
-            </svg>
-            이메일로 리포트 보내기
-          </Button>
-          <p className={styles.sendStatus} role="status">{sendMessage}</p>
-        </section>
-      </aside>
+      <div className={styles.reportContent}>
+        <BarChart
+          titlePrefix="07/01 - 07/07"
+          titleSuffix=" 지출"
+          data={timeData}
+          chartClass={styles.timeBarChart}
+          type="date"
+          selectorText="2026.07.07"
+        />
+
+        <BarChart
+          titlePrefix="2026년"
+          titleSuffix=" 월별 지출"
+          data={monthlyData}
+          chartClass={styles.monthlyBarChart}
+          type="month"
+          selectorText="2026.07"
+        />
+      </div>
+
+      <div className={styles.mascotArea} aria-hidden="true">
+        <p>오늘 지출이 어제보다 5% 증가했어요</p>
+        <span className={styles.thoughtSmall} />
+        <span className={styles.thoughtLarge} />
+        <img src="/assets/illustrations/mascot-check.png" alt="" />
+      </div>
     </section>
   )
 }
