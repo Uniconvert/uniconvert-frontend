@@ -7,7 +7,8 @@
       "nickname": "hamster",
       "profileImage": "/assets/profiles/hamster.png",
       "isEmailVerified": true,
-      "isOnboardingCompleted": true
+      "isOnboardingCompleted": true,
+      "mockDataMode": "demo-seeded"
     },
     {
       "userId": 2,
@@ -16,7 +17,8 @@
       "nickname": "온보딩 사용자",
       "profileImage": "",
       "isEmailVerified": true,
-      "isOnboardingCompleted": false
+      "isOnboardingCompleted": false,
+      "mockDataMode": "onboarding-empty"
     },
     {
       "userId": 3,
@@ -25,7 +27,8 @@
       "nickname": "미인증 사용자",
       "profileImage": "",
       "isEmailVerified": false,
-      "isOnboardingCompleted": false
+      "isOnboardingCompleted": false,
+      "mockDataMode": "onboarding-empty"
     }
   ]
 }

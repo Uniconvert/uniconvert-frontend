@@ -7,6 +7,8 @@ export interface Pot {
   savedAmount: number
   monthlyContribution: number
   autoSavingRate: number
+  autoSavingEnabled: boolean
+  completedAt?: string
 }
 
 export interface CreatePotInput {
@@ -17,7 +19,10 @@ export interface CreatePotInput {
   savedAmount: number
   monthlyContribution: number
   autoSavingRate: number
+  autoSavingEnabled: boolean
 }
+
+export type UpdatePotInput = Partial<CreatePotInput>
 
 export interface PotsData {
   homeCurrency: string

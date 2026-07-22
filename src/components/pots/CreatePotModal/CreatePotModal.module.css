@@ -7,7 +7,18 @@
 .modal label { display: grid; gap: .5rem; color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
 .modal input { width: 100%; min-height: 3rem; padding: .75rem 1rem; background: var(--color-surface); border: 1px solid #cbd9e6; border-radius: .625rem; color: var(--color-text-primary); font: inherit; font-weight: var(--font-weight-regular); }
 .modal input:focus { border-color: var(--color-primary); outline: 3px solid rgba(102, 169, 228, .18); }
-.nameRow { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 1rem; }
-.iconField input { text-align: center; font-size: 1.5rem; }
+.nameInputRow { display: grid; grid-template-columns: 3.75rem 1fr; gap: 1rem; }
+.nameInputRow i { display: grid; place-items: center; background: var(--color-primary); border-radius: .75rem; }
+.nameInputRow i img { width: 1.8rem; height: 1.8rem; object-fit: contain; filter: brightness(0) invert(1); }
+.targetField { display: grid; gap: .75rem; margin-top: .5rem; }
+.targetField > div, .targetField small { display: flex; align-items: center; justify-content: space-between; }
+.targetField output { color: var(--color-primary); font-size: 1.25rem; font-weight: var(--font-weight-bold); }
+.targetField input[type='range'] { min-height: auto; padding: 0; accent-color: var(--color-primary); }
+.targetField small { color: var(--color-text-muted); }
+.iconChoices { margin: .5rem 0 0; padding: 0; border: 0; }
+.iconChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
+.iconChoices > div { display: grid; grid-template-columns: repeat(6, 1fr); gap: .625rem; }
+.iconChoices button { display: grid; aspect-ratio: 1; place-items: center; background: var(--color-surface-subtle); border: 1px solid transparent; border-radius: .75rem; font-size: 1.5rem; }
+.iconChoices button.selectedIcon { background: #e1f0fc; border-color: var(--color-primary); }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .75rem; }
-@media (max-width: 32rem) { .modal { padding: 1.5rem; } .nameRow { grid-template-columns: 1fr; } }
+@media (max-width: 32rem) { .modal { padding: 1.5rem; } .iconChoices > div { grid-template-columns: repeat(3, 1fr); } }

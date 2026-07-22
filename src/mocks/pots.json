@@ -14,7 +14,8 @@
         "targetAmount": 800000,
         "savedAmount": 340000,
         "monthlyContribution": 340000,
-        "autoSavingRate": 15
+        "autoSavingRate": 15,
+        "autoSavingEnabled": true
       }
     ]
   }

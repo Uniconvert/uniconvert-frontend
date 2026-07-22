@@ -5,14 +5,14 @@
     "homeCurrency": "KRW",
     "monthlyBudgetHome": 1250000,
     "monthlyExpenseHome": 750000,
-    "remainingBudgetHome": 910000,
-    "budgetUsagePercent": 72.8,
+    "remainingBudgetHome": 500000,
+    "budgetUsagePercent": 60,
     "categories": [
       { "categoryId": "housing", "categoryName": "주거", "percentage": 55, "amountHome": 412500, "color": "#66a9e4" },
       { "categoryId": "food", "categoryName": "식비", "percentage": 24, "amountHome": 180000, "color": "#366384" },
       { "categoryId": "education", "categoryName": "학업", "percentage": 10, "amountHome": 75000, "color": "#153047" },
       { "categoryId": "transport", "categoryName": "교통", "percentage": 8, "amountHome": 60000, "color": "#a9cbfa" },
-      { "categoryId": "other", "categoryName": "기타", "percentage": 2, "amountHome": 15000, "color": "#e2efff" }
+      { "categoryId": "other", "categoryName": "기타", "percentage": 3, "amountHome": 22500, "color": "#e2efff" }
     ],
     "recentExpenses": [
       { "expenseId": "expense-001", "categoryName": "식비", "convertedAmountHome": 25000, "iconKey": "food", "spentAt": "2026-07-14T12:30:00+09:00" },

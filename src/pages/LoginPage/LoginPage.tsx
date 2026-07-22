@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { login } from '@/api/auth'
+import { saveSession } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
 import TextField from '@/components/common/TextField/TextField'
@@ -24,13 +25,11 @@ function LoginPage() {
 
     try {
       const result = await login({ email, password })
-      sessionStorage.setItem('uniconvert.mockUser', JSON.stringify(result.user))
-      sessionStorage.setItem('uniconvert.mockAccessToken', result.accessToken)
-      sessionStorage.setItem('uniconvert.mockRefreshToken', result.refreshToken)
+      const sessionUser = saveSession(result)
 
-      if (!result.user.isEmailVerified) {
+      if (!sessionUser.isEmailVerified) {
         navigate(ROUTE_PATHS.verifyEmail)
-      } else if (!result.user.isOnboardingCompleted) {
+      } else if (!sessionUser.isOnboardingCompleted) {
         navigate(ROUTE_PATHS.onboardingBaseCurrency)
       } else {
         navigate(ROUTE_PATHS.home)

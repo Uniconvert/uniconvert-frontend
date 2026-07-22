@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import Button from '@/components/common/Button/Button'
 import CurrencySelection, { type CurrencyOption } from '@/components/onboarding/CurrencySelection/CurrencySelection'
+import { getOnboardingSettings, updateOnboardingSettings } from '@/auth/session'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from '../CurrencySetupPage.module.css'
 
@@ -15,7 +16,10 @@ const currencies: CurrencyOption[] = [
 
 function BaseCurrencyPage() {
   const navigate = useNavigate()
-  const [selectedCodes, setSelectedCodes] = useState<string[]>([])
+  const [selectedCodes, setSelectedCodes] = useState<string[]>(() => {
+    const storedCurrency = getOnboardingSettings().baseCurrency
+    return storedCurrency ? [storedCurrency] : []
+  })
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -23,6 +27,7 @@ function BaseCurrencyPage() {
     if (!selectedCurrency) return
 
     sessionStorage.setItem('uniconvert.baseCurrency', selectedCurrency)
+    updateOnboardingSettings({ baseCurrency: selectedCurrency })
     // TODO: Swagger 확정 후 선택한 기본 통화 저장 API를 연결합니다.
     navigate(ROUTE_PATHS.onboardingLocalCurrencies)
   }
@@ -32,8 +37,8 @@ function BaseCurrencyPage() {
       <img className={styles.coinDecoration} src="/assets/icons/login_coin.png" alt="" aria-hidden="true" />
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
       <form className={styles.card} onSubmit={handleSubmit}>
-        <div className={styles.progress} aria-label="온보딩 3단계 중 1단계">
-          <span className={styles.active} /><span /><span />
+        <div className={styles.progress} aria-label="온보딩 4단계 중 1단계">
+          <span className={styles.active} /><span /><span /><span />
         </div>
         <h1 id="base-currency-title">기본 통화를 선택하세요</h1>
         <p className={styles.description}>예산을 관리할 기준 통화를 선택해주세요.</p>

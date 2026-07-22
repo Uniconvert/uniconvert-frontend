@@ -1,33 +1,36 @@
 import { useState } from 'react'
 import Button from '@/components/common/Button/Button'
 import type { CreatePotInput } from '@/types/pot'
+import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './CreatePotModal.module.css'
+
+const iconChoices = ['🚌', '🍔', '✈️', '🎓', '🏠', '🛍️', '🐷']
 
 interface CreatePotModalProps {
   isSaving: boolean
   onClose: () => void
   onSubmit: (input: CreatePotInput) => void
+  maximumTargetAmount: number
+  currency: string
 }
 
-function CreatePotModal({ isSaving, onClose, onSubmit }: CreatePotModalProps) {
+function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, currency }: CreatePotModalProps) {
   const [name, setName] = useState('')
-  const [icon, setIcon] = useState('🎯')
-  const [targetAmount, setTargetAmount] = useState('')
-  const [savedAmount, setSavedAmount] = useState('')
-  const [monthlyContribution, setMonthlyContribution] = useState('')
-  const [autoSavingRate, setAutoSavingRate] = useState('')
+  const [icon, setIcon] = useState('🍔')
+  const [targetAmount, setTargetAmount] = useState(() => Math.min(500_000, maximumTargetAmount))
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     onSubmit({
       name: name.trim(),
-      icon: icon.trim() || '🎯',
+      icon,
       imageSrc: '/assets/illustrations/wallet.png',
-      targetAmount: Number(targetAmount),
-      savedAmount: Number(savedAmount || 0),
-      monthlyContribution: Number(monthlyContribution || 0),
-      autoSavingRate: Math.min(Number(autoSavingRate || 0), 100),
+      targetAmount,
+      savedAmount: 0,
+      monthlyContribution: 0,
+      autoSavingRate: 0,
+      autoSavingEnabled: false,
     })
   }
 
@@ -37,42 +40,32 @@ function CreatePotModal({ isSaving, onClose, onSubmit }: CreatePotModalProps) {
     }}>
       <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="create-pot-title">
         <header>
-          <h2 id="create-pot-title">새로운 Pot 만들기</h2>
+          <h2 id="create-pot-title">새로운 Pots 만들기</h2>
           <button type="button" onClick={onClose} aria-label="닫기">×</button>
         </header>
 
         <form onSubmit={submit}>
-          <div className={styles.nameRow}>
-            <label className={styles.iconField}>
-              <span>아이콘</span>
-              <input value={icon} maxLength={4} onChange={(event) => setIcon(event.target.value)} />
-            </label>
-            <label>
-              <span>Pot 이름</span>
-              <input value={name} maxLength={30} placeholder="예: 유럽 여행" onChange={(event) => setName(event.target.value)} required />
-            </label>
+          <label>
+            <span>1. Pots 이름</span>
+            <span className={styles.nameInputRow}><i><img src="/assets/icons/pots/pot-wallet.png" alt="" aria-hidden="true" /></i><input value={name} maxLength={30} placeholder="예) 유럽 여행, 비상금, 노트북 구매 등" onChange={(event) => setName(event.target.value)} required /></span>
+          </label>
+
+          <div className={styles.targetField}>
+            <div><strong>2. 목표 금액</strong><output>{formatCurrencyAmount(targetAmount, currency)}</output></div>
+            <input type="range" min="0" max={maximumTargetAmount} step="10000" value={targetAmount} aria-label="목표 금액" onChange={(event) => setTargetAmount(Number(event.target.value))} />
+            <small><span>{formatCurrencyAmount(0, currency)}</span><span>{formatCurrencyAmount(maximumTargetAmount, currency)}</span></small>
           </div>
 
-          <label>
-            <span>목표 금액</span>
-            <input value={targetAmount} inputMode="numeric" placeholder="목표 금액을 입력하세요" onChange={(event) => setTargetAmount(event.target.value.replace(/\D/g, ''))} required />
-          </label>
-          <label>
-            <span>현재 모인 금액</span>
-            <input value={savedAmount} inputMode="numeric" placeholder="0" onChange={(event) => setSavedAmount(event.target.value.replace(/\D/g, ''))} />
-          </label>
-          <label>
-            <span>월 적립 금액</span>
-            <input value={monthlyContribution} inputMode="numeric" placeholder="0" onChange={(event) => setMonthlyContribution(event.target.value.replace(/\D/g, ''))} />
-          </label>
-          <label>
-            <span>자동 적립률 (%)</span>
-            <input value={autoSavingRate} inputMode="numeric" min="0" max="100" placeholder="0" onChange={(event) => setAutoSavingRate(event.target.value.replace(/\D/g, '').slice(0, 3))} />
-          </label>
+          <fieldset className={styles.iconChoices}>
+            <legend>3. 대표 카테고리</legend>
+            <div>{iconChoices.map((choice) => (
+              <button key={choice} type="button" className={choice === icon ? styles.selectedIcon : ''} aria-pressed={choice === icon} onClick={() => setIcon(choice)}>{choice}</button>
+            ))}</div>
+          </fieldset>
 
           <div className={styles.actions}>
             <Button type="button" variant="outline" onClick={onClose}>취소</Button>
-            <Button type="submit" isLoading={isSaving} disabled={!name.trim() || Number(targetAmount) <= 0}>Pot 만들기</Button>
+            <Button type="submit" isLoading={isSaving} disabled={!name.trim() || targetAmount <= 0}>Pot 만들기</Button>
           </div>
         </form>
       </section>

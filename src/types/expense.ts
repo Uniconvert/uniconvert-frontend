@@ -8,6 +8,7 @@ export interface ExpenseCategorySummary {
 
 export interface ExpenseListItem {
   expenseId: string
+  merchantName: string
   categoryName: string
   convertedAmountHome: number
   iconKey: string
@@ -25,9 +26,17 @@ export interface ExpenseHistoryData {
   recentExpenses: ExpenseListItem[]
 }
 
+export interface SavedExpense {
+  expenseId: string
+  merchantName: string
+  convertedAmountHome: number
+  iconKey: string
+  spentAt: string
+}
+
 export interface ExpenseDetail {
   expenseId: string
-  currency: 'USD' | 'EUR' | 'JPY' | 'KRW'
+  currency: 'USD' | 'EUR' | 'JPY' | 'CNY' | 'KRW'
   originalAmount: number
   convertedAmountHome: number
   appliedRate: number

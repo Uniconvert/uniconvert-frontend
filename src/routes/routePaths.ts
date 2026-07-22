@@ -7,6 +7,7 @@ export const ROUTE_PATHS = {
   onboardingBaseCurrency: '/onboarding/base-currency',
   onboardingLocalCurrencies: '/onboarding/local-currencies',
   onboardingBudget: '/onboarding/budget',
+  onboardingTimezone: '/onboarding/timezone',
   onboardingProfile: '/onboarding/profile',
   home: '/home',
   expenseCreate: '/home',

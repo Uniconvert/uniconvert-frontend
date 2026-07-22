@@ -1,0 +1,20 @@
+.page { display: grid; width: 100%; min-height: calc(100svh - (var(--space-6) * 2)); position: relative; place-items: center; }
+.card { display: flex; width: min(47.5rem, calc(100vw - 4rem)); min-height: 40.5rem; z-index: 1; flex-direction: column; padding: 3rem 4.375rem; background: rgba(255,255,255,.96); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.progress { display: grid; grid-template-columns: repeat(4,1fr); gap: .625rem; }
+.progress span { height: .625rem; background: var(--color-primary); border-radius: var(--radius-pill); }
+.card h1 { margin-top: 1.75rem; font-size: 2rem; }
+.description { margin-top: .75rem; color: var(--color-text-muted); font-size: 1.125rem; }
+.card h2 { margin-top: 3rem; font-size: 1.125rem; }
+.timezoneCard { display: flex; min-height: 5.25rem; align-items: center; gap: 1.25rem; margin-top: 1.5rem; padding: .75rem 1.5rem; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); }
+.flag { display: grid; width: 4rem; height: 3rem; place-items: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .625rem; font-size: 2.25rem; }
+.timezoneCard div { display: grid; gap: .35rem; }
+.timezoneCard strong { font-size: 1.125rem; }
+.timezoneCard span:last-child { color: var(--color-text-muted); }
+.help { margin: 1.75rem 0 3rem; color: var(--color-text-muted); }
+.help strong { color: var(--color-primary); }
+.help p { margin-top: .75rem; font-size: .875rem; line-height: 1.6; }
+.coinDecoration,.exchangeDecoration { position: absolute; height: auto; pointer-events: none; }
+.coinDecoration { top: 13.5%; left: 2.5%; width: clamp(16rem,18vw,21rem); }
+.exchangeDecoration { right: 1.75%; bottom: -3.5%; width: clamp(18rem,23vw,26.5rem); }
+@media (max-width: 56rem) { .coinDecoration,.exchangeDecoration { display: none; } }
+@media (max-width: 40rem) { .page { min-height: calc(100svh - (var(--space-4) * 2)); } .card { width: 100%; min-height: auto; padding: 2rem 1.5rem; } .card h1 { font-size: 1.5rem; } }
