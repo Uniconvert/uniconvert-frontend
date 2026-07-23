@@ -2,7 +2,6 @@ import { createBrowserRouter } from 'react-router'
 import AuthLayout from '@/layouts/AuthLayout/AuthLayout'
 import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout'
 import CalculatorPage from '@/pages/CalculatorPage/CalculatorPage'
-import ExpenseDetailPage from '@/pages/ExpenseDetailPage/ExpenseDetailPage'
 import ExpenseHistoryPage from '@/pages/ExpenseHistoryPage/ExpenseHistoryPage'
 import ExpenseInputPage from '@/pages/ExpenseInputPage/ExpenseInputPage'
 import LandingPage from '@/pages/LandingPage/LandingPage'
@@ -63,7 +62,6 @@ export const router = createBrowserRouter([
         children: [
           { path: ROUTE_PATHS.home, Component: ExpenseInputPage },
           { path: ROUTE_PATHS.expenses, Component: ExpenseHistoryPage },
-          { path: ROUTE_PATHS.expenseDetail, Component: ExpenseDetailPage },
           { path: ROUTE_PATHS.pots, Component: PotsPage },
           { path: ROUTE_PATHS.report, Component: ReportPage },
           { path: ROUTE_PATHS.calculator, Component: CalculatorPage },

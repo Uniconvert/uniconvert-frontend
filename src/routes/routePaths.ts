@@ -12,7 +12,6 @@ export const ROUTE_PATHS = {
   home: '/home',
   expenseCreate: '/home',
   expenses: '/home/expenses',
-  expenseDetail: '/home/expenses/:expenseId',
   pots: '/home/pots',
   report: '/report',
   calculator: '/calculator',

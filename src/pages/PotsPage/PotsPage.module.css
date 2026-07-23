@@ -3,28 +3,88 @@
 .successToast { display: grid; width: min(30rem, calc(100% - 2rem)); min-height: 5rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.8rem; left: 50%; padding: .9rem 1rem; background: white; border: 1px solid #65c28f; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
 .successToast > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #55b982; border: 2px solid #65c28f; border-radius: 50%; font-size: 1.35rem; }
 .successToast > button { color: var(--color-text-muted); background: transparent; border: 0; font-size: 1.5rem; }
-.dashboardGrid { display: grid; grid-template-columns: minmax(0, 1fr) 24rem; gap: clamp(2.5rem, 4.5vw, 5.5rem); align-items: start; }
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: clamp(2.5rem, 4.5vw, 5.5rem);
+  align-items: start;
+}
+
 .mainColumn { display: grid; min-width: 0; gap: 4rem; }
-.createButton { display: inline-flex; width: 100%; min-height: 4.875rem; align-items: center; justify-content: center; gap: .75rem; margin-top: -1.5rem; color: var(--color-surface); background: var(--color-primary); border: 0; border-radius: var(--radius-md); font-size: 1.25rem; transition: background-color var(--transition-fast), transform var(--transition-fast); }
+
+.createButton {
+  display: inline-flex;
+  width: 100%;
+  min-height: clamp(3.5rem, 6vh, 4.875rem);
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: -1.5rem;
+  color: var(--color-surface);
+  background: var(--color-primary);
+  border: 0;
+  border-radius: var(--radius-md);
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
 .createButton span { font-size: 2rem; font-weight: 300; line-height: 1; }
 .createButton:hover { background: var(--color-primary-hover); }
 .createButton:active { transform: translateY(1px); }
 .sideColumn { display: flex; flex-direction: column; gap: 1.875rem; }
-.walletIllustration { display: grid; min-height: 19.375rem; place-items: center; overflow: hidden; background: linear-gradient(145deg, #f7fbff 0%, #c4e3ff 100%); border-radius: 3.25rem; }
+
+.walletIllustration {
+  display: grid;
+  min-height: clamp(14rem, 25vh, 19.375rem);
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f7fbff 0%, #c4e3ff 100%);
+  border-radius: clamp(2rem, 4vw, 3.25rem);
+}
+
 .walletIllustration img { width: min(112%, 26rem); max-width: none; height: auto; filter: drop-shadow(0 1rem 1.5rem rgba(77, 139, 195, .14)); }
-.encouragement { width: 24rem; min-height: 12rem; position: absolute; right: 0; bottom: 0; }
-.encouragement img { width: 8.75rem; position: absolute; right: .25rem; bottom: .5rem; }
-.speechBubble { width: fit-content; margin: 1.25rem 5rem 0 auto; padding: .55rem 1.4rem; background: var(--color-surface); border: 2px solid #91caff; border-radius: var(--radius-pill); color: var(--color-text-primary); font-size: 1rem; white-space: nowrap; }
-.bubbleDotLarge, .bubbleDotSmall { position: absolute; border: 2px solid #91caff; border-radius: 50%; background: var(--color-surface); }
-.bubbleDotLarge { width: 1.125rem; height: 1.125rem; top: 3.6rem; right: 4.1rem; }
-.bubbleDotSmall { width: .75rem; height: .75rem; top: 4.7rem; right: 3.15rem; }
-.modalBackdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(218, 237, 252, .82); backdrop-filter: blur(5px); }
-.actionModal { width: min(43rem, 100%); max-height: calc(100svh - 3rem); overflow-y: auto; padding: 2rem; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+
+.encouragement {
+  width: clamp(18rem, 25vw, 24rem);
+  min-height: 14rem;
+  position: absolute;
+  right: 0;
+  bottom: -2rem; 
+}
+
+.modalBackdrop {
+  display: grid;
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(218, 237, 252, .82);
+  backdrop-filter: blur(5px);
+}
+
+.actionModal {
+  width: min(43rem, 100%);
+  max-height: calc(100svh - 3rem);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 2.5rem);
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
 .actionModal header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
 .actionModal header h2 { font-size: 1.4rem; }
 .actionModal header button { background: transparent; border: 0; color: var(--color-text-muted); font-size: 2rem; }
 .actionPotName { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
-.actionPotName img { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: .75rem; }
+
+.actionPotName img {
+  width: clamp(3.5rem, 6vw, 4.5rem);
+  height: clamp(3.5rem, 6vw, 4.5rem);
+  object-fit: cover;
+  border-radius: 0.75rem;
+}
+
 .actionPotName div { display: grid; gap: .35rem; }
 .actionPotName span { color: var(--color-text-muted); }
 .modalField, .rangeField { display: grid; gap: .75rem; }
@@ -37,15 +97,35 @@
 .imageChoices, .categoryChoices { margin: 0; padding: 0; border: 0; }
 .imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
 .imageChoices > div, .categoryChoices > div { display: flex; flex-wrap: wrap; gap: .65rem; }
-.imageChoices button, .uploadChoice { display: grid; width: 5.5rem; height: 7rem; place-items: center; overflow: hidden; background: white; border: 1px solid var(--color-border); border-radius: .75rem; }
+
+.imageChoices button, .uploadChoice {
+  display: grid;
+  width: clamp(4.5rem, 8vw, 5.5rem);
+  height: clamp(5.5rem, 10vw, 7rem);
+  place-items: center;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
 .imageChoices button img { width: 100%; height: 100%; object-fit: cover; }
 .uploadChoice { color: var(--color-primary); border: 2px dashed var(--color-primary); font-size: 1.7rem; cursor: pointer; }
 .uploadChoice small { font-size: .65rem; }
 .uploadChoice input { display: none; }
 .categoryChoices button { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; background: white; border: 1px solid var(--color-border); border-radius: .6rem; font-size: 1.45rem; }
+.categoryChoices button img { width: 2.1rem; height: 2.1rem; object-fit: contain; }
 .selectedChoice { border-color: var(--color-primary) !important; outline: 2px solid #dbeeff; }
 .modalActions { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1rem; margin-top: 2rem; }
-.modalActions button { min-height: 3rem; border: 1px solid var(--color-border); border-radius: .75rem; background: white; font: inherit; }
+
+.modalActions button {
+  min-height: clamp(2.5rem, 5vh, 3rem);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: white;
+  font: inherit;
+}
+
 .modalActions button:last-child { color: white; background: var(--color-primary); border-color: var(--color-primary); }
 .modalActions button:disabled { opacity: .5; }
 @media (max-width: 90rem) {

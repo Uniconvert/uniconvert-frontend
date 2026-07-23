@@ -1,9 +1,9 @@
 import expenseHistoryMock from '@/mocks/expense-history.json'
-import { createStoredExpense, deleteStoredExpense, getStoredExpenses, updateStoredExpense } from '@/mocks/expenseStore'
+import { createStoredExpense, getStoredExpenses } from '@/mocks/expenseStore'
 import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
 import { getStoredSavedExpenses, saveStoredSavedExpenses } from '@/mocks/savedExpenseStore'
 import type { ApiResponse } from '@/types/api'
-import type { CreateExpenseInput, ExpenseDetail, ExpenseHistoryData, SavedExpense, UpdateExpenseInput } from '@/types/expense'
+import type { CreateExpenseInput, ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { apiRequest, isUsingMockApi } from './client'
 
 const categoryColors: Record<string, string> = {
@@ -11,7 +11,62 @@ const categoryColors: Record<string, string> = {
   travel: '#66a9e4', medical: '#e2efff', shopping: '#8bbbe8', other: '#cbd9e6',
 }
 
-function buildMockHistory(yearMonth: string): ExpenseHistoryData {
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getRangeStart(referenceDate: string, range: string) {
+  if (range === 'month') return `${referenceDate.slice(0, 7)}-01`
+  if (range === 'day') return referenceDate
+
+  const [year, month, day] = referenceDate.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  const daysSinceMonday = (date.getDay() + 6) % 7
+  date.setDate(date.getDate() - daysSinceMonday)
+  return formatLocalDate(date)
+}
+
+function buildCategoryTotals(
+  expenses: ReturnType<typeof getStoredExpenses>,
+  yearMonth: string,
+  range: string,
+) {
+  const today = formatLocalDate(new Date())
+  const referenceDate = today.startsWith(yearMonth)
+    ? today
+    : expenses[0]?.spentAt.slice(0, 10) ?? `${yearMonth}-01`
+  const rangeStart = getRangeStart(referenceDate, range)
+  const rangeEnd = range === 'month' ? `${yearMonth}-31` : referenceDate
+  const totals = new Map<string, { categoryName: string; amount: number; spentAt: string }>()
+
+  expenses
+    .filter((expense) => {
+      const spentDate = expense.spentAt.slice(0, 10)
+      return spentDate >= rangeStart && spentDate <= rangeEnd
+    })
+    .forEach((expense) => {
+      const current = totals.get(expense.iconKey)
+      totals.set(expense.iconKey, {
+        categoryName: expense.categoryName,
+        amount: (current?.amount ?? 0) + expense.convertedAmountHome,
+        spentAt: current?.spentAt && current.spentAt > expense.spentAt ? current.spentAt : expense.spentAt,
+      })
+    })
+
+  return Array.from(totals, ([iconKey, value]) => ({
+    expenseId: `category-${range}-${iconKey}`,
+    merchantName: value.categoryName,
+    categoryName: value.categoryName,
+    convertedAmountHome: value.amount,
+    iconKey,
+    spentAt: value.spentAt,
+  })).sort((a, b) => b.convertedAmountHome - a.convertedAmountHome)
+}
+
+function buildMockHistory(yearMonth: string, range: string): ExpenseHistoryData {
   const mockBase = (expenseHistoryMock as ApiResponse<ExpenseHistoryData>).data
   const base: ExpenseHistoryData = {
     ...mockBase,
@@ -47,47 +102,32 @@ function buildMockHistory(yearMonth: string): ExpenseHistoryData {
       percentage: monthlyExpenseHome > 0 ? Math.round((value.amount / monthlyExpenseHome) * 100) : 0,
       color: categoryColors[categoryId] ?? categoryColors.other,
     })),
-    recentExpenses: expenses.map((expense) => ({
-      expenseId: expense.expenseId,
-      merchantName: expense.merchantName,
-      categoryName: expense.categoryName,
-      convertedAmountHome: expense.convertedAmountHome,
-      iconKey: expense.iconKey,
-      spentAt: expense.spentAt,
-    })),
+    recentExpenses: buildCategoryTotals(expenses, yearMonth, range),
   }
 }
 
 export function getExpenseHistory(yearMonth: string, range: string) {
-  if (isUsingMockApi) return Promise.resolve(buildMockHistory(yearMonth))
+  if (isUsingMockApi) return Promise.resolve(buildMockHistory(yearMonth, range))
   const params = new URLSearchParams({ yearMonth, range })
-  return apiRequest(`/expenses?${params.toString()}`, { success: true, data: buildMockHistory(yearMonth) })
-}
-
-export function getExpenseDetail(expenseId: string) {
-  if (isUsingMockApi) {
-    return Promise.resolve(getStoredExpenses().find((expense) => expense.expenseId === expenseId) ?? null)
-  }
-  return apiRequest<ExpenseDetail | null>(`/expenses/${expenseId}`, { success: true, data: null })
+  return apiRequest(`/expenses?${params.toString()}`, { success: true, data: buildMockHistory(yearMonth, range) })
 }
 
 export function createExpense(input: CreateExpenseInput) {
-  if (isUsingMockApi) return Promise.resolve(createStoredExpense(input))
+  if (isUsingMockApi) {
+    const expense = createStoredExpense(input)
+    const savedExpense: SavedExpense = {
+      expenseId: expense.expenseId,
+      merchantName: expense.merchantName.trim() || expense.categoryName,
+      convertedAmountHome: expense.convertedAmountHome,
+      iconKey: expense.iconKey,
+      spentAt: expense.spentAt,
+    }
+    saveStoredSavedExpenses([savedExpense, ...getStoredSavedExpenses()])
+    return Promise.resolve(expense)
+  }
   return apiRequest('/expenses', { success: true, data: { expenseId: '', ...input } }, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
   })
-}
-
-export function updateExpense(expenseId: string, input: UpdateExpenseInput) {
-  if (isUsingMockApi) return Promise.resolve(updateStoredExpense(expenseId, input))
-  return apiRequest<ExpenseDetail | null>(`/expenses/${expenseId}`, { success: true, data: null }, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
-  })
-}
-
-export function deleteExpense(expenseId: string) {
-  if (isUsingMockApi) return Promise.resolve(deleteStoredExpense(expenseId))
-  return apiRequest(`/expenses/${expenseId}`, { success: true, data: true }, { method: 'DELETE' })
 }
 
 export function getSavedExpenses() {

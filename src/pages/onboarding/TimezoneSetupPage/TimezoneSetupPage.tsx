@@ -6,8 +6,14 @@ import { ROUTE_PATHS } from '@/routes/routePaths'
 import { getBrowserTimeZone } from '@/utils/timezone'
 import styles from './TimezoneSetupPage.module.css'
 
-const timezoneLabels: Record<string, { flag: string; location: string }> = {
-  'Asia/Seoul': { flag: '🇰🇷', location: '서울, 대한민국' },
+type TimezoneInfo = {
+  flag?: string
+  flagSrc?: string
+  location: string
+}
+
+const timezoneLabels: Record<string, TimezoneInfo> = {
+  'Asia/Seoul': { flagSrc: '/assets/icons/currencies/currency-krw.png', location: '서울, 대한민국' },
   'Asia/Tokyo': { flag: '🇯🇵', location: '도쿄, 일본' },
   'America/New_York': { flag: '🇺🇸', location: '뉴욕, 미국' },
   'Europe/London': { flag: '🇬🇧', location: '런던, 영국' },
@@ -46,7 +52,11 @@ function TimezoneSetupPage() {
 
         <h2>현재 위치 기준 시간대</h2>
         <div className={styles.timezoneCard}>
-          <span className={styles.flag} aria-hidden="true">{timezoneInfo.flag}</span>
+          <span className={styles.flag} aria-hidden="true">
+            {timezoneInfo.flagSrc
+              ? <img src={timezoneInfo.flagSrc} alt="" />
+              : timezoneInfo.flag}
+          </span>
           <div><strong>({gmtOffset}) {timezoneInfo.location}</strong><span>{timeZone}</span></div>
         </div>
 

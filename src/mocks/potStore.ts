@@ -40,9 +40,9 @@ export function getStoredPots(): PotsData {
     if (isSeededMockUser()) return data
 
     const monthlyBudget = getMockMonthlyBudget()
-    const allocatedAmount = data.pots.reduce(
-      (sum, pot) => sum + (pot.autoSavingEnabled ? pot.monthlyContribution : 0),
-      0,
+    const allocatedAmount = Math.min(
+      Number.isFinite(data.allocatedAmount) ? data.allocatedAmount : 0,
+      monthlyBudget,
     )
     const synchronized = {
       ...data,
@@ -58,6 +58,18 @@ export function getStoredPots(): PotsData {
     localStorage.setItem(storageKey, JSON.stringify(initialData))
     return initialData
   }
+}
+
+export function updateStoredPotsAllocation(amount: number) {
+  const data = getStoredPots()
+  const allocatedAmount = Math.max(0, Math.min(amount, data.monthlyBudget))
+  const updated = {
+    ...data,
+    allocatedAmount,
+    availableAmount: Math.max(data.monthlyBudget - allocatedAmount, 0),
+  }
+  localStorage.setItem(getMockStorageKey(STORAGE_KEY), JSON.stringify(updated))
+  return updated
 }
 
 function saveData(data: PotsData) {

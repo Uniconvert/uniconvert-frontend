@@ -15,10 +15,9 @@ export function getMockStorageKey(name: string) {
 }
 
 export function getMockMonthlyBudget() {
-  if (isSeededMockUser()) return 1_250_000
-
   const storedBudget = getOnboardingSettings().monthlyBudget
   if (typeof storedBudget === 'number' && Number.isFinite(storedBudget) && storedBudget > 0) return storedBudget
+  if (isSeededMockUser()) return 1_250_000
   return 0
 }
 
