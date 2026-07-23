@@ -1,0 +1,360 @@
+.page {
+  display: grid;
+  min-width: 0;
+  min-height: 100%;
+  grid-template-columns: minmax(40rem, 54rem) minmax(28rem, 34.5rem);
+  grid-template-rows: auto 1fr;
+  justify-content: space-between;
+  column-gap: 3rem;
+}
+
+.page > h1 {
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 2.5rem;
+  font-size: 1.75rem;
+}
+
+.reportContent {
+  display: flex;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 2;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.chartCard,
+.categoryCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.chartCard {
+  min-height: 19.625rem;
+  padding: 1.25rem 1.875rem 1rem;
+}
+
+.chartCard h2,
+.categoryCard h2 {
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-regular);
+}
+
+.chartBody {
+  display: grid;
+  height: 14.25rem;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.axisLabels {
+  display: flex;
+  height: 11.25rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 0.125rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+.barChart {
+  display: grid;
+  height: 12.75rem;
+  grid-template-columns: repeat(6, minmax(2rem, 1fr));
+  align-items: end;
+  gap: clamp(1.25rem, 3vw, 4rem);
+  padding: 0 1rem;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(25% - 1px),
+    #edf0f2 calc(25% - 1px),
+    #edf0f2 25%
+  );
+  border-bottom: 1px solid #d8dde1;
+}
+
+.barColumn {
+  display: grid;
+  height: 100%;
+  grid-template-rows: 1fr 2rem;
+  align-items: end;
+  justify-items: center;
+  color: var(--color-text-muted);
+}
+
+.bar {
+  display: block;
+  width: 100%;
+  max-width: 3.75rem;
+  align-self: end;
+  background: #a7c0d5;
+  border-radius: 0.625rem 0.625rem 0 0;
+}
+
+.currentBar {
+  background: var(--color-primary);
+}
+
+.barColumn > span:last-child {
+  align-self: end;
+  padding-top: 0.75rem;
+  font-size: 1rem;
+}
+
+.barColumn .currentMonth {
+  color: #366894;
+  font-weight: var(--font-weight-bold);
+}
+
+.categoryCard {
+  width: 31.125rem;
+  min-height: 26.5rem;
+  padding: 2rem 2.5rem;
+}
+
+.categoryList {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  list-style: none;
+}
+
+.categoryList li {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.categoryIcon {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.categoryIcon img {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.categoryInfo {
+  display: grid;
+  min-width: 0;
+  gap: 0.625rem;
+}
+
+.categoryHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.categoryHeading b,
+.categoryHeading strong {
+  font-size: 1rem;
+}
+
+.progressTrack {
+  display: block;
+  height: 0.4375rem;
+  overflow: hidden;
+  background: var(--color-control-disabled);
+  border-radius: var(--radius-pill);
+}
+
+.progressTrack i {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: inherit;
+}
+
+.previewPanel {
+  min-height: 52.375rem;
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  padding: 7.25rem 3.875rem 2.5rem;
+  background: linear-gradient(180deg, #f5faff 0%, #a8d2f3 100%);
+  border-radius: 3.75rem;
+}
+
+.emailIllustration {
+  width: 12.5rem;
+  position: absolute;
+  z-index: 2;
+  top: 2.25rem;
+  right: 2.25rem;
+}
+
+.previewCard {
+  min-height: 42.5rem;
+  padding: 2rem 1.875rem 1.25rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.previewCard h2 {
+  color: #366894;
+  text-align: center;
+  font-size: 1.375rem;
+}
+
+.reportMonth {
+  margin-top: 0.75rem;
+  color: #9fbfda;
+  text-align: center;
+  font-size: 1.125rem;
+}
+
+.reportTotal {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2.75rem;
+}
+
+.reportTotal span {
+  color: #8aaed0;
+}
+
+.reportTotal strong {
+  color: #366894;
+  font-size: 1.5rem;
+}
+
+.previewCard hr {
+  margin: 1.5rem 0;
+  border: 0;
+  border-top: 1px solid #ccdae6;
+}
+
+.previewCard h3 {
+  font-size: 1rem;
+  font-weight: var(--font-weight-regular);
+}
+
+.compactCategoryList {
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.compactCategoryList li {
+  grid-template-columns: 2.875rem minmax(0, 1fr);
+  gap: 0.875rem;
+}
+
+.compactCategoryList .categoryIcon {
+  width: 2.875rem;
+  height: 2.875rem;
+}
+
+.compactCategoryList .categoryIcon img {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.compactCategoryList .categoryInfo {
+  gap: 0.5rem;
+}
+
+.compactCategoryList .categoryHeading b,
+.compactCategoryList .categoryHeading strong {
+  font-size: 0.95rem;
+}
+
+.sendButton {
+  min-height: 3.125rem;
+  margin-top: 2.5rem;
+  font-size: 1rem;
+}
+
+.sendButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.sendStatus {
+  min-height: 1.25rem;
+  margin-top: 0.5rem;
+  color: #366894;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.srOnly {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 87.5rem) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .page > h1,
+  .reportContent,
+  .previewPanel {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .previewPanel {
+    width: min(100%, 34.5rem);
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .page > h1 {
+    font-size: 1.5rem;
+  }
+
+  .chartCard {
+    padding-inline: 1rem;
+  }
+
+  .chartBody {
+    grid-template-columns: 3.75rem 1fr;
+    gap: 0.5rem;
+  }
+
+  .barChart {
+    gap: 0.75rem;
+    padding-inline: 0.5rem;
+  }
+
+  .categoryCard {
+    width: 100%;
+    padding-inline: 1rem;
+  }
+
+  .previewPanel {
+    min-height: auto;
+    padding: 6rem 1rem 1rem;
+    border-radius: 2rem;
+  }
+
+  .previewCard {
+    padding-inline: 1rem;
+  }
+}

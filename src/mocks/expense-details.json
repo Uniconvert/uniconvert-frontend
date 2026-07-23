@@ -1,0 +1,53 @@
+{
+  "success": true,
+  "data": [
+    {
+      "expenseId": "expense-001",
+      "currency": "USD",
+      "originalAmount": 16.68,
+      "convertedAmountHome": 25000,
+      "appliedRate": 1499.07,
+      "spentAt": "2026-07-12",
+      "merchantName": "Starbucks",
+      "categoryName": "식비",
+      "iconKey": "food",
+      "memo": "친구와 함께 마신 커피"
+    },
+    {
+      "expenseId": "expense-002",
+      "currency": "KRW",
+      "originalAmount": 12000,
+      "convertedAmountHome": 12000,
+      "appliedRate": 1,
+      "spentAt": "2026-07-11",
+      "merchantName": "공항버스",
+      "categoryName": "교통",
+      "iconKey": "transport",
+      "memo": ""
+    },
+    {
+      "expenseId": "expense-003",
+      "currency": "KRW",
+      "originalAmount": 150000,
+      "convertedAmountHome": 150000,
+      "appliedRate": 1,
+      "spentAt": "2026-07-10",
+      "merchantName": "온라인 강의",
+      "categoryName": "학비",
+      "iconKey": "education",
+      "memo": "7월 학습비"
+    },
+    {
+      "expenseId": "expense-004",
+      "currency": "KRW",
+      "originalAmount": 150000,
+      "convertedAmountHome": 150000,
+      "appliedRate": 1,
+      "spentAt": "2026-07-13",
+      "merchantName": "",
+      "categoryName": "몰라",
+      "iconKey": "education",
+      "memo": ""
+    }
+  ]
+}

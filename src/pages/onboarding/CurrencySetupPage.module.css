@@ -1,0 +1,103 @@
+.page {
+  display: grid;
+  width: 100%;
+  min-height: calc(100svh - (var(--space-6) * 2));
+  position: relative;
+  place-items: center;
+}
+
+.card {
+  display: flex;
+  width: min(47.5rem, calc(100vw - 4rem));
+  min-height: 59rem;
+  z-index: 1;
+  flex-direction: column;
+  padding: 3.125rem 4.375rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.625rem;
+}
+
+.progress span {
+  height: 0.625rem;
+  background: var(--color-control-disabled);
+  border-radius: var(--radius-pill);
+}
+
+.progress .active {
+  background: var(--color-primary);
+}
+
+.card h1 {
+  margin-top: 1.75rem;
+  font-size: 2rem;
+  line-height: 1.25;
+}
+
+.description {
+  margin-top: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+}
+
+.nextButton {
+  min-height: 4.375rem;
+  margin-top: 2.125rem;
+}
+
+.coinDecoration,
+.exchangeDecoration {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
+}
+
+.coinDecoration {
+  top: 13.5%;
+  left: 2.5%;
+  width: clamp(16rem, 18vw, 21rem);
+}
+
+.exchangeDecoration {
+  right: 1.75%;
+  bottom: -3.5%;
+  width: clamp(18rem, 23vw, 26.5rem);
+}
+
+@media (max-width: 56rem) {
+  .coinDecoration,
+  .exchangeDecoration {
+    display: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .page {
+    min-height: calc(100svh - (var(--space-4) * 2));
+  }
+
+  .card {
+    width: 100%;
+    min-height: auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .card h1 {
+    margin-top: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .nextButton {
+    margin-top: 1.5rem;
+  }
+}

@@ -1,0 +1,15 @@
+.layout {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-6);
+  background: linear-gradient(110deg, #f0fbf7 0%, #eaf8f6 32%, #dcefff 100%);
+}
+
+@media (max-width: 40rem) {
+  .layout {
+    padding: var(--space-4);
+  }
+}
