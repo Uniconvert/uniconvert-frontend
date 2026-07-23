@@ -1,0 +1,74 @@
+name: 운영 환경 배포
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-northeast-2
+  S3_BUCKET: ${{ vars.S3_BUCKET }}
+  CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+  VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+  VITE_USE_MOCK_API: ${{ vars.VITE_USE_MOCK_API }}
+
+jobs:
+  deploy:
+    name: S3 및 CloudFront 배포
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v6
+
+      - name: Node.js 설치
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 패키지 설치
+        run: npm ci
+
+      - name: ESLint 검사
+        run: npm run lint
+
+      - name: 운영 파일 빌드
+        run: npm run build
+
+      - name: AWS 임시 권한 발급
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: uniconvert-frontend-deploy
+
+      - name: 일반 파일 S3 업로드
+        run: |
+          aws s3 sync dist/ s3://$S3_BUCKET/ \
+            --delete \
+            --exclude "assets/*" \
+            --cache-control "no-cache"
+
+      - name: 해시 정적 파일 S3 업로드
+        run: |
+          aws s3 sync dist/assets/ s3://$S3_BUCKET/assets/ \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable"
+
+      - name: CloudFront 캐시 갱신
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths "/*"

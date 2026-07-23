@@ -1,0 +1,38 @@
+name: PR 코드 검사
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint 및 Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v6
+
+      - name: Node.js 설치
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 패키지 설치
+        run: npm ci
+
+      - name: ESLint 검사
+        run: npm run lint
+
+      - name: TypeScript 및 운영 빌드 검사
+        run: npm run build
