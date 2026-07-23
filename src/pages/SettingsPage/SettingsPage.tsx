@@ -132,8 +132,6 @@ function SettingsPage() {
 
         <p className={styles.version}>버전: 1.0.0</p>
       </div>
-
-      {isEmailReportEnabled ? (
         <aside className={styles.reportPanel} aria-label="이메일 리포트 미리보기">
           <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
           <section className={styles.reportCard}>
@@ -163,14 +161,6 @@ function SettingsPage() {
             </Button>
           </section>
         </aside>
-      ) : (
-        <aside className={styles.offVisual} aria-label="이메일 리포트가 꺼져 있습니다">
-          <p>지출 환경을 설정하고 관리하세요</p>
-          <span className={styles.thoughtLarge} />
-          <span className={styles.thoughtSmall} />
-          <img src="/assets/illustrations/mascot-check.png" alt="" aria-hidden="true" />
-        </aside>
-      )}
     </section>
   )
 }
