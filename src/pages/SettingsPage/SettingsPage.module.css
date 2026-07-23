@@ -2,10 +2,10 @@
   display: grid;
   min-width: 0;
   min-height: 100%;
-  grid-template-columns: 34rem minmax(26rem, 34.5rem);
+  grid-template-columns: minmax(min(100%, 22rem), 34rem) minmax(min(100%, 20rem), 34.5rem);
   grid-template-rows: auto 1fr;
   justify-content: space-between;
-  column-gap: 3rem;
+  column-gap: clamp(1.25rem, 3vw, 3rem);
 }
 
 .page > h1 {
@@ -94,9 +94,9 @@
 }
 
 .profileCard {
-  min-height: 31.875rem;
-  margin-top: 2.5rem;
-  padding: 2.5rem;
+  min-height: fit-content;
+  margin-top: clamp(1.5rem, 3vh, 2.5rem);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -107,10 +107,10 @@
 }
 
 .avatarWrap {
-  width: 11.25rem;
-  height: 11.25rem;
+  width: clamp(5.5rem, 12vw, 9.5rem);
+  height: clamp(5.5rem, 12vw, 9.5rem);
   position: relative;
-  margin: 1.75rem auto 2.375rem;
+  margin: clamp(1rem, 2vh, 1.5rem) auto clamp(1.25rem, 3vh, 2rem);
 }
 
 .profileAvatar {
@@ -123,8 +123,8 @@
   background: linear-gradient(145deg, #fff4cc, #d9efff);
   border: 2px solid var(--color-primary);
   border-radius: 25%;
-  font-size: 4rem;
   font-weight: var(--font-weight-bold);
+  font-size: clamp(2rem, 5vw, 3.5rem);
 }
 
 .profileAvatar img {
@@ -175,7 +175,7 @@
 
 .profileFields input {
   min-width: 0;
-  min-height: 3.125rem;
+  min-height: clamp(2.5rem, 5vh, 3.125rem);
   padding: 0 1rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -202,7 +202,7 @@
 
 .profileActions button {
   min-width: 5.75rem;
-  min-height: 2.5rem;
+  min-height: clamp(2.5rem, 5vh, 3.125rem);
   padding: 0.5rem 1rem;
   font-size: 1rem;
 }
@@ -218,25 +218,25 @@
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: start;
-  padding: 5.25rem 2.5rem 2.5rem;
-  background: linear-gradient(180deg, #FFFFFF 0%, #6AADEA 100%); /* 색상 통일 */
-  border-radius: 3.75rem;
+  padding: clamp(2.5rem, 5vh, 4.5rem) clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 2vh, 2rem);
+  background: linear-gradient(180deg, #FFFFFF 0%, #6AADEA 100%);
+  border-radius: clamp(1.5rem, 4vw, 3.75rem);
 }
 
 .emailIllustration {
-  width: 15rem;
+  width: clamp(8rem, 15vw, 13rem);
   height: auto;
   position: absolute;
   z-index: 2;
   top: 0rem;
-  right: -1.5rem;
+  right: -1rem;
 }
 
 .reportCard {
   max-width: 26rem;
   margin: 0 auto;
-  min-height: 42.5rem;
-  padding: 2rem 1.875rem;
+  min-height: fit-content;
+  padding: clamp(1.25rem, 2.5vh, 2rem) clamp(1.25rem, 3vw, 1.875rem);
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
@@ -257,8 +257,8 @@
 
 .reportTotal {
   display: grid;
-  gap: 0.75rem;
-  margin-top: 2.75rem;
+  gap: 0.5rem;
+  margin-top: clamp(1rem, 2.5vh, 1.75rem);
 }
 
 .reportTotal span {
@@ -271,7 +271,7 @@
 }
 
 .reportCard hr {
-  margin: 1.5rem 0;
+  margin: clamp(0.75rem, 2vh, 1.5rem) 0;
   border: 0;
   border-top: 1px solid #ccdae6;
 }
@@ -283,10 +283,10 @@
 
 .reportList {
   display: grid;
-  gap: 0.625rem;
-  margin-top: 1.25rem;
+  gap: clamp(0.35rem, 1vh, 0.625rem);
+  margin-top: clamp(0.75rem, 1.5vh, 1.25rem);
   list-style: none;
-  padding: 0; 
+  padding: 0;
 }
 
 .reportList li {
@@ -298,17 +298,17 @@
 
 .reportCategoryIcon {
   display: grid;
-  width: 2.875rem;
-  height: 2.875rem;
+  width: clamp(2rem, 4vh, 2.875rem);
+  height: clamp(2rem, 4vh, 2.875rem);
   place-items: center;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
 
 .reportCategoryIcon img {
-  width: 1.75rem;
-  height: 1.75rem;
-  object-fit: contain;  
+  width: clamp(1.25rem, 2.5vh, 1.75rem);
+  height: clamp(1.25rem, 2.5vh, 1.75rem);
+  object-fit: contain;
 }
 
 .reportCategoryInfo {
@@ -343,51 +343,14 @@
 }
 
 .sendReportButton {
-  min-height: 3.125rem;
-  margin-top: 2.5rem;
+  min-height: clamp(2.5rem, 5vh, 3.125rem);
+  margin-top: clamp(1.25rem, 2.5vh, 2rem);
   font-size: 1rem;
 }
 
 .sendReportButton svg {
   width: 1.25rem;
   height: 1.25rem;
-}
-
-.offVisual {
-  min-height: 20rem;
-  position: relative;
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
-}
-
-.offVisual p {
-  position: absolute;
-  right: 7.5rem;
-  bottom: 7.5rem;
-  padding: 0.625rem 1.5rem;
-  background: var(--color-surface);
-  border: 2px solid #8ec5f7;
-  border-radius: var(--radius-pill);
-  font-size: 1.125rem;
-}
-
-.thoughtLarge,
-.thoughtSmall {
-  position: absolute;
-  background: var(--color-surface);
-  border: 2px solid #8ec5f7;
-  border-radius: 50%;
-}
-
-.thoughtLarge { width: 1.15rem; height: 1.15rem; right: 6.25rem; bottom: 6.5rem; }
-.thoughtSmall { width: 0.875rem; height: 0.875rem; right: 5.25rem; bottom: 5.75rem; }
-
-.offVisual img {
-  width: 8rem;
-  position: absolute;
-  right: 0;
-  bottom: 0;
 }
 
 @media (max-width: 87.5rem) {

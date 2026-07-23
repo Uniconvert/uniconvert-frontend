@@ -16,7 +16,7 @@ interface Category {
 const categories: Category[] = [
   { id: 'food', label: '식비', iconSrc: '/assets/icons/categories/category-food.png' },
   { id: 'transport', label: '교통', iconSrc: '/assets/icons/categories/category-transport.png' },
-  { id: 'shopping', label: '쇼핑', symbol: '🛍️' },
+  { id: 'shopping', label: '쇼핑', iconSrc: '/assets/icons/categories/category-shopping.png' },
   { id: 'medical', label: '의료', iconSrc: '/assets/icons/categories/category-medical.png' },
   { id: 'education', label: '학업', iconSrc: '/assets/icons/categories/category-education.png' },
   { id: 'travel', label: '여행', iconSrc: '/assets/icons/categories/category-travel.png' },

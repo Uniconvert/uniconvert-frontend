@@ -1,8 +1,8 @@
 .page {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(42rem, 1.7fr) minmax(25rem, 1fr);
-  gap: clamp(3rem, 5vw, 5.5rem);
+  grid-template-columns: minmax(min(100%, 32rem), 1.7fr) minmax(min(100%, 20rem), 1fr);
+  gap: clamp(1.5rem, 3vw, 5.5rem);
 }
 .successToast { display: grid; width: min(30rem, calc(100% - 2rem)); min-height: 5rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.8rem; left: 50%; padding: .9rem 1rem; background: white; border: 1px solid #65c28f; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
 .successToast > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #55b982; border: 2px solid #65c28f; border-radius: 50%; font-size: 1.35rem; }
@@ -53,8 +53,8 @@
 .twoColumns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2.75rem 3.5rem;
-  margin-top: 2rem;
+  gap: clamp(1.25rem, 3vh, 2.75rem) clamp(1.5rem, 3vw, 3.5rem);
+  margin-top: clamp(1.25rem, 3vh, 2rem);
 }
 
 .field {
@@ -73,14 +73,15 @@
 .field > input,
 .currencySelectWrap,
 .readOnlyCurrency,
-.amountInputWrap {
+.amountInputWrap,
+.datePicker > button {
   display: flex;
-  min-height: 3.5rem;
+  min-height: clamp(2.75rem, 5vh, 3.5rem); 
   align-items: center;
   padding: 0 1.25rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 1.125rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.125rem); 
 }
 
 .field > input {
@@ -171,16 +172,17 @@
   border: 0;
 }
 
+
 .categoryList {
   display: grid;
-  grid-template-columns: repeat(7, minmax(4.25rem, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.5vw, 1.75rem);
   margin-top: 0.5rem;
 }
 
 .categoryList button {
   display: flex;
-  min-height: 5.875rem;
+  min-height: clamp(4.5rem, 8vh, 5.875rem);
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -188,7 +190,7 @@
   background: var(--color-surface-subtle);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
 }
 
 .categoryList button.selectedCategory {
@@ -217,14 +219,14 @@
 
 .textareaWrap {
   display: grid;
-  min-height: 12.875rem;
+  min-height: clamp(8rem, 15vh, 12.875rem);
   position: relative;
-  border: 1px solid #a9a9a9;
+  border: 1px solid #ababab;
   border-radius: var(--radius-md);
 }
 
 .textareaWrap textarea {
-  min-height: 12.75rem;
+  min-height: clamp(8rem, 15vh, 12.75rem);
   padding: 1rem 1.25rem 2.25rem;
   resize: none;
   border: 0;
@@ -241,31 +243,31 @@
 }
 
 .saveButton {
-  min-height: 3.875rem;
-  margin-top: 1.5rem;
+  min-height: clamp(3rem, 5vh, 3.875rem); 
+  margin-top: clamp(0.75rem, 2vh, 1.5rem);
 }
 
 .previewPanel {
   min-width: 0;
-  padding: 2.5rem 2.5rem 1.875rem;
-  background: linear-gradient(180deg, #f5faff 0%, #9bc9ee 100%);
-  border-radius: 3.75rem;
+  padding: 2.5rem clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 2vw, 1.875rem);
+  background: linear-gradient(180deg, #ffffff 0%, #6AADEA 100%);
+  border-radius: clamp(2rem, 4vw, 3.75rem);
 }
 
 .exchangeImage {
   display: block;
   width: min(100%, 27rem);
-  height: 21rem;
+  height: clamp(12rem, 25vh, 21rem); 
   margin: -2.5rem auto 0;
   object-fit: contain;
 }
 
 .previewCard {
-  min-height: 24.25rem;
-  margin-top: -0.25rem;
-  padding: 2.5rem;
+  min-height: fit-content;
+  margin-top: clamp(1rem, 3vh, 2.5rem);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
   background: var(--color-surface);
-  border-radius: 2.75rem;
+  border-radius: clamp(1.5rem, 3vw, 2.75rem);
 }
 
 .previewCard h2 {
@@ -298,7 +300,7 @@
 }
 
 .conversion b {
-  font-size: 2.75rem;
+  font-size: clamp(1.75rem, 4vw, 2.75rem); 
   font-weight: var(--font-weight-regular);
 }
 
