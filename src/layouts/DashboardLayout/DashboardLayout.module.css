@@ -4,6 +4,11 @@
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   grid-template-rows: 9.375rem minmax(0, 1fr);
   background: #edf6fd;
+
+  max-width: 1920px;
+  width: 100%;
+  margin: 0 auto;
+  overflow: clip;
 }
 
 .topbar {

@@ -1,6 +1,7 @@
 // ReportPage.tsx
 import { useState } from 'react'
 import styles from './ReportPage.module.css'
+import Mascot from '@/components/common/Mascot/Mascot'
 
 interface Expense {
   label: string
@@ -76,8 +77,8 @@ function BarChart({
       </div>
 
       {isOpen && (
-        <div 
-          className={styles.dropdownBox} 
+        <div
+          className={styles.dropdownBox}
           style={type === 'month' ? { width: '8rem', padding: '1rem 0' } : {}}
         >
           {type === 'date' ? (
@@ -104,9 +105,8 @@ function BarChart({
                   return (
                     <div
                       key={day}
-                      className={`${styles.calendarDay} ${
-                        isSelected ? styles.calendarDaySelected : ''
-                      }`}
+                      className={`${styles.calendarDay} ${isSelected ? styles.calendarDaySelected : ''
+                        }`}
                       onClick={() => setIsOpen(false)}
                     >
                       {day}
@@ -118,24 +118,24 @@ function BarChart({
           ) : (
             <div className={styles.monthList}>
               {['2026.07', '2026.06', '2026.05', '2026.04', '2026.03'].map((monthStr, index) => {
-                const isSelected = index === 0; 
-                
+                const isSelected = index === 0;
+
                 return (
-                  <button 
-                    key={monthStr} 
-                    type="button" 
+                  <button
+                    key={monthStr}
+                    type="button"
                     className={`${styles.monthListItem} ${isSelected ? styles.monthListItemSelected : ''}`}
-                    onClick={() => setIsOpen(false)} 
+                    onClick={() => setIsOpen(false)}
                   >
                     {monthStr}
                   </button>
                 )
               })}
-              
+
               {/* 더보기 꺾쇠 버튼 */}
-              <button 
-                type="button" 
-                className={styles.monthListMoreBtn} 
+              <button
+                type="button"
+                className={styles.monthListMoreBtn}
                 aria-label="이전 달 더보기"
               />
             </div>
@@ -152,11 +152,11 @@ function BarChart({
         <div className={chartClass}>
           {data.map((item, index) => {
             const height = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0
-            
+
             const isHighest = item.amount === maxAmount && maxAmount > 0
 
-            const isLabelHighlighted = type === 'date' 
-              ? index === data.length - 1 
+            const isLabelHighlighted = type === 'date'
+              ? index === data.length - 1
               : isHighest
 
             return (
@@ -216,10 +216,10 @@ function ReportPage() {
       </div>
 
       <div className={styles.mascotArea} aria-hidden="true">
-        <p>오늘 지출이 어제보다 5% 증가했어요</p>
-        <span className={styles.thoughtSmall} />
-        <span className={styles.thoughtLarge} />
-        <img src="/assets/illustrations/mascot-check.png" alt="" />
+        <Mascot
+          message="오늘 지출이 어제보다 5% 증가했어요"
+          imageSrc="/assets/illustrations/mascot-check.png"
+        />
       </div>
     </section>
   )

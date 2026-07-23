@@ -6,6 +6,7 @@ import PotCard from '@/components/pots/PotCard/PotCard'
 import type { Pot, PotsData } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './PotsPage.module.css'
+import Mascot from '@/components/common/Mascot/Mascot'
 
 const representativeImages = [
   '/assets/images/pots/sapporo-trip.png',
@@ -147,12 +148,9 @@ function PotsPage() {
             <img src="/assets/illustrations/wallet.png" alt="" />
           </div>
           <div className={styles.encouragement}>
-            <div className={styles.speechBubble}>{completedPot ? '목표를 달성했어요 축하드려요!' : '오늘도 목표를 향해 한 걸음!'}</div>
-            <span className={styles.bubbleDotLarge} aria-hidden="true" />
-            <span className={styles.bubbleDotSmall} aria-hidden="true" />
-            <img
-              src={completedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
-              alt="목표 달성을 응원하는 유니컨버트 캐릭터"
+            <Mascot
+              message={completedPot ? '목표를 달성했어요 축하드려요!' : '오늘도 목표를 향해 한 걸음!'}
+              imageSrc={completedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
             />
           </div>
         </aside>

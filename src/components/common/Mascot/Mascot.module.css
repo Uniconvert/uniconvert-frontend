@@ -1,0 +1,52 @@
+/* 컴포넌트 전체를 감싸는 유연한 기준점 */
+.mascotContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 말풍선과 마스코트 공통 내부 스타일 */
+.speechBubble {
+  position: absolute;
+  right: clamp(5.5rem, 8vw, 7.75rem);
+  bottom: clamp(5.5rem, 10vh, 7.25rem);
+  padding: 0.65rem clamp(1rem, 2vw, 1.5rem);
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: var(--radius-pill);
+  font-size: clamp(0.95rem, 1.5vw, 1.125rem);
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  z-index: 2;
+}
+
+.thoughtSmall,
+.thoughtLarge {
+  position: absolute;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.thoughtSmall { 
+  width: 0.9rem; 
+  height: 0.9rem; 
+  right: clamp(4rem, 6vw, 5.4rem); 
+  bottom: clamp(4.5rem, 7vh, 5.55rem); 
+}
+
+.thoughtLarge { 
+  width: 1.15rem; 
+  height: 1.15rem; 
+  right: clamp(4.75rem, 7vw, 6.65rem); 
+  bottom: clamp(5rem, 8vh, 6.45rem); 
+}
+
+.mascotImg {
+  width: clamp(6.5rem, 10vw, 8.75rem);
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0;
+  z-index: 3;
+}

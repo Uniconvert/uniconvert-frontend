@@ -5,6 +5,7 @@ import { ROUTE_PATHS } from '@/routes/routePaths'
 import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { formatCurrencyAmount, getCurrentYearMonth } from '@/utils/currency'
 import styles from './ExpenseHistoryPage.module.css'
+import Mascot from '@/components/common/Mascot/Mascot'
 
 const categoryIconPath = (iconKey: string) => `/assets/icons/categories/category-${iconKey}.png`
 
@@ -203,12 +204,13 @@ function ExpenseHistoryPage() {
           <button type="button" onClick={() => setIsSavedExpensesOpen(true)}>더보기</button>
         </section>
 
-        <div className={styles.mascotArea} aria-hidden="true">
-          <p>외화와 원화를 함께 관리하세요</p>
-          <span className={styles.thoughtSmall} />
-          <span className={styles.thoughtLarge} />
-          <img src="/assets/illustrations/mascot-check.png" alt="" />
+        <div className={styles.mascotArea}>
+          <Mascot
+            message="외화와 원화를 함께 관리하세요"
+            imageSrc="/assets/illustrations/mascot-check.png"
+          />
         </div>
+        
       </div>
 
       {isSavedExpensesOpen && (
@@ -226,7 +228,7 @@ function ExpenseHistoryPage() {
                       <button key={month} type="button" role="option" aria-selected={selectedMonth === String(month)} onClick={() => { setSelectedMonth(String(month)); setIsMonthMenuOpen(false) }}>{currentYear}.{String(month).padStart(2, '0')}</button>
                     ))}
                   </div>}
-              </div>
+                </div>
               </div>
               <button className={styles.manageButton} type="button" aria-label={isManagingExpenses ? '편집 완료' : '저장된 지출 편집'} onClick={() => setIsManagingExpenses((current) => !current)}>{isManagingExpenses ? '완료 ×' : '✎'}</button>
             </header>
