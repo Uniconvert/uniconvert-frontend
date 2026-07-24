@@ -4,10 +4,9 @@ import { getSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import type { AuthUser } from '@/types/auth'
 import type { EmailReportData } from '@/types/emailReport'
+import { getCategoryIconPath } from '@/utils/categoryIcon'
 import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './SettingsPage.module.css'
-
-const categoryIconPath = (iconKey: string) => `/assets/icons/categories/category-${iconKey}.png`
 
 function SettingsPage() {
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -132,6 +131,8 @@ function SettingsPage() {
 
         <p className={styles.version}>버전: 1.0.0</p>
       </div>
+
+      {isEmailReportEnabled ? (
         <aside className={styles.reportPanel} aria-label="이메일 리포트 미리보기">
           <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
           <section className={styles.reportCard}>
@@ -147,7 +148,7 @@ function SettingsPage() {
             <ul className={styles.reportList}>
               {emailReport?.categories.map((category) => (
                 <li key={category.categoryId}>
-                  <span className={styles.reportCategoryIcon}><img src={categoryIconPath(category.iconKey)} alt="" aria-hidden="true" /></span>
+                  <span className={styles.reportCategoryIcon}><img src={getCategoryIconPath(category.iconKey)} alt="" aria-hidden="true" /></span>
                   <span className={styles.reportCategoryInfo}>
                     <span><b>{category.categoryName}</b><strong>{formatCurrencyAmount(category.amountHome, emailReport.homeCurrency)}</strong></span>
                     <span className={styles.reportProgress}><i style={{ width: `${category.ratio}%` }} /></span>
@@ -161,6 +162,14 @@ function SettingsPage() {
             </Button>
           </section>
         </aside>
+      ) : (
+        <aside className={styles.offVisual} aria-label="이메일 리포트가 꺼져 있습니다">
+          <p>지출 환경을 설정하고 관리하세요</p>
+          <span className={styles.thoughtLarge} />
+          <span className={styles.thoughtSmall} />
+          <img src="/assets/illustrations/mascot-check.png" alt="" aria-hidden="true" />
+        </aside>
+      )}
     </section>
   )
 }

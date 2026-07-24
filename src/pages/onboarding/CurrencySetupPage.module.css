@@ -11,6 +11,7 @@
   width: min(47.5rem, calc(100vw - 4rem));
   min-height: fit-content;
   max-height: 85svh;
+  position: relative;
   overflow-y: auto;
   z-index: 1;
   flex-direction: column;
@@ -19,6 +20,8 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
+
+.card::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
 
 .progress {
   display: grid;
@@ -77,6 +80,7 @@
   .exchangeDecoration {
     display: none;
   }
+  .card::after { display: none; }
 }
 
 @media (max-width: 40rem) {

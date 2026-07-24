@@ -44,7 +44,8 @@
 .savedCard > button { display: block; margin: 1rem auto 0; color: var(--color-text-muted); background: transparent; border: 0; text-decoration: underline; }
 
 .modalBackdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(218, 237, 252, .82); backdrop-filter: blur(5px); }
-.savedModal { width: min(43rem, 100%); max-height: calc(100svh - 3rem); overflow: auto; padding: 2rem 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.savedModal { width: min(43rem, 100%); position: relative; z-index: 1; max-height: calc(100svh - 3rem); overflow: auto; padding: 2rem 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.savedModal::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
 .savedModal header { display: flex; align-items: flex-start; gap: .75rem; }
 .savedModal header > div { display: grid; flex: 1; gap: .75rem; }
 .savedModal header h2 { font-size: 1.375rem; }
@@ -182,7 +183,6 @@
   text-decoration: underline;
 }
 
-.cardHeader select,
 .monthlyHeader select {
   min-height: 2.5rem;
   padding: 0 1rem;
@@ -192,6 +192,15 @@
   font-size: 1rem;
 }
 
+.rangePicker { position: relative; z-index: 5; }
+.rangePicker > button { display: inline-flex; min-width: 4.25rem; min-height: 2.5rem; align-items: center; justify-content: space-between; gap: .75rem; padding: 0 .875rem; color: var(--color-text-primary); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 1rem; }
+.rangePicker > button:hover,
+.rangePicker > button[aria-expanded='true'] { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(102,169,228,.14); }
+.rangeMenu { display: grid; width: 100%; position: absolute; top: calc(100% + .375rem); right: 0; overflow: hidden; padding: .25rem; background: var(--color-surface); border: 1px solid #a9c8e7; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+.rangeMenu button { min-height: 2.25rem; color: var(--color-text-primary); background: transparent; border: 0; border-radius: .375rem; font-size: .9375rem; }
+.rangeMenu button:hover,
+.rangeMenu button[aria-selected='true'] { color: var(--color-primary); background: #eff7ff; }
+
 .recentList {
   display: grid;
   gap: 0.5rem;
@@ -199,7 +208,7 @@
   list-style: none;
 }
 
-.recentList button {
+.recentExpenseRow {
   display: grid;
   width: 100%;
   grid-template-columns: clamp(2.5rem, 4vw, 3.25rem) 1fr auto;
@@ -210,11 +219,6 @@
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast);
-}
-
-.recentList button:hover {
-  background: var(--color-surface-subtle);
 }
 
 .expenseIcon {
@@ -232,7 +236,9 @@
   object-fit: contain;
 }
 
-.recentList button > span:nth-child(2) {
+.expenseIcon img[src$='action-add.png'] { width: 1.25rem; height: 1.25rem; }
+
+.recentExpenseRow > span:nth-child(2) {
   font-size: clamp(0.95rem, 1.5vw, 1.125rem);
 }
 

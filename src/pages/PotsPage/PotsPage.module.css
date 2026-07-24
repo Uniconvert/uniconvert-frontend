@@ -52,6 +52,17 @@
   bottom: -2rem; 
 }
 
+.modalBackdrop {
+  display: grid;
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(218, 237, 252, .82);
+  backdrop-filter: blur(5px);
+}
+
 .actionModal {
   width: min(43rem, 100%);
   max-height: calc(100svh - 3rem);
@@ -103,6 +114,7 @@
 .uploadChoice small { font-size: .65rem; }
 .uploadChoice input { display: none; }
 .categoryChoices button { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; background: white; border: 1px solid var(--color-border); border-radius: .6rem; font-size: 1.45rem; }
+.categoryChoices button img { width: 2.1rem; height: 2.1rem; object-fit: contain; }
 .selectedChoice { border-color: var(--color-primary) !important; outline: 2px solid #dbeeff; }
 .modalActions { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1rem; margin-top: 2rem; }
 

@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import Button from '@/components/common/Button/Button'
+import { POT_CATEGORY_OPTIONS } from '@/constants/potCategoryOptions'
 import type { CreatePotInput } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './CreatePotModal.module.css'
-
-const iconChoices = ['🚌', '🍔', '✈️', '🎓', '🏠', '🛍️', '🐷']
 
 interface CreatePotModalProps {
   isSaving: boolean
@@ -16,7 +15,7 @@ interface CreatePotModalProps {
 
 function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, currency }: CreatePotModalProps) {
   const [name, setName] = useState('')
-  const [icon, setIcon] = useState('🍔')
+  const [icon, setIcon] = useState('food')
   const [targetAmount, setTargetAmount] = useState(() => Math.min(500_000, maximumTargetAmount))
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -58,8 +57,8 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
 
           <fieldset className={styles.iconChoices}>
             <legend>3. 대표 카테고리</legend>
-            <div>{iconChoices.map((choice) => (
-              <button key={choice} type="button" className={choice === icon ? styles.selectedIcon : ''} aria-pressed={choice === icon} onClick={() => setIcon(choice)}>{choice}</button>
+            <div>{POT_CATEGORY_OPTIONS.map((choice) => (
+              <button key={choice.id} type="button" className={choice.id === icon ? styles.selectedIcon : ''} aria-label={choice.label} aria-pressed={choice.id === icon} onClick={() => setIcon(choice.id)}><img src={choice.iconSrc} alt="" aria-hidden="true" /></button>
             ))}</div>
           </fieldset>
 

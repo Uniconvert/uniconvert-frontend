@@ -3,6 +3,11 @@ export interface MonthlyExpensePoint {
   amountHome: number
 }
 
+export interface DailyExpensePoint {
+  date: string
+  amountHome: number
+}
+
 export interface ReportCategory {
   categoryId: string | number
   name: string
@@ -16,6 +21,7 @@ export interface MonthlyReportData {
   yearMonth: string
   homeCurrency: string
   totalExpenseHome: number
+  dailyExpenses: DailyExpensePoint[]
   monthlyExpenses: MonthlyExpensePoint[]
   categoryBreakdown: ReportCategory[]
 }

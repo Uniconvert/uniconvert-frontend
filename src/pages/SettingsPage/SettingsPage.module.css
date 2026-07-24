@@ -353,6 +353,37 @@
   height: 1.25rem;
 }
 
+.offVisual {
+  min-height: 20rem;
+  position: relative;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+}
+
+.offVisual p {
+  position: absolute;
+  right: 7.5rem;
+  bottom: 7.5rem;
+  padding: .625rem 1.5rem;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: var(--radius-pill);
+  font-size: 1.125rem;
+}
+
+.thoughtLarge,
+.thoughtSmall {
+  position: absolute;
+  background: var(--color-surface);
+  border: 2px solid #8ec5f7;
+  border-radius: 50%;
+}
+
+.thoughtLarge { width: 1.15rem; height: 1.15rem; right: 6.25rem; bottom: 6.5rem; }
+.thoughtSmall { width: .875rem; height: .875rem; right: 5.25rem; bottom: 5.75rem; }
+.offVisual img { width: 8rem; position: absolute; right: 0; bottom: 0; }
+
 @media (max-width: 87.5rem) {
   .page {
     grid-template-columns: 1fr;

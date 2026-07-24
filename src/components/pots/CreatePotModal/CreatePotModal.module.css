@@ -1,5 +1,6 @@
 .backdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(15, 39, 61, .48); }
-.modal { width: min(34rem, 100%); max-height: calc(100svh - 3rem); overflow-y: auto; padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: 0 1.5rem 4rem rgba(15, 39, 61, .24); }
+.modal { width: min(34rem, 100%); position: relative; z-index: 1; max-height: calc(100svh - 3rem); overflow-y: auto; padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: 0 1.5rem 4rem rgba(15, 39, 61, .24); }
+.modal::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
 .modal header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
 .modal h2 { font-size: 1.5rem; }
 .modal header button { width: 2.5rem; height: 2.5rem; padding: 0; color: var(--color-text-muted); background: transparent; border: 0; font-size: 2rem; line-height: 1; }
@@ -17,8 +18,9 @@
 .targetField small { color: var(--color-text-muted); }
 .iconChoices { margin: .5rem 0 0; padding: 0; border: 0; }
 .iconChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
-.iconChoices > div { display: grid; grid-template-columns: repeat(6, 1fr); gap: .625rem; }
+.iconChoices > div { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
 .iconChoices button { display: grid; aspect-ratio: 1; place-items: center; background: var(--color-surface-subtle); border: 1px solid transparent; border-radius: .75rem; font-size: 1.5rem; }
+.iconChoices button img { width: 2.25rem; height: 2.25rem; object-fit: contain; }
 .iconChoices button.selectedIcon { background: #e1f0fc; border-color: var(--color-primary); }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .75rem; }
 @media (max-width: 32rem) { .modal { padding: 1.5rem; } .iconChoices > div { grid-template-columns: repeat(3, 1fr); } }

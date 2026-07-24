@@ -1,5 +1,6 @@
 .backdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 2rem; background: rgba(215,235,252,.72); backdrop-filter: blur(5px); }
-.modal { width: min(47.25rem, calc(100vw - 4rem)); min-height: 39.75rem; padding: 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.modal { width: min(47.25rem, calc(100vw - 4rem)); min-height: 39.75rem; position: relative; z-index: 1; padding: 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.modal::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
 .header { display: flex; align-items: center; justify-content: space-between; }
 .header h2 { font-size: 1.125rem; font-weight: var(--font-weight-regular); }
 .closeButton { width: 2.5rem; height: 2.5rem; padding: 0; color: var(--color-text-primary); background: transparent; border: 0; font-size: 2.25rem; font-weight: 300; line-height: 1; }

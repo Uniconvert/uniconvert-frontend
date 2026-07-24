@@ -2,6 +2,7 @@
 .content { display: grid; min-height: 14rem; grid-template-columns: 8.75rem minmax(12rem, .85fr) minmax(18rem, 1.7fr); align-items: center; gap: 2.625rem; padding: 1.75rem 1.5rem; }
 .tripThumbnail { width: 8.75rem; height: 11.25rem; object-fit: cover; border-radius: .75rem; }
 .goalDetails h2 { margin-bottom: 2.25rem; font-size: 1.5rem; }
+.goalDetails h2 span img { width: 1.75rem; height: 1.75rem; object-fit: contain; vertical-align: middle; }
 .label { display: block; margin-bottom: .65rem; color: var(--color-text-muted); font-size: .9375rem; }
 .goalDetails strong, .progressHeading strong { font-size: 1.35rem; }
 .progressHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }

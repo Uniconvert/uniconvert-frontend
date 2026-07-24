@@ -1,4 +1,4 @@
-import { getMockHomeCurrency, isSeededMockUser } from '@/mocks/mockScenario'
+import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
 
 const currencySymbols: Record<string, string> = {
   KRW: '₩',
@@ -18,12 +18,12 @@ export interface MockAssetSummary {
 
 export function getMockAssetSummary(): MockAssetSummary {
   const homeCurrency = getMockHomeCurrency()
-  const isSeeded = isSeededMockUser()
+  const monthlyBudget = getMockMonthlyBudget()
 
   return {
     homeCurrency,
     currencySymbol: currencySymbols[homeCurrency] ?? homeCurrency,
-    totalAssetHome: isSeeded ? 1_250_000 : 0,
-    secondaryLabel: isSeeded ? '$833.42' : '잔액 미설정',
+    totalAssetHome: monthlyBudget,
+    secondaryLabel: monthlyBudget > 0 ? '월 예산' : '잔액 미설정',
   }
 }

@@ -1,5 +1,7 @@
-// ReportPage.tsx
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getMonthlyReport } from '@/api/reports'
+import type { MonthlyReportData } from '@/types/report'
+import { getCurrentYearMonth } from '@/utils/currency'
 import styles from './ReportPage.module.css'
 import Mascot from '@/components/common/Mascot/Mascot'
 
@@ -7,26 +9,6 @@ interface Expense {
   label: string
   amount: number
 }
-
-const timeData: Expense[] = [
-  { label: '1', amount: 40000 },
-  { label: '2', amount: 70000 },
-  { label: '3', amount: 20000 },
-  { label: '4', amount: 10000 },
-  { label: '5', amount: 30000 },
-  { label: '6', amount: 50000 },
-  { label: '7', amount: 60000 },
-]
-
-const monthlyData: Expense[] = [
-  { label: '1월', amount: 1000000 },
-  { label: '2월', amount: 800000 },
-  { label: '3월', amount: 900000 },
-  { label: '4월', amount: 1250000 },
-  { label: '5월', amount: 1150000 },
-  { label: '6월', amount: 1005000 },
-  { label: '7월', amount: 1050000 },
-]
 
 interface BarChartProps {
   titlePrefix: string
@@ -188,6 +170,47 @@ function BarChart({
 }
 
 function ReportPage() {
+  const [report, setReport] = useState<MonthlyReportData | null>(null)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let isActive = true
+
+    getMonthlyReport(getCurrentYearMonth())
+      .then((response) => {
+        if (isActive) setReport(response)
+      })
+      .catch((error) => {
+        if (isActive) {
+          setErrorMessage(error instanceof Error ? error.message : '리포트를 불러오지 못했습니다.')
+        }
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  if (errorMessage) {
+    return <section className={styles.page}><p role="alert">{errorMessage}</p></section>
+  }
+
+  if (!report) {
+    return <section className={styles.page} aria-busy="true"><p>리포트를 불러오는 중입니다.</p></section>
+  }
+
+  const timeData = report.dailyExpenses.map((expense) => ({
+    label: String(Number(expense.date.slice(8))),
+    amount: expense.amountHome,
+  }))
+  const monthlyData = report.monthlyExpenses.map((expense) => ({
+    label: `${Number(expense.yearMonth.slice(5))}월`,
+    amount: expense.amountHome,
+  }))
+  const firstDailyDate = report.dailyExpenses[0]?.date ?? `${report.yearMonth}-01`
+  const lastDailyDate = report.dailyExpenses.at(-1)?.date ?? firstDailyDate
+  const year = report.yearMonth.slice(0, 4)
+
   return (
     <section className={styles.page}>
       <div className={styles.pageHeader}>
@@ -197,21 +220,21 @@ function ReportPage() {
 
       <div className={styles.reportContent}>
         <BarChart
-          titlePrefix="07/01 - 07/07"
+          titlePrefix={`${firstDailyDate.slice(5).replace('-', '/')} - ${lastDailyDate.slice(5).replace('-', '/')}`}
           titleSuffix=" 지출"
           data={timeData}
           chartClass={styles.timeBarChart}
           type="date"
-          selectorText="2026.07.07"
+          selectorText={lastDailyDate.replaceAll('-', '.')}
         />
 
         <BarChart
-          titlePrefix="2026년"
+          titlePrefix={`${year}년`}
           titleSuffix=" 월별 지출"
           data={monthlyData}
           chartClass={styles.monthlyBarChart}
           type="month"
-          selectorText="2026.07"
+          selectorText={report.yearMonth.replace('-', '.')}
         />
       </div>
 

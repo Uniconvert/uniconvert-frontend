@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { clearSession, getSessionUser } from '@/auth/session'
 import { getMockAssetSummary } from '@/mocks/dashboardStore'
+import { getStoredPots, updateStoredPotsAllocation } from '@/mocks/potStore'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './DashboardLayout.module.css'
 
@@ -65,6 +67,82 @@ const homeTabs = [
   },
 ]
 
+function BudgetEditModal({
+  initialAllocation,
+  maxBudget,
+  currencySymbol,
+  onClose,
+  onSave,
+}: {
+  initialAllocation: number
+  maxBudget: number
+  currencySymbol: string
+  onClose: () => void
+  onSave: (budget: number) => void
+}) {
+  const [budget, setBudget] = useState(initialAllocation)
+  const progress = maxBudget > 0 ? (budget / maxBudget) * 100 : 0
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  const updateBudget = (value: string) => {
+    const nextBudget = Math.min(Number(value.replace(/\D/g, '')) || 0, maxBudget)
+    setBudget(nextBudget)
+  }
+
+  return (
+    <div className={styles.budgetModalBackdrop} role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose()
+    }}>
+      <section className={styles.budgetModal} role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
+        <header>
+          <h2 id="budget-modal-title">Pots 배정 금액 수정</h2>
+          <button type="button" aria-label="Pots 배정 금액 수정 닫기" onClick={onClose}>×</button>
+        </header>
+
+        <form onSubmit={(event) => { event.preventDefault(); onSave(budget) }}>
+          <div className={styles.budgetModalCopy}>
+            <h3>월 Pots 배정 금액</h3>
+            <p>월 예산 중 Pots에 모으고 싶은 금액을 설정해주세요.</p>
+          </div>
+
+          <label className={styles.budgetInput}>
+            <span className={styles.srOnly}>월 Pots 배정 금액</span>
+            <span aria-hidden="true">{currencySymbol}</span>
+            <input inputMode="numeric" value={budget.toLocaleString('ko-KR')} onChange={(event) => updateBudget(event.target.value)} />
+          </label>
+
+          <div className={styles.budgetRangeWrap}>
+            <output style={{ left: `${progress}%` }}>{currencySymbol} {budget.toLocaleString('ko-KR')}</output>
+            <input
+              type="range"
+              min="0"
+              max={maxBudget}
+              step="10000"
+              value={budget}
+              aria-label="월 Pots 배정 금액 슬라이더"
+              style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
+              onChange={(event) => setBudget(Number(event.target.value))}
+            />
+            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>월 예산 {currencySymbol} {maxBudget.toLocaleString('ko-KR')}</span></div>
+          </div>
+
+          <div className={styles.budgetModalActions}>
+            <button type="button" onClick={onClose}>취소</button>
+            <button type="submit" disabled={maxBudget <= 0}>저장하기</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  )
+}
+
 function NavigationIcon({ name }: { name: NavigationIconName }) {
   if (name === 'home') {
     return (
@@ -105,7 +183,10 @@ function DashboardLayout() {
   const now = new Date()
   const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
   const sessionUser = getSessionUser()
-  const assetSummary = getMockAssetSummary()
+  const [assetSummary, setAssetSummary] = useState(getMockAssetSummary)
+  const [potsAllocation, setPotsAllocation] = useState(() => getStoredPots().allocatedAmount)
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
+  const [budgetVersion, setBudgetVersion] = useState(0)
   const displayName = sessionUser?.nickname || '사용자'
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
@@ -186,6 +267,9 @@ function DashboardLayout() {
                 className={styles.assetSummary}
                 aria-labelledby="asset-summary-title"
               >
+                <button className={styles.assetEditButton} type="button" aria-label="총 보유 자산 편집" onClick={() => setIsBudgetModalOpen(true)}>
+                  <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
+                </button>
                 <div className={styles.assetRing} aria-hidden="true"><img src="/assets/icons/pots/pot-wallet.png" alt="" /><small>{currentYearMonth}</small></div>
                 <h2 id="asset-summary-title">총 보유 자산</h2>
                 <p className={styles.assetTotal}>
@@ -226,9 +310,25 @@ function DashboardLayout() {
           })}
         </nav>
         <main className={styles.content}>
-          <Outlet />
+          <Outlet key={budgetVersion} />
         </main>
       </div>
+
+      {isBudgetModalOpen && (
+        <BudgetEditModal
+          initialAllocation={potsAllocation}
+          maxBudget={assetSummary.totalAssetHome}
+          currencySymbol={assetSummary.currencySymbol}
+          onClose={() => setIsBudgetModalOpen(false)}
+          onSave={(budget) => {
+            const updatedPots = updateStoredPotsAllocation(budget)
+            setPotsAllocation(updatedPots.allocatedAmount)
+            setAssetSummary(getMockAssetSummary())
+            setBudgetVersion((version) => version + 1)
+            setIsBudgetModalOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }

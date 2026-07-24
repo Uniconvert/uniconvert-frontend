@@ -20,7 +20,7 @@ const categories: Category[] = [
   { id: 'medical', label: '의료', iconSrc: '/assets/icons/categories/category-medical.png' },
   { id: 'education', label: '학업', iconSrc: '/assets/icons/categories/category-education.png' },
   { id: 'travel', label: '여행', iconSrc: '/assets/icons/categories/category-travel.png' },
-  { id: 'other', label: '추가', symbol: '＋' },
+  { id: 'other', label: '추가', iconSrc: '/assets/icons/actions/action-add.png' },
 ]
 
 const exchangeRatesInKrw: Record<string, number> = {
@@ -31,7 +31,7 @@ const exchangeRatesInKrw: Record<string, number> = {
   CNY: 207.65,
 }
 
-const currencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW'] as const
+const currencies = ['USD', 'EUR', 'KRW'] as const
 
 function getTodayDateInputValue() {
   const now = new Date()
@@ -145,7 +145,7 @@ function ExpenseInputPage() {
         <div className={styles.formToolbar}>
           <h1 id="expense-input-title">지출 입력</h1>
           <button className={styles.uploadButton} type="button" aria-label="지출 파일 업로드" onClick={() => setIsUploadOpen(true)}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L7.5 7.5M12 3l4.5 4.5M5 13v7h14v-7" /></svg>
+            <img src="/assets/icons/actions/action-upload.png" alt="" aria-hidden="true" />
           </button>
         </div>
 
@@ -156,14 +156,12 @@ function ExpenseInputPage() {
             <span>통화</span>
             <div className={styles.customSelect}>
               <button className={styles.currencySelectWrap} type="button" aria-label="통화 선택" aria-expanded={isCurrencyOpen} onClick={() => setIsCurrencyOpen((open) => !open)}>
-              {currency === 'KRW'
-                ? <b className={styles.krwIcon} aria-hidden="true">₩</b>
-                : <img src={`/assets/icons/currencies/currency-${currency.toLowerCase()}.png`} alt="" aria-hidden="true" />}
+              <img src={`/assets/icons/currencies/currency-${currency.toLowerCase()}.png`} alt="" aria-hidden="true" />
                 <strong>{currency}</strong><span aria-hidden="true">⌄</span>
               </button>
               {isCurrencyOpen && <div className={styles.currencyMenu} role="listbox" aria-label="통화 목록">
                 {currencies.map((option) => <button key={option} type="button" role="option" aria-selected={currency === option} onClick={() => { setCurrency(option); setIsCurrencyOpen(false) }}>
-                  {option === 'KRW' ? <b aria-hidden="true">₩</b> : <img src={`/assets/icons/currencies/currency-${option.toLowerCase()}.png`} alt="" aria-hidden="true" />}<span>{option}</span>
+                  <img src={`/assets/icons/currencies/currency-${option.toLowerCase()}.png`} alt="" aria-hidden="true" /><span>{option}</span>
                 </button>)}
               </div>}
             </div>

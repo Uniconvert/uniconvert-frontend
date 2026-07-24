@@ -93,7 +93,6 @@
 |---|---|---|---|
 | 사용자 프로필 | `['user', 'me']` | 세션 동안 공유 | 프로필 저장 성공 |
 | 지출 목록 | `['expenses', yearMonth, range]` | 짧은 캐시 | 지출 CRUD 성공 |
-| 지출 상세 | `['expense', expenseId]` | 목록과 연결 | 수정·삭제 성공 |
 | Pots | `['pots']` | 조회 캐시 | Pot 생성·수정·삭제 성공 |
 | 월별 리포트 | `['report', yearMonth]` | 월 단위 캐시 | 지출 변경 또는 월 변경 |
 | 통화 목록 | `['currencies']` | 장시간 캐시 | 서버 기준 변경 시 |
@@ -173,7 +172,6 @@ export function useCreateExpense() {
 - Report
 - Settings
 - Calculator
-- ExpenseDetail
 - Pots
 
 ```tsx

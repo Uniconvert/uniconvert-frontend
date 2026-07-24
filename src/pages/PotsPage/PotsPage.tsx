@@ -3,6 +3,7 @@ import { createPot, deletePot, getPots, updatePot } from '@/api/pots'
 import CreatePotModal from '@/components/pots/CreatePotModal/CreatePotModal'
 import BudgetAllocationSummary from '@/components/pots/BudgetAllocationSummary/BudgetAllocationSummary'
 import PotCard from '@/components/pots/PotCard/PotCard'
+import { findPotCategory, POT_CATEGORY_OPTIONS } from '@/constants/potCategoryOptions'
 import type { Pot, PotsData } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './PotsPage.module.css'
@@ -16,8 +17,6 @@ const representativeImages = [
   '/assets/illustrations/mascot-finance.png',
 ]
 
-const categoryIcons = ['🚌', '🍔', '✈️', '🎓', '🏠', '🛍️', '🐷']
-
 function PotsPage() {
   const [data, setData] = useState<PotsData | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
@@ -29,7 +28,7 @@ function PotsPage() {
   const [editName, setEditName] = useState('')
   const [editTargetAmount, setEditTargetAmount] = useState(0)
   const [editImageSrc, setEditImageSrc] = useState('')
-  const [editIcon, setEditIcon] = useState('✈️')
+  const [editIcon, setEditIcon] = useState('travel')
   const [toastMessage, setToastMessage] = useState('')
 
   useEffect(() => {
@@ -177,7 +176,7 @@ function PotsPage() {
                 <label className={styles.modalField}><span>2. 목표 금액</span><input value={formatCurrencyAmount(editTargetAmount, data.homeCurrency)} readOnly /></label>
                 <label className={styles.rangeField}><input aria-label="목표 금액 수정" type="range" min="10000" max={data.monthlyBudget} step="10000" value={Math.min(editTargetAmount, data.monthlyBudget)} onChange={(event) => setEditTargetAmount(Number(event.target.value))} /><span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(data.monthlyBudget, data.homeCurrency)}</small></span></label>
                 <fieldset className={styles.imageChoices}><legend>3. 대표 이미지</legend><div>{representativeImages.map((imageSrc) => <button key={imageSrc} type="button" className={editImageSrc === imageSrc ? styles.selectedChoice : ''} onClick={() => setEditImageSrc(imageSrc)}><img src={imageSrc} alt="" /></button>)}<label className={styles.uploadChoice}>＋<small>직접 업로드</small><input type="file" accept="image/*" onChange={handleEditImageUpload} /></label></div></fieldset>
-                <fieldset className={styles.categoryChoices}><legend>4. 대표 카테고리</legend><div>{categoryIcons.map((icon) => <button key={icon} type="button" className={editIcon === icon ? styles.selectedChoice : ''} onClick={() => setEditIcon(icon)}>{icon}</button>)}</div></fieldset>
+                <fieldset className={styles.categoryChoices}><legend>4. 대표 카테고리</legend><div>{POT_CATEGORY_OPTIONS.map((option) => <button key={option.id} type="button" aria-label={option.label} className={findPotCategory(editIcon)?.id === option.id ? styles.selectedChoice : ''} onClick={() => setEditIcon(option.id)}><img src={option.iconSrc} alt="" aria-hidden="true" /></button>)}</div></fieldset>
               </div>
             ) : (
               <label className={styles.rangeField}>

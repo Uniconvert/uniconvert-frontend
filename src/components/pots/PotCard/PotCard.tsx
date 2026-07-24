@@ -1,5 +1,6 @@
 import styles from './PotCard.module.css'
 import { formatCurrencyAmount } from '@/utils/currency'
+import { findPotCategory } from '@/constants/potCategoryOptions'
 
 interface Pot { name: string; icon: string; imageSrc: string; targetAmount: number; savedAmount: number; completedAt?: string }
 interface PotCardProps {
@@ -11,6 +12,7 @@ interface PotCardProps {
 }
 
 function PotCard({ pot, onAddAmount, onEdit, onDelete, currency }: PotCardProps) {
+  const potCategory = findPotCategory(pot.icon)
   const progress = Math.min(Math.round((pot.savedAmount / pot.targetAmount) * 100), 100)
   const remainingAmount = Math.max(pot.targetAmount - pot.savedAmount, 0)
   const isCompleted = progress >= 100
@@ -20,7 +22,7 @@ function PotCard({ pot, onAddAmount, onEdit, onDelete, currency }: PotCardProps)
       <div className={styles.content}>
         <img className={styles.tripThumbnail} src={pot.imageSrc} alt={`${pot.name} 이미지`} />
         <div className={styles.goalDetails}>
-          <h2>{pot.name} <span aria-hidden="true">{pot.icon}</span></h2>
+          <h2>{pot.name} <span aria-hidden="true">{potCategory ? <img src={potCategory.iconSrc} alt="" /> : pot.icon}</span></h2>
           <span className={styles.label}>목표 금액</span>
           <strong>{formatCurrencyAmount(pot.targetAmount, currency)}</strong>
         </div>
