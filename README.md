@@ -1,635 +1,318 @@
 # Uniconvert
 
-## 프로젝트 개요
+<p align="center">
+  <img src="./public/assets/brand/uniconvert-logo-stacked.png" width="120" alt="Uniconvert 로고" />
+</p>
 
-**Uniconvert**는 해외 유학생을 위한 **원화 예산 및 자산 흐름 관리 가계부 서비스**입니다.
+<p align="center">
+  해외 유학생을 위한 다중 통화 지출·예산 관리 서비스
+</p>
 
-해외 유학생은 모국 통화 기준으로 생활비를 받지만, 실제 생활에서는 현지 통화로 지출합니다.
-이 과정에서 사용자는 매번 환율을 검색하고 직접 계산해야 하며, 모국 통장 기준으로 전체 지출과 예산 소진율을 파악하기 어렵습니다.
+## 📌 프로젝트 소개
 
-Uniconvert는 현지 통화 지출을 홈 통화 기준으로 자동 변환하고,
-카드 내역서 캡처 OCR, CSV Import, 오프라인 환율 계산기, 자산 흐름 관리 기능을 통해
-유학생의 예산 관리와 지출 기록의 불편함을 줄이는 것을 목표로 합니다.
+**Uniconvert**는 모국 통화로 예산을 관리하면서 현지 통화로 생활하는 해외 유학생을 위한 가계부 서비스입니다.
 
----
+현지 통화로 입력한 지출을 기준 통화로 환산하고, 월 예산과 카테고리별 소비 현황, 목적별 저축 공간인 Pots를 한 화면에서 관리할 수 있도록 구성했습니다.
 
-## 프로젝트 목적
+### 해결하려는 문제
 
-Uniconvert는 다음과 같은 문제를 해결하기 위해 기획되었습니다.
+- 예산 통화와 실제 지출 통화가 달라 매번 환율을 계산해야 하는 불편
+- 여러 통화로 발생한 지출을 하나의 기준으로 파악하기 어려운 문제
+- 월 예산, 남은 금액, 카테고리별 소비를 한눈에 확인하기 어려운 문제
+- 여행·학비·주거비 등 목적별로 예산을 분리해 관리하기 어려운 문제
 
-* 현지 통화로 지출을 입력하면 당일 평균 환율이 자동 적용되어 홈 통화로 저장됩니다.
-* 사용자는 환율을 직접 계산하지 않아도 됩니다.
-* 어떤 통화로 지출하더라도 홈 통화 기준으로 합산됩니다.
-* 이번 달 총 지출과 예산 소진율을 홈 화면에서 즉시 확인할 수 있습니다.
-* 카드 내역서 캡처 OCR과 CSV Import를 통해 지출 입력의 번거로움을 줄입니다.
-* Wi-Fi 또는 데이터가 없는 환경에서도 오프라인 환율 계산기를 통해 현지 가격을 홈 통화로 환산할 수 있습니다.
-* 메인 지갑과 서브 지갑 구조를 통해 전체 자산 흐름을 홈 통화 기준으로 통합 관리합니다.
-* 월별 환율 손익 리포트를 통해 환율 변동이 실제 지출에 미친 영향을 확인할 수 있습니다.
+### 주요 기능
 
----
+| 기능 | 설명 | 현재 상태 |
+| --- | --- | --- |
+| 회원가입·로그인 | 이메일 기반 가입·로그인 및 Google 로그인 UI | Mock 인증 적용 |
+| 온보딩 | 약관, 기준 통화, 현지 통화, 월 예산, 시간대, 프로필 설정 | 구현 완료 |
+| 지출 입력 | 통화, 금액, 날짜, 상점, 카테고리, 메모 입력 | 구현 완료 |
+| 지출 내역 | 월 지출, 남은 예산, 카테고리 통계, 기간별 합계 확인 | 구현 완료 |
+| Pots | 목적별 Pot 생성, 수정, 삭제 및 금액 배정 | 구현 완료 |
+| 리포트 | 월별 지출 추이와 소비 분석 | Mock 데이터 적용 |
+| 환율 계산기 | 통화 간 환율 계산 | UI 구현 완료 |
+| 설정 | 프로필 및 이메일 리포트 설정 | Mock 데이터 적용 |
+| OCR 업로드 | 카드 내역 이미지 업로드 | UI 구현, 실제 OCR 연동 필요 |
 
-## 타깃 사용자
+## 👥 팀원 및 프론트엔드 역할 분담
 
-Uniconvert의 핵심 타깃 사용자는 **해외에서 생활하는 유학생**입니다.
+| 팀원 | 담당 화면 및 기능 |
+| --- | --- |
+| [오레오](https://github.com/oreore051) | 프로젝트 초기 설정, 랜딩, 로그인·회원가입, 온보딩, 지출 입력, 지출 내역, Pots, OCR 업로드, 공통 레이아웃 및 Mock/API 연동 구조 |
+| [김서현](https://github.com/seohyunnii) | 리포트, 설정, 환율 계산기, 공통 Button·TextField·GoogleLoginButton, 반응형 UI 개선 |
 
-초기 타깃은 유학생으로 설정하되, 이후 다음 사용자층으로 확장할 수 있습니다.
-
-* 워킹홀리데이 사용자
-* 해외 주재원
-* 장기 여행자
-* 디지털 노마드
-* 해외 거주자
-
----
-
-## 핵심 문제
-
-해외 유학생은 보통 모국 통화 기준으로 예산을 받지만, 실제 생활은 현지 통화로 이루어집니다.
-
-예를 들어 부모님이 매달 원화 기준으로 생활비를 보내주더라도,
-실제 지출은 파운드, 유로, 위안화 등 현지 통화로 발생합니다.
-
-이로 인해 다음과 같은 문제가 발생합니다.
-
-### 1. 예산 기준과 지출 단위의 불일치
-
-사용자는 모국 통화 기준으로 예산을 관리하지만, 실제 소비는 현지 통화로 이루어집니다.
-따라서 이번 달에 실제로 얼마를 썼는지 파악하려면 매번 환율을 검색하고 직접 계산해야 합니다.
-
-### 2. 카드 지출 내역 파악의 어려움
-
-모국 통장 또는 카드로 해외 결제를 할 경우 출금 내역은 확인할 수 있지만,
-어디에 얼마를 썼는지, 원화 기준 총 지출이 얼마인지 한눈에 파악하기 어렵습니다.
-
-### 3. 오프라인 환경에서의 환율 확인 문제
-
-여행 중이거나 Wi-Fi, 데이터 연결이 불안정한 환경에서는
-현지 물가를 모국 통화로 바로 확인하기 어렵습니다.
-
-### 4. 환율 변동에 따른 체감 지출 증가
-
-같은 생활 패턴을 유지하더라도 환율이 불리한 달에는 실질 지출이 증가합니다.
-하지만 사용자는 환율 변동이 실제 생활비에 얼마나 영향을 미쳤는지 수치로 인식하기 어렵습니다.
-
-### 5. 고정 지출을 고려한 현금흐름 관리의 어려움
-
-월세, 구독료, 교통비 등 앞으로 나갈 고정 지출을 고려하지 않으면
-현재 사용할 수 있는 돈을 정확히 파악하기 어렵고, 예산 초과 위험이 높아집니다.
-
----
-
-## 핵심 해결 방식
-
-### 1. 환율 자동 변환 입력
-
-사용자가 현지 통화로 금액을 입력하면 당일 평균 환율이 자동 적용되어
-홈 통화 기준 금액으로 변환 및 저장됩니다.
-
-환율은 아침, 점심, 저녁 총 3회 수집한 값을 기준으로 평균 환율을 적용하는 방식으로 설계합니다.
-
-사용자는 환율을 직접 검색하거나 계산할 필요 없이
-현지 통화 기준으로 지출만 입력하면 됩니다.
-
----
-
-### 2. 홈 통화 기준 대시보드
-
-어떤 통화로 지출하더라도 모든 지출은 홈 통화 기준으로 합산됩니다.
-
-이를 통해 사용자는 홈 화면에서 다음 정보를 즉시 확인할 수 있습니다.
-
-* 이번 달 총 지출
-* 남은 예산
-* 예산 소진율
-* 카테고리별 지출
-* 통화별 지출 흐름
-
----
-
-### 3. 카드 내역서 캡처 OCR
-
-해외 은행 앱 또는 카드 내역서 화면을 캡처하면
-OCR을 통해 결제 내역을 자동으로 인식하고 일괄 입력할 수 있도록 설계합니다.
-
-이 기능은 사용자의 입력 마찰을 줄이는 핵심 기능입니다.
-
-예상 흐름은 다음과 같습니다.
-
-```text
-카드 내역서 캡처 업로드
-→ OCR 인식
-→ 날짜, 가맹점, 금액, 통화 추출
-→ 사용자 확인
-→ 지출 내역 일괄 저장
-```
-
----
-
-### 4. CSV Import
-
-카드사 또는 은행에서 제공하는 CSV 파일을 불러와
-지출 내역을 일괄 등록할 수 있도록 설계합니다.
-
-이를 통해 OCR 인식이 어려운 경우에도
-사용자가 직접 지출을 하나씩 입력하지 않아도 됩니다.
-
----
-
-### 5. 오프라인 환율 계산기
-
-앱 실행 또는 Wi-Fi 연결 시 환율 데이터를 기기에 캐싱합니다.
-
-이후 인터넷 연결이 없는 환경에서도
-사용자는 현지 가격을 홈 통화 기준으로 즉시 환산할 수 있습니다.
-
-오프라인 환율 계산기는 단순 계산 기능에 그치지 않고,
-환산한 금액을 바로 지출 내역으로 저장할 수 있는 흐름까지 고려합니다.
-
----
-
-### 6. 메인 지갑 및 서브 지갑 구조
-
-Uniconvert는 사용자의 자산을 다음과 같은 구조로 관리합니다.
-
-```text
-메인 지갑
- └── 서브 지갑(Pots)
-```
-
-메인 지갑은 사용자의 전체 자산을 의미하며,
-서브 지갑은 월세, 교통비, 식비, 여행비 등 목적별로 분리한 예산을 의미합니다.
-
-이를 통해 사용자는 전체 자산뿐만 아니라
-실제로 지금 사용할 수 있는 돈을 더 명확하게 확인할 수 있습니다.
-
----
-
-### 7. 잠금 자산 기능
-
-월세, 고정 구독료, 교통비처럼 반드시 나가야 하는 돈은
-잠금 자산으로 분리할 수 있습니다.
-
-사용 가능한 금액은 다음과 같이 계산됩니다.
-
-```text
-총 자산 - 잠금 Pot = 지금 써도 되는 돈
-```
-
-홈 화면에서는 사용자가 현재 실제로 사용할 수 있는 금액을 크게 표시하여
-예산 초과를 예방할 수 있도록 설계합니다.
-
----
-
-### 8. 월별 환율 손익 리포트
-
-Uniconvert는 단순히 지출 금액만 보여주는 것이 아니라,
-환율 변동이 사용자의 실제 생활비에 어떤 영향을 주었는지 분석합니다.
-
-예시는 다음과 같습니다.
-
-```text
-이번 달 환율이 불리해서 ₩28,000 더 지출했습니다.
-```
-
-이를 통해 사용자는 단순 지출 관리뿐만 아니라
-환율 변화에 따른 생활비 변동까지 파악할 수 있습니다.
-
----
-
-## 주요 기능
-
-| 기능           | 설명                                  |
-| ------------ | ----------------------------------- |
-| 회원가입 및 로그인   | 자체 로그인, Google 로그인, Apple 로그인 지원 예정 |
-| 환율 자동 변환 입력  | 현지 통화 입력 시 홈 통화 기준으로 자동 변환          |
-| 홈 통화 기준 대시보드 | 월별 지출, 예산 소진율, 남은 예산 확인             |
-| 카드 내역서 OCR   | 카드 내역서 캡처 기반 지출 자동 입력               |
-| CSV Import   | 카드사 또는 은행 CSV 파일을 통한 지출 일괄 등록       |
-| 오프라인 환율 계산기  | 캐싱된 환율을 활용한 오프라인 환산 기능              |
-| 메인 지갑        | 전체 자산 관리                            |
-| 서브 지갑(Pots)  | 목적별 예산 분리 관리                        |
-| 잠금 자산        | 고정 지출을 제외한 실제 사용 가능 금액 표시           |
-| 환율 손익 리포트    | 환율 변동으로 인한 추가 지출 또는 절감액 분석          |
-
----
-
-## 프로젝트 초기 세팅
-
-현재 프로젝트는 초기 설계 및 세팅 단계입니다.
-
-### 수행 내용
-
-* Repository Public 설정
-* React + TypeScript + Vite 프로젝트 초기 세팅
-* `.gitignore` 설정
-* 브랜치 전략 수립
-* README.md 작성
-
-단, 프로젝트 세부 구조와 기술 스택은 팀 회의 및 기능 명세서 확정 이후 변경될 수 있습니다.
-
----
-
-## 팀원 및 역할 분담
-
-현재 프로젝트 초기 단계로, 세부 역할 분담은 팀 회의 후 확정할 예정입니다.
-
-초기 프론트엔드 작업은 화면 단위로 나누어 진행할 계획이며,
-추후 와이어프레임과 기능 명세서가 확정되면 담당 화면을 기준으로 역할을 분배합니다.
-
-| 역할       | 담당 내용                  | 담당자 |
-| -------- | ---------------------- | --- |
-| Frontend | 프로젝트 초기 세팅 및 공통 구조 설계  | 미정  |
-| Frontend | 로그인 / 회원가입 화면 구현       | 미정  |
-| Frontend | 홈 대시보드 화면 구현           | 미정  |
-| Frontend | 지출 입력 화면 구현            | 미정  |
-| Frontend | OCR / CSV Import 화면 구현 | 미정  |
-| Frontend | 환율 계산기 및 리포트 화면 구현     | 미정  |
-| Backend  | 인증, 지출, 환율 관련 API 설계   | 미정  |
-
----
-
-## 기술 스택
+## 🛠 기술 스택
 
 ### Frontend
 
-| 기술         | 설명                  |
-| ---------- | ------------------- |
-| React      | 사용자 인터페이스 구현        |
-| TypeScript | 정적 타입 기반 개발         |
-| Vite       | 프론트엔드 개발 환경 및 빌드 도구 |
+![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript_6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router_7-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white)
+![CSS Modules](https://img.shields.io/badge/CSS_Modules-000000?style=for-the-badge&logo=cssmodules&logoColor=white)
 
-### Backend
+### API·상태 관리
 
-| 기술          | 설명          |
-| ----------- | ----------- |
-| Spring Boot | 서버 및 API 개발 |
+- 브라우저 Fetch API 기반 공통 API 요청 모듈
+- React `useState`, `useEffect`, `useMemo`
+- `sessionStorage`, `localStorage`
+- Zustand 사용 안 함
+- Context API 사용 안 함
+- TanStack Query 사용 안 함
 
-### Database
+### CI·배포
 
-아직 확정되지 않았습니다.
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Amazon S3](https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+![CloudFront](https://img.shields.io/badge/AWS_CloudFront-8C4FFF?style=for-the-badge&logo=amazonwebservices&logoColor=white)
 
-추후 ERD 설계 및 데이터 구조 정의 이후 데이터베이스를 확정할 예정입니다.
+- PR 생성 시 ESLint 및 TypeScript/Vite 빌드 자동 검사
+- `main` 반영 시 AWS S3 업로드 및 CloudFront 캐시 갱신
 
-### Infra / Deploy
+## 💾 데이터 및 상태 관리
 
-아직 확정되지 않았습니다.
+### 상태 관리
 
----
+| 구분 | 사용 여부 | 용도 |
+| --- | --- | --- |
+| `useState` | 사용 | 폼 입력, 선택값, 모달, 드롭다운, 조회 결과 |
+| `useEffect` | 사용 | 화면 진입 및 조건 변경 시 데이터 조회 |
+| `useMemo` | 일부 사용 | 선택 항목과 계산 결과 재사용 |
+| Zustand | 사용 안 함 | 별도 전역 Store 없음 |
+| Context API | 사용 안 함 | 별도 전역 Context 없음 |
+| TanStack Query | 사용 안 함 | 서버 상태 캐싱·무효화 미적용 |
+| `sessionStorage` | 사용 | 로그인 사용자, 토큰, 온보딩 임시 상태 |
+| `localStorage` | 사용 | 사용자별 Mock 지출, Pots, 프로필 및 설정 |
 
-## 인증 방식
+현재는 페이지별 로컬 상태와 브라우저 저장소를 중심으로 관리합니다. 백엔드 연동 범위가 확대되면 서버 데이터 캐싱과 Mutation 관리를 위해 TanStack Query 도입을 검토할 수 있습니다.
 
-현재 기획 중인 인증 방식은 다음과 같습니다.
+### Mock Data 및 API 연동
 
-* 자체 회원가입 및 로그인
-* Google 소셜 로그인
-* Apple 소셜 로그인
+- 기본 실행 모드는 Mock API입니다.
+- `src/mocks`의 JSON은 데모 데이터와 최초 데이터로 사용합니다.
+- 화면에서 추가·수정·삭제한 Mock 데이터는 사용자 ID별 `localStorage`에 저장합니다.
+- 공통 API 클라이언트는 Access Token을 `Authorization: Bearer` 헤더에 자동 적용합니다.
+- 환경변수로 Mock API와 실제 API를 전환할 수 있습니다.
 
-추후 서비스 확장에 따라 다른 소셜 로그인 Provider를 추가할 수 있도록 설계합니다.
+```env
+VITE_USE_MOCK_API=true
+VITE_API_BASE_URL=http://localhost:8080/api/v1
+```
 
----
+`VITE_USE_MOCK_API=false`로 설정하면 `VITE_API_BASE_URL`을 기준으로 실제 서버에 요청합니다. 요청 코드는 준비되어 있으나 백엔드 Swagger 명세와 실제 응답을 기준으로 최종 검증이 필요합니다.
 
-## 프론트엔드 폴더 구조
+### 주요 Mock 파일
 
-현재 프로젝트 초기 단계이므로, 아래 구조는 React + TypeScript + Vite 기반의 초기 폴더 구조입니다.
-세부 구조는 팀 회의 및 기능 구현 과정에서 변경될 수 있습니다.
+| 파일 | 용도 |
+| --- | --- |
+| `auth-users.json` | 로그인 테스트 사용자 |
+| `expense-details.json` | 지출 기본 데이터 |
+| `expense-history.json` | 월 지출 및 카테고리 통계 |
+| `saved-expenses.json` | 저장된 지출 |
+| `pots.json` | Pots 기본 데이터 |
+| `report.json` | 월간 리포트 |
+| `email-report.json` | 이메일 리포트 미리보기 |
+
+## 📁 폴더 구조
 
 ```text
-src
- ├── assets
- ├── components
- ├── pages
- ├── routes
- ├── hooks
- ├── services
- ├── types
- ├── utils
- ├── styles
- ├── App.tsx
- └── main.tsx
+src/
+├── api/                    # 공통 API 클라이언트 및 도메인별 요청
+├── assets/                 # 소스에서 import하는 정적 리소스
+├── auth/                   # 로그인 세션 및 사용자 설정
+├── components/
+│   ├── common/             # Button, TextField, Modal 등 공통 컴포넌트
+│   ├── onboarding/         # 온보딩 공통 컴포넌트
+│   └── pots/               # Pots 관련 컴포넌트
+├── constants/              # 공통 상수
+├── data/                   # 화면용 데이터
+├── hooks/                  # 커스텀 훅
+├── layouts/
+│   ├── AuthLayout/         # 인증·온보딩 레이아웃
+│   └── DashboardLayout/    # 로그인 이후 공통 레이아웃
+├── mocks/                  # Mock JSON 및 브라우저 저장소 처리
+├── pages/                  # 라우트별 페이지
+├── routes/                 # 라우터, 경로 상수, 접근 제어
+├── services/               # 외부 서비스 처리
+├── styles/                 # 전역 스타일과 디자인 토큰
+├── types/                  # TypeScript 타입
+└── utils/                  # 통화, 날짜, 시간대 등 공통 함수
+
+public/
+└── assets/                 # 브라우저에서 직접 사용하는 이미지·아이콘
 ```
 
-### 폴더 역할
+### 설계 원칙
 
-| 폴더           | 역할                    |
-| ------------ | --------------------- |
-| `assets`     | 이미지, 아이콘 등 정적 파일 관리   |
-| `components` | 공통 컴포넌트 관리            |
-| `pages`      | 페이지 단위 컴포넌트 관리        |
-| `routes`     | 라우팅 관련 설정 관리          |
-| `hooks`      | 커스텀 훅 관리              |
-| `services`   | API 요청 관련 로직 관리       |
-| `types`      | TypeScript 타입 관리      |
-| `utils`      | 공통 유틸 함수 관리           |
-| `styles`     | 전역 스타일 및 스타일 관련 파일 관리 |
+- 페이지·컴포넌트·API·타입의 역할 분리
+- 페이지 전용 스타일은 CSS Modules 사용
+- 라우트 문자열은 `routePaths.ts`에서 통합 관리
+- 인증, 이메일 인증, 온보딩 완료 여부에 따른 Route Guard 적용
+- Mock과 실제 API가 동일한 페이지 호출 구조를 사용하도록 분리
 
----
-
-## 예상 백엔드 도메인 구조
-
-프로젝트 초기 단계이므로 세부 ERD는 확정되지 않았지만,
-현재 기획 기준으로 예상되는 주요 도메인은 다음과 같습니다.
-
-```text
-domain
- ├── user
- ├── auth
- ├── wallet
- ├── pot
- ├── expense
- ├── category
- ├── currency
- ├── exchangeRate
- ├── ocr
- ├── csv
- └── report
-```
-
-각 도메인의 예상 역할은 다음과 같습니다.
-
-| 도메인            | 역할                   |
-| -------------- | -------------------- |
-| `user`         | 사용자 정보 관리            |
-| `auth`         | 로그인, 인증, 인가 관리       |
-| `wallet`       | 메인 지갑 관리             |
-| `pot`          | 서브 지갑 및 잠금 자산 관리     |
-| `expense`      | 지출 내역 관리             |
-| `category`     | 지출 카테고리 관리           |
-| `currency`     | 홈 통화 및 현지 통화 관리      |
-| `exchangeRate` | 환율 데이터 수집 및 변환 관리    |
-| `ocr`          | 카드 내역서 이미지 인식 관리     |
-| `csv`          | CSV 파일 Import 관리     |
-| `report`       | 월별 지출 및 환율 손익 리포트 관리 |
-
----
-
-## API 응답 구조
-
-클라이언트와의 일관된 통신을 위해
-공통 API 응답 객체를 사용할 예정입니다.
-
-예상 응답 구조는 다음과 같습니다.
-
-### 성공 응답
-
-```json
-{
-  "isSuccess": true,
-  "code": "COMMON200",
-  "message": "요청에 성공했습니다.",
-  "result": {}
-}
-```
-
-### 실패 응답
-
-```json
-{
-  "isSuccess": false,
-  "code": "USER400",
-  "message": "잘못된 요청입니다.",
-  "result": null
-}
-```
-
----
-
-## 화면 목록 및 플로우
-
-현재 화면 목록은 프로젝트 기획안을 기준으로 정리한 초기안입니다.
-세부 화면 구성은 와이어프레임 및 기능 명세서 작성 후 변경될 수 있습니다.
+## 🖥 화면 목록 및 플로우
 
 ### 화면 목록
 
-| 화면                 | 설명                        | 상태 |
-| ------------------ | ------------------------- | -- |
-| Onboarding         | 서비스 소개 및 초기 진입 화면         | 예정 |
-| Login              | 자체 로그인 및 소셜 로그인 화면        | 예정 |
-| SignUp             | 회원가입 화면                   | 예정 |
-| Home               | 월 지출, 예산 소진율, 사용 가능 금액 확인 | 예정 |
-| ExpenseInput       | 지출 직접 입력 화면               | 예정 |
-| OCRImport          | 카드 내역서 캡처 업로드 및 자동 입력 화면  | 예정 |
-| CSVImport          | CSV 파일 기반 지출 일괄 등록 화면     | 예정 |
-| ExchangeCalculator | 오프라인 환율 계산기 화면            | 예정 |
-| Wallet             | 메인 지갑 및 서브 지갑 관리 화면       | 예정 |
-| Report             | 월별 환율 손익 리포트 화면           | 예정 |
-| MyPage             | 사용자 정보 및 홈 통화 설정 화면       | 예정 |
+| 화면 | 경로 | 담당 | 주요 기능 |
+| --- | --- | --- | --- |
+| Landing | `/` | 오레오 | 서비스 소개 |
+| Login | `/login` | 오레오 | 로그인 |
+| SignUp | `/signup` | 오레오 | 이메일·Google 회원가입 |
+| Terms | `/signup/terms` | 오레오 | 약관 동의 |
+| VerifyEmail | `/verify-email` | 오레오 | 이메일 인증 안내 |
+| BaseCurrency | `/onboarding/base-currency` | 오레오 | 기준 통화 선택 |
+| LocalCurrencies | `/onboarding/local-currencies` | 오레오 | 현지 통화 선택 |
+| BudgetSetup | `/onboarding/budget` | 오레오 | 월 예산 설정 |
+| TimezoneSetup | `/onboarding/timezone` | 오레오 | 브라우저 시간대 감지·설정 |
+| ProfileSetup | `/onboarding/profile` | 오레오 | 프로필 및 목표 설정 |
+| ExpenseInput | `/home` | 오레오 | 지출 입력 |
+| ExpenseHistory | `/home/expenses` | 오레오 | 지출·카테고리 통계 |
+| Pots | `/home/pots` | 오레오 | 목적별 예산 관리 |
+| Report | `/report` | 김서현 | 월별 지출 리포트 |
+| Calculator | `/calculator` | 김서현 | 환율 계산 |
+| OCR Upload | `/ocr` | 오레오 | 카드 내역 이미지 업로드 |
+| Settings | `/settings` | 김서현 | 프로필·이메일 리포트 설정 |
+| NotFound | `*` | 오레오 | 잘못된 경로 안내 |
 
 ### 기본 사용자 플로우
 
 ```text
-앱 실행
-→ 로그인 / 회원가입
-→ 홈 통화 설정
-→ 월 예산 입력
-→ 홈 대시보드 진입
-→ 지출 직접 입력 또는 OCR / CSV Import
-→ 홈 통화 기준 지출 자동 합산
-→ 예산 소진율 및 환율 손익 확인
+랜딩
+→ 로그인 또는 회원가입
+→ 이메일 인증
+→ 약관 동의
+→ 기준 통화 선택
+→ 현지 통화 선택
+→ 월 예산 설정
+→ 시간대 확인
+→ 프로필 설정
+→ 지출 입력 / 지출 내역 / Pots
+→ 리포트·계산기·설정
 ```
 
-해당 플로우는 초기 기획 기준이며,
-팀 회의 및 와이어프레임 제작 과정에서 수정될 수 있습니다.
+## ▶️ 실행 방법
 
----
+### 요구 환경
 
-## 브랜치 전략
+- Node.js 22 권장
+- npm
 
-프로젝트의 협업 효율을 위해 기본 브랜치 전략은 다음과 같이 설정합니다.
+### 설치 및 실행
 
-| 브랜치         | 설명                        |
-| ----------- | ------------------------- |
-| `main`      | 최종 배포 또는 제출 가능한 안정 버전 브랜치 |
-| `dev`       | 개발 통합 브랜치                 |
-| `feature/*` | 기능 단위 작업 브랜치              |
+```bash
+git clone https://github.com/oreore051/Uniconvert-FE.git
+cd Uniconvert-FE
+npm install
+copy .env.example .env
+npm run dev
+```
 
-기능 개발은 `feature/*` 브랜치에서 진행하며,
-작업 완료 후 Pull Request를 통해 `dev` 브랜치에 병합합니다.
-
-### 브랜치 네이밍 예시
+개발 서버 기본 주소:
 
 ```text
-feature/login
-feature/signup
-feature/home-dashboard
-feature/expense-input
-feature/exchange-calculator
-feature/report
+http://localhost:5173
 ```
 
-세부 브랜치 네이밍 규칙은 팀 회의 후 조정될 수 있습니다.
+### 검사 및 빌드
 
----
+```bash
+npm run lint
+npm run build
+npm run preview
+```
 
-## Git Commit 규칙
+## 🌿 브랜치·커밋·PR 컨벤션
 
-본 프로젝트는 커밋 히스토리의 가독성과 협업 효율을 위해
-다음과 같은 커밋 메시지 규칙을 따릅니다.
+### Branch
 
-### 커밋 타입
+`main → dev → feature` 흐름을 사용합니다.
 
-| 타입         | 설명                    |
-| ---------- | --------------------- |
-| `init`     | 프로젝트 초기 설정            |
-| `feat`     | 새로운 기능 추가             |
-| `fix`      | 버그 수정                 |
-| `refactor` | 리팩토링, 기능 변경 없음        |
-| `docs`     | 문서 수정                 |
-| `chore`    | 빌드 설정, 패키지 관리 등 기타 작업 |
-| `test`     | 테스트 코드 추가 및 수정        |
+| 브랜치 | 용도 |
+| --- | --- |
+| `main` | 배포 가능한 안정 버전 |
+| `dev` | 개발 통합 브랜치 |
+| `feature/기능명` | 기능 개발 |
+| `fix/버그명` | 버그 수정 |
+| `refactor/대상명` | 기능 변경 없는 구조 개선 |
+| `docs/문서명` | 문서 수정 |
 
-### 커밋 메시지 형식
+```text
+feature/expense-history
+fix/pots-modal-layout
+refactor/css-tech-debt
+docs/readme
+```
+
+### Commit
 
 ```text
 type: message
 ```
 
-예시는 다음과 같습니다.
+| 타입 | 설명 |
+| --- | --- |
+| `feat` | 기능 추가 |
+| `fix` | 버그 수정 |
+| `refactor` | 기능 변경 없는 코드 개선 |
+| `style` | UI·스타일 수정 |
+| `docs` | 문서 수정 |
+| `chore` | 설정, 파일 정리 |
+| `ci` | CI·배포 설정 |
+| `test` | 테스트 추가·수정 |
 
 ```text
-init: add README
-feat: implement login page
-feat: implement home dashboard
-feat: implement expense input form
-feat: implement exchange calculator
-fix: resolve exchange input error
-docs: update README
+feat: 지출 입력 기능 구현
+fix: Pots 모달 레이아웃 수정
+docs: README 구현 현황 업데이트
 ```
 
-### 커밋 작성 규칙
+### Pull Request
 
-* 한 커밋에는 하나의 목적만 포함합니다.
-* 작업 의도가 드러나도록 명확하게 작성합니다.
-* 불필요하게 긴 커밋 메시지는 지양합니다.
-* 기능 추가, 버그 수정, 문서 수정 등 작업 성격에 맞는 타입을 사용합니다.
-
----
-
-## PR 컨벤션
-
-Pull Request는 기능 단위로 작성하며,
-하나의 PR에는 하나의 주요 작업만 포함하는 것을 원칙으로 합니다.
-
-### PR 작성 기준
-
-* PR 제목은 작업 내용을 명확하게 작성합니다.
-* 하나의 PR에는 하나의 기능 또는 수정 사항만 포함합니다.
-* PR 본문에는 작업 내용과 확인 사항을 작성합니다.
-* 팀원 리뷰 후 `dev` 브랜치에 병합합니다.
-* `main` 브랜치에는 직접 push하지 않습니다.
-
-### PR 제목 예시
-
-```text
-feat: 로그인 화면 구현
-feat: 홈 대시보드 UI 구현
-feat: 지출 입력 폼 구현
-fix: 환율 계산 입력 오류 수정
-docs: README 업데이트
-```
-
-### PR 템플릿
+- 기능 단위로 작성
+- `main`, `dev` 직접 Push 지양
+- 작업 내용, 확인 사항, 스크린샷 포함
+- `npm run lint`, `npm run build` 통과 확인
+- 리뷰 후 대상 브랜치에 병합
 
 ```md
+## 관련 이슈
+- closes #
+
 ## 작업 내용
-- 
+-
+
+## 스크린샷
 
 ## 확인 사항
-- 
+- [ ] 기능 동작 확인
+- [ ] 타입 오류 없음
+- [ ] ESLint 및 빌드 통과
+- [ ] 기존 기능 영향 확인
 
 ## 참고 사항
 -
 ```
 
-세부 PR 규칙은 팀 회의 후 조정될 수 있습니다.
+## 🔌 백엔드 협업 시 확인 사항
 
----
+- Swagger 요청·응답 필드와 `src/types` 타입 대조
+- 인증·회원가입·이메일 인증 API 연결
+- 온보딩 설정 저장 API 연결
+- 지출 및 Pots의 `localStorage` 저장을 서버 DB 요청으로 교체
+- 환율 조회와 변환 정책 확정
+- OCR 업로드 형식 및 결과 확인 API 확정
+- API 오류 코드와 사용자 안내 문구 매핑
+- 필요 시 TanStack Query 도입 및 Query Key 정책 수립
 
-## 실행 방법
+## 📍 현재 개발 상태
 
-현재 프로젝트는 React + TypeScript + Vite 기반으로 초기 세팅합니다.
-
-### Frontend 실행
-
-```bash
-npm install
-npm run dev
-```
-
-### Frontend 빌드
-
-```bash
-npm run build
-```
-
-### Backend 실행
-
-백엔드 실행 방법은 Spring Boot 프로젝트 세팅 이후 구체화할 예정입니다.
-
-```bash
-./gradlew bootRun
-```
-
----
-
-## .gitignore 설정
-
-프로젝트에서 불필요하거나 민감한 파일은 Git에 포함하지 않습니다.
-
-```gitignore
-node_modules
-dist
-.env
-.DS_Store
-```
-
----
-
-## 환경 변수
-
-아직 확정되지 않았습니다.
-
-추후 인증, DB, OAuth, 환율 API 연동 방식이 확정되면 다음과 같은 환경 변수를 사용할 수 있습니다.
-
-```env
-DB_USER=
-DB_PWD=
-JWT_SECRET=
-JWT_EXPIRATION_MS=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-APPLE_CLIENT_ID=
-EXCHANGE_RATE_API_KEY=
-```
-
-민감한 정보는 GitHub에 업로드하지 않으며,
-팀 내부 보안 채널을 통해 별도로 공유합니다.
-
----
-
-## 향후 개발 예정 기능
-
-현재 프로젝트는 초기 설계 단계이며, 추후 다음 기능을 구체화할 예정입니다.
-
-* ERD 설계
-* User 도메인 구현
-* 자체 로그인 구현
-* Google 로그인 구현
-* Apple 로그인 구현
-* 지출 입력 기능 구현
-* 환율 자동 변환 기능 구현
-* 환율 데이터 수집 방식 설계
-* 카드 내역서 OCR 기능 구현
-* CSV Import 기능 구현
-* 메인 지갑 및 서브 지갑 기능 구현
-* 잠금 자산 기능 구현
-* 월별 환율 손익 리포트 구현
-* API 명세서 작성
-* 배포 환경 설정
-* 테스트 코드 작성
-
----
-
-## 참고 사항
-
-본 README는 프로젝트 초기 설계 및 세팅 단계에서 작성된 문서입니다.
-팀 회의, 와이어프레임, 기능 명세서, ERD 설계 과정에서 내용이 변경될 수 있습니다.
+- 주요 화면 및 반응형 UI 구현
+- 사용자별 Mock 데이터 저장 구조 구현
+- 인증·온보딩 Route Guard 구현
+- Mock/실제 API 환경변수 분기 구현
+- GitHub Actions Lint·Build 검사 구현
+- AWS S3·CloudFront 배포 워크플로 구현
+- 실제 백엔드 API 통합 검증 진행 필요
+- 실제 OCR 처리 연동 필요
