@@ -3,6 +3,10 @@
 .successToast { display: grid; width: min(30rem, calc(100% - 2rem)); min-height: 5rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.8rem; left: 50%; padding: .9rem 1rem; background: white; border: 1px solid #65c28f; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
 .successToast > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #55b982; border: 2px solid #65c28f; border-radius: 50%; font-size: 1.35rem; }
 .successToast > button { color: var(--color-text-muted); background: transparent; border: 0; font-size: 1.5rem; }
+.allocationWarning { display: grid; width: min(31rem, calc(100% - 2rem)); min-height: 4.75rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.25rem; left: 50%; padding: .85rem 1rem; background: white; border: 1px solid #eb6464; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
+.allocationWarning > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #eb6464; border: 2px solid #eb6464; border-radius: 50%; font-size: 1.75rem; font-weight: 300; line-height: 1; }
+.allocationWarning > span { font-size: 1.05rem; font-weight: 700; }
+.allocationWarning > button { color: var(--color-text-muted); background: transparent; border: 0; font-size: 1.5rem; }
 .dashboardGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
@@ -46,10 +50,13 @@
 
 .encouragement {
   width: clamp(18rem, 25vw, 24rem);
-  min-height: 14rem;
+  height: 14rem;
   position: absolute;
+  z-index: 20;
+  top: 0;
   right: 0;
-  bottom: -2rem; 
+  pointer-events: none;
+  will-change: transform;
 }
 
 .modalBackdrop {

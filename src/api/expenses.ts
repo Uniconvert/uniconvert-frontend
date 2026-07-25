@@ -8,7 +8,7 @@ import { apiRequest, isUsingMockApi } from './client'
 
 const categoryColors: Record<string, string> = {
   food: '#366384', transport: '#a9cbfa', education: '#153047',
-  travel: '#66a9e4', medical: '#e2efff', shopping: '#8bbbe8', other: '#cbd9e6',
+  travel: '#66a9e4', communication: '#e2efff', shopping: '#8bbbe8', other: '#cbd9e6',
 }
 
 function formatLocalDate(date: Date) {

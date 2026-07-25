@@ -1,9 +1,22 @@
 import potsMock from '@/mocks/pots.json'
+import { updateOnboardingSettings } from '@/auth/session'
 import { getMockHomeCurrency, getMockMonthlyBudget, getMockStorageKey, isSeededMockUser } from '@/mocks/mockScenario'
 import type { ApiResponse } from '@/types/api'
 import type { CreatePotInput, Pot, PotsData, UpdatePotInput } from '@/types/pot'
 
 const STORAGE_KEY = 'uniconvert.mockPots.v2'
+
+function synchronizeSummary(data: PotsData): PotsData {
+  const monthlyBudget = getMockMonthlyBudget()
+  const allocatedAmount = data.pots.reduce((sum, pot) => sum + Math.max(pot.targetAmount, 0), 0)
+  return {
+    ...data,
+    homeCurrency: getMockHomeCurrency(),
+    monthlyBudget,
+    allocatedAmount,
+    availableAmount: Math.max(monthlyBudget - allocatedAmount, 0),
+  }
+}
 
 function seedData(): PotsData {
   if (!isSeededMockUser()) {
@@ -18,39 +31,26 @@ function seedData(): PotsData {
   }
 
   const data = structuredClone((potsMock as ApiResponse<PotsData>).data)
-  return {
+  return synchronizeSummary({
     ...data,
     pots: data.pots.map((pot) => ({
       ...pot,
       autoSavingEnabled: pot.autoSavingEnabled ?? (pot.monthlyContribution > 0),
     })),
-  }
+  })
 }
 
 export function getStoredPots(): PotsData {
   const storageKey = getMockStorageKey(STORAGE_KEY)
   const stored = localStorage.getItem(storageKey)
   if (!stored) {
-    const initialData = seedData()
+    const initialData = synchronizeSummary(seedData())
     localStorage.setItem(storageKey, JSON.stringify(initialData))
     return initialData
   }
   try {
     const data = JSON.parse(stored) as PotsData
-    if (isSeededMockUser()) return data
-
-    const monthlyBudget = getMockMonthlyBudget()
-    const allocatedAmount = Math.min(
-      Number.isFinite(data.allocatedAmount) ? data.allocatedAmount : 0,
-      monthlyBudget,
-    )
-    const synchronized = {
-      ...data,
-      homeCurrency: getMockHomeCurrency(),
-      monthlyBudget,
-      allocatedAmount,
-      availableAmount: Math.max(monthlyBudget - allocatedAmount, 0),
-    }
+    const synchronized = synchronizeSummary(data)
     localStorage.setItem(storageKey, JSON.stringify(synchronized))
     return synchronized
   } catch {
@@ -60,25 +60,22 @@ export function getStoredPots(): PotsData {
   }
 }
 
-export function updateStoredPotsAllocation(amount: number) {
-  const data = getStoredPots()
-  const allocatedAmount = Math.max(0, Math.min(amount, data.monthlyBudget))
-  const updated = {
-    ...data,
-    allocatedAmount,
-    availableAmount: Math.max(data.monthlyBudget - allocatedAmount, 0),
-  }
+export function updateStoredMonthlyBudget(amount: number) {
+  const current = getStoredPots()
+  const monthlyBudget = Math.max(0, Math.round(amount))
+  updateOnboardingSettings({ monthlyBudget })
+  sessionStorage.setItem('uniconvert.monthlyBudget', String(monthlyBudget))
+  const updated = synchronizeSummary({
+    ...current,
+    monthlyBudget,
+  })
+
   localStorage.setItem(getMockStorageKey(STORAGE_KEY), JSON.stringify(updated))
   return updated
 }
 
 function saveData(data: PotsData) {
-  const allocatedAmount = data.pots.reduce((sum, pot) => sum + (pot.autoSavingEnabled ? pot.monthlyContribution : 0), 0)
-  localStorage.setItem(getMockStorageKey(STORAGE_KEY), JSON.stringify({
-    ...data,
-    allocatedAmount,
-    availableAmount: Math.max(data.monthlyBudget - allocatedAmount, 0),
-  }))
+  localStorage.setItem(getMockStorageKey(STORAGE_KEY), JSON.stringify(synchronizeSummary(data)))
 }
 
 export function createStoredPot(input: CreatePotInput) {

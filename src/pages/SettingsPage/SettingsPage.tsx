@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getEmailReportPreview } from '@/api/emailReports'
 import { getSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import type { AuthUser } from '@/types/auth'
 import type { EmailReportData } from '@/types/emailReport'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
@@ -163,12 +164,10 @@ function SettingsPage() {
           </section>
         </aside>
       ) : (
-        <aside className={styles.offVisual} aria-label="이메일 리포트가 꺼져 있습니다">
-          <p>지출 환경을 설정하고 관리하세요</p>
-          <span className={styles.thoughtLarge} />
-          <span className={styles.thoughtSmall} />
-          <img src="/assets/illustrations/mascot-check.png" alt="" aria-hidden="true" />
-        </aside>
+        <FloatingMascot
+          message="지출 환경을 설정하고 관리하세요"
+          imageSrc="/assets/illustrations/mascot-check.png"
+        />
       )}
     </section>
   )

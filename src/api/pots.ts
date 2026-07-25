@@ -43,13 +43,17 @@ export function getPots() {
       summary: { monthlyBudgetHome: 0, potsAllocatedAmountHome: 0, availableAmountHome: 0 },
       subWallets: [],
     },
-  }).then((response): PotsData => ({
-    homeCurrency: getMockHomeCurrency(),
-    monthlyBudget: response.summary.monthlyBudgetHome,
-    allocatedAmount: response.summary.potsAllocatedAmountHome,
-    availableAmount: response.summary.availableAmountHome,
-    pots: response.subWallets.map(toPot),
-  }))
+  }).then((response): PotsData => {
+    const pots = response.subWallets.map(toPot)
+    const allocatedAmount = pots.reduce((sum, pot) => sum + pot.targetAmount, 0)
+    return {
+      homeCurrency: getMockHomeCurrency(),
+      monthlyBudget: response.summary.monthlyBudgetHome,
+      allocatedAmount,
+      availableAmount: Math.max(response.summary.monthlyBudgetHome - allocatedAmount, 0),
+      pots,
+    }
+  })
 }
 
 export function createPot(input: CreatePotInput) {

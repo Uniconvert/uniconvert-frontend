@@ -1,0 +1,16 @@
+.floatingMascot {
+  width: clamp(18rem, 25vw, 24rem);
+  height: 14rem;
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+@media (max-width: 70rem) {
+  .floatingMascot {
+    display: none;
+  }
+}

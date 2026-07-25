@@ -3,7 +3,7 @@ import { getMonthlyReport } from '@/api/reports'
 import type { MonthlyReportData } from '@/types/report'
 import { getCurrentYearMonth } from '@/utils/currency'
 import styles from './ReportPage.module.css'
-import Mascot from '@/components/common/Mascot/Mascot'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
 interface Expense {
   label: string
@@ -238,12 +238,10 @@ function ReportPage() {
         />
       </div>
 
-      <div className={styles.mascotArea} aria-hidden="true">
-        <Mascot
+      <FloatingMascot
           message="오늘 지출이 어제보다 5% 증가했어요"
           imageSrc="/assets/illustrations/mascot-check.png"
-        />
-      </div>
+      />
     </section>
   )
 }

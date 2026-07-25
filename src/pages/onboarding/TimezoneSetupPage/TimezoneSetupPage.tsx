@@ -7,22 +7,22 @@ import { getBrowserTimeZone } from '@/utils/timezone'
 import styles from './TimezoneSetupPage.module.css'
 
 type TimezoneInfo = {
-  flag?: string
-  flagSrc?: string
   location: string
 }
 
 const timezoneLabels: Record<string, TimezoneInfo> = {
-  'Asia/Seoul': { flagSrc: '/assets/icons/currencies/currency-krw.png', location: '서울, 대한민국' },
-  'Asia/Tokyo': { flag: '🇯🇵', location: '도쿄, 일본' },
-  'America/New_York': { flag: '🇺🇸', location: '뉴욕, 미국' },
-  'Europe/London': { flag: '🇬🇧', location: '런던, 영국' },
+  'Asia/Seoul': { location: '서울, 대한민국' },
+  'Asia/Tokyo': { location: '도쿄, 일본' },
+  'America/New_York': { location: '뉴욕, 미국' },
+  'Europe/London': { location: '런던, 영국' },
+  'Europe/Paris': { location: '파리, 프랑스' },
 }
 
 function getGmtOffset(timeZone: string) {
   try {
     const parts = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' }).formatToParts(new Date())
-    return parts.find((part) => part.type === 'timeZoneName')?.value.replace('GMT', 'GMT') ?? 'GMT'
+    const offset = parts.find((part) => part.type === 'timeZoneName')?.value ?? 'GMT'
+    return offset.replace(/:00$/, '').replace('GMT+0', 'GMT+').replace('GMT-0', 'GMT-')
   } catch {
     return 'GMT'
   }
@@ -31,7 +31,7 @@ function getGmtOffset(timeZone: string) {
 function TimezoneSetupPage() {
   const navigate = useNavigate()
   const [timeZone] = useState(getBrowserTimeZone)
-  const timezoneInfo = timezoneLabels[timeZone] ?? { flag: '🌐', location: timeZone.replaceAll('_', ' ') }
+  const timezoneInfo = timezoneLabels[timeZone] ?? { location: timeZone.replaceAll('_', ' ') }
   const gmtOffset = getGmtOffset(timeZone)
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -52,17 +52,12 @@ function TimezoneSetupPage() {
 
         <h2>현재 위치 기준 시간대</h2>
         <div className={styles.timezoneCard}>
-          <span className={styles.flag} aria-hidden="true">
-            {timezoneInfo.flagSrc
-              ? <img src={timezoneInfo.flagSrc} alt="" />
-              : timezoneInfo.flag}
-          </span>
           <div><strong>({gmtOffset}) {timezoneInfo.location}</strong><span>{timeZone}</span></div>
         </div>
 
         <div className={styles.help}>
-          <strong>ⓘ 도움말</strong>
-          <p>Uniconvert는 실시간 환율을 기준으로 자산을 관리합니다. 정확한 시간대를 설정해야 환율 업데이트와 자산 내역이 명확하게 반영됩니다.</p>
+          <strong><span aria-hidden="true">ⓘ</span> 도움말</strong>
+          <p>환율은 서울(대한민국, GMT+9) 기준 매일 오전 8시에 업데이트되며,<br />오전 8시 이전 입력한 내역은 전날 환율을 기준으로 계산됩니다.</p>
         </div>
         <Button type="submit" fullWidth>프로필 생성하기</Button>
       </form>

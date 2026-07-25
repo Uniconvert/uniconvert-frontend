@@ -6,6 +6,6 @@
     { "expenseId": "saved-003", "merchantName": "교재 구입", "convertedAmountHome": 45000, "iconKey": "education", "spentAt": "2026-07-08" },
     { "expenseId": "saved-004", "merchantName": "항공권 예약", "convertedAmountHome": 820000, "iconKey": "travel", "spentAt": "2026-07-04" },
     { "expenseId": "saved-005", "merchantName": "이마트", "convertedAmountHome": 32500, "iconKey": "shopping", "spentAt": "2026-07-02" },
-    { "expenseId": "saved-006", "merchantName": "병원 진료", "convertedAmountHome": 12000, "iconKey": "medical", "spentAt": "2026-07-01" }
+    { "expenseId": "saved-006", "merchantName": "휴대폰 요금", "convertedAmountHome": 12000, "iconKey": "communication", "spentAt": "2026-07-01" }
   ]
 }

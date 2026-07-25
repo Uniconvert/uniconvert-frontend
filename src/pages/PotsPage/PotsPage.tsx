@@ -7,7 +7,7 @@ import { findPotCategory, POT_CATEGORY_OPTIONS } from '@/constants/potCategoryOp
 import type { Pot, PotsData } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './PotsPage.module.css'
-import Mascot from '@/components/common/Mascot/Mascot'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
 const representativeImages = [
   '/assets/images/pots/sapporo-trip.png',
@@ -30,6 +30,7 @@ function PotsPage() {
   const [editImageSrc, setEditImageSrc] = useState('')
   const [editIcon, setEditIcon] = useState('travel')
   const [toastMessage, setToastMessage] = useState('')
+  const [isAllocationWarningDismissed, setIsAllocationWarningDismissed] = useState(false)
 
   useEffect(() => {
     let isActive = true
@@ -46,6 +47,16 @@ function PotsPage() {
       isActive = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!data || data.allocatedAmount <= data.monthlyBudget) return
+
+    const timer = window.setTimeout(() => {
+      setIsAllocationWarningDismissed(true)
+    }, 2000)
+
+    return () => window.clearTimeout(timer)
+  }, [data])
 
   if (errorMessage) return <p role="alert">{errorMessage}</p>
   if (!data) return <p aria-live="polite">Pots 정보를 불러오는 중입니다.</p>
@@ -79,6 +90,7 @@ function PotsPage() {
       }
       if (panelMode === 'edit') await updatePot(activePot.potId, { name: editName.trim(), targetAmount: editTargetAmount, imageSrc: editImageSrc, icon: editIcon })
       await reloadPots()
+      setIsAllocationWarningDismissed(false)
       closePanel()
     } finally { setIsSaving(false) }
   }
@@ -104,7 +116,7 @@ function PotsPage() {
       const newPot = await createPot(input)
       setData((current) => {
         if (!current) return current
-        const allocatedAmount = current.allocatedAmount + newPot.monthlyContribution
+        const allocatedAmount = current.allocatedAmount + newPot.targetAmount
 
         return {
           ...current,
@@ -113,6 +125,7 @@ function PotsPage() {
           pots: [...current.pots, newPot],
         }
       })
+      setIsAllocationWarningDismissed(false)
       setIsCreateOpen(false)
     } catch {
       setErrorMessage('Pot을 만들지 못했습니다.')
@@ -125,6 +138,13 @@ function PotsPage() {
     <section className={styles.page} aria-labelledby="pots-title">
       <h1 id="pots-title">나의 Pots</h1>
       {toastMessage && <div className={styles.successToast} role="status"><b>✓</b><span>{toastMessage}</span><button type="button" aria-label="알림 닫기" onClick={() => setToastMessage('')}>×</button></div>}
+      {data.allocatedAmount > data.monthlyBudget && !isAllocationWarningDismissed && (
+        <div className={styles.allocationWarning} role="alert">
+          <b aria-hidden="true">×</b>
+          <span>배정된 금액이 월예산을 초과했어요</span>
+          <button type="button" aria-label="경고 닫기" onClick={() => setIsAllocationWarningDismissed(true)}>×</button>
+        </div>
+      )}
 
       <div className={styles.dashboardGrid}>
         <div className={styles.mainColumn}>
@@ -146,12 +166,10 @@ function PotsPage() {
           <div className={styles.walletIllustration} aria-hidden="true">
             <img src="/assets/illustrations/wallet.png" alt="" />
           </div>
-          <div className={styles.encouragement}>
-            <Mascot
+          <FloatingMascot
               message={completedPot ? '목표를 달성했어요 축하드려요!' : '오늘도 목표를 향해 한 걸음!'}
               imageSrc={completedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
-            />
-          </div>
+          />
         </aside>
       </div>
 
