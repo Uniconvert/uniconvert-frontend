@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import { clearSession, getSessionUser } from '@/auth/session'
 import { getMockAssetSummary } from '@/mocks/dashboardStore'
-import { getStoredPots, updateStoredPotsAllocation } from '@/mocks/potStore'
+import { updateStoredMonthlyBudget } from '@/mocks/potStore'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './DashboardLayout.module.css'
 
@@ -30,7 +30,7 @@ const navigationItems: NavigationItem[] = [
     label: '리포트',
     to: ROUTE_PATHS.report,
     icon: 'report',
-    matches: (pathname) => pathname === ROUTE_PATHS.report,
+    matches: (pathname) => pathname.startsWith(ROUTE_PATHS.report),
   },
   {
     label: '계산기',
@@ -67,21 +67,35 @@ const homeTabs = [
   },
 ]
 
+const reportTabs = [
+  {
+    label: '리포트',
+    to: ROUTE_PATHS.report,
+    matches: (pathname: string) => pathname === ROUTE_PATHS.report,
+  },
+  {
+    label: '메모',
+    to: ROUTE_PATHS.reportMemos,
+    matches: (pathname: string) => pathname === ROUTE_PATHS.reportMemos,
+  },
+]
+
 function BudgetEditModal({
-  initialAllocation,
-  maxBudget,
+  initialBudget,
+  maximumBudget,
   currencySymbol,
   onClose,
   onSave,
 }: {
-  initialAllocation: number
-  maxBudget: number
+  initialBudget: number
+  maximumBudget: number
   currencySymbol: string
   onClose: () => void
   onSave: (budget: number) => void
 }) {
-  const [budget, setBudget] = useState(initialAllocation)
-  const progress = maxBudget > 0 ? (budget / maxBudget) * 100 : 0
+  const [budget, setBudget] = useState(() => Math.min(initialBudget, maximumBudget))
+  const progress = maximumBudget > 0 ? (budget / maximumBudget) * 100 : 0
+  const rangeStep = currencySymbol === '₩' ? 10000 : 1
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -92,7 +106,7 @@ function BudgetEditModal({
   }, [onClose])
 
   const updateBudget = (value: string) => {
-    const nextBudget = Math.min(Number(value.replace(/\D/g, '')) || 0, maxBudget)
+    const nextBudget = Math.min(Number(value.replace(/\D/g, '')) || 0, maximumBudget)
     setBudget(nextBudget)
   }
 
@@ -102,18 +116,18 @@ function BudgetEditModal({
     }}>
       <section className={styles.budgetModal} role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
         <header>
-          <h2 id="budget-modal-title">Pots 배정 금액 수정</h2>
-          <button type="button" aria-label="Pots 배정 금액 수정 닫기" onClick={onClose}>×</button>
+          <h2 id="budget-modal-title">예산 수정</h2>
+          <button type="button" aria-label="예산 수정 닫기" onClick={onClose}>×</button>
         </header>
 
         <form onSubmit={(event) => { event.preventDefault(); onSave(budget) }}>
           <div className={styles.budgetModalCopy}>
-            <h3>월 Pots 배정 금액</h3>
-            <p>월 예산 중 Pots에 모으고 싶은 금액을 설정해주세요.</p>
+            <h3>월 예산 금액</h3>
+            <p>한 달 동안 사용할 총 예산 금액을 설정해주세요.</p>
           </div>
 
           <label className={styles.budgetInput}>
-            <span className={styles.srOnly}>월 Pots 배정 금액</span>
+            <span className={styles.srOnly}>월 예산 금액</span>
             <span aria-hidden="true">{currencySymbol}</span>
             <input inputMode="numeric" value={budget.toLocaleString('ko-KR')} onChange={(event) => updateBudget(event.target.value)} />
           </label>
@@ -123,19 +137,19 @@ function BudgetEditModal({
             <input
               type="range"
               min="0"
-              max={maxBudget}
-              step="10000"
+              max={maximumBudget}
+              step={rangeStep}
               value={budget}
-              aria-label="월 Pots 배정 금액 슬라이더"
+              aria-label="월 예산 금액 슬라이더"
               style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
               onChange={(event) => setBudget(Number(event.target.value))}
             />
-            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>월 예산 {currencySymbol} {maxBudget.toLocaleString('ko-KR')}</span></div>
+            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString('ko-KR')}</span></div>
           </div>
 
           <div className={styles.budgetModalActions}>
             <button type="button" onClick={onClose}>취소</button>
-            <button type="submit" disabled={maxBudget <= 0}>저장하기</button>
+            <button type="submit" disabled={budget <= 0}>저장하기</button>
           </div>
         </form>
       </section>
@@ -184,13 +198,17 @@ function DashboardLayout() {
   const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
   const sessionUser = getSessionUser()
   const [assetSummary, setAssetSummary] = useState(getMockAssetSummary)
-  const [potsAllocation, setPotsAllocation] = useState(() => getStoredPots().allocatedAmount)
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
   const [budgetVersion, setBudgetVersion] = useState(0)
   const displayName = sessionUser?.nickname || '사용자'
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
-  const pageTabs = activeItem.label === '홈' ? homeTabs : [activeItem]
+  const pageTabs =
+    activeItem.icon === 'home'
+      ? homeTabs
+      : activeItem.icon === 'report'
+        ? reportTabs
+        : [activeItem]
   const activeNavigationIndex = navigationItems.indexOf(activeItem)
   const navigationItemsBefore = navigationItems.slice(0, activeNavigationIndex)
   const navigationItemsAfter = navigationItems.slice(activeNavigationIndex + 1)
@@ -316,13 +334,12 @@ function DashboardLayout() {
 
       {isBudgetModalOpen && (
         <BudgetEditModal
-          initialAllocation={potsAllocation}
-          maxBudget={assetSummary.totalAssetHome}
+          initialBudget={assetSummary.totalAssetHome}
+          maximumBudget={assetSummary.homeCurrency === 'KRW' ? 3_000_000 : 3_000}
           currencySymbol={assetSummary.currencySymbol}
           onClose={() => setIsBudgetModalOpen(false)}
           onSave={(budget) => {
-            const updatedPots = updateStoredPotsAllocation(budget)
-            setPotsAllocation(updatedPots.allocatedAmount)
+            updateStoredMonthlyBudget(budget)
             setAssetSummary(getMockAssetSummary())
             setBudgetVersion((version) => version + 1)
             setIsBudgetModalOpen(false)

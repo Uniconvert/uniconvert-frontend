@@ -4,7 +4,7 @@ import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { formatCurrencyAmount, getCurrentYearMonth } from '@/utils/currency'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
 import styles from './ExpenseHistoryPage.module.css'
-import Mascot from '@/components/common/Mascot/Mascot'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
 const assetArcs = [
   { start: 0, length: 19, color: '#66a9e4' },
@@ -232,12 +232,10 @@ function ExpenseHistoryPage() {
           <button type="button" onClick={() => setIsSavedExpensesOpen(true)}>더보기</button>
         </section>
 
-        <div className={styles.mascotArea}>
-          <Mascot
+        <FloatingMascot
             message="외화와 원화를 함께 관리하세요"
             imageSrc="/assets/illustrations/mascot-check.png"
-          />
-        </div>
+        />
         
       </div>
 
@@ -269,7 +267,16 @@ function ExpenseHistoryPage() {
                     <span><b>{expense.merchantName}{isManagingExpenses && <i aria-hidden="true">✎</i>}</b><small>{expense.spentAt.slice(0, 10).replaceAll('-', '.')}</small></span>
                   </button>
                   <strong>{formatCurrencyAmount(expense.convertedAmountHome, data.homeCurrency)}</strong>
-                  {isManagingExpenses && <button className={styles.modalDelete} type="button" aria-label={`${expense.merchantName} 삭제`} onClick={() => handleDeleteExpense(expense.expenseId)}>♲</button>}
+                  {isManagingExpenses && (
+                    <button
+                      className={styles.modalDelete}
+                      type="button"
+                      aria-label={`${expense.merchantName} 삭제`}
+                      onClick={() => handleDeleteExpense(expense.expenseId)}
+                    >
+                      <img src="/assets/icons/actions/action-delete.png" alt="" aria-hidden="true" />
+                    </button>
+                  )}
                 </li>
               ))}
               {filteredSavedExpenses.length === 0 && <li className={styles.emptySaved}>최근 지출이 없습니다.</li>}

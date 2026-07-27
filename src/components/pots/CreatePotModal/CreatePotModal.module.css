@@ -1,26 +1,32 @@
-.backdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(15, 39, 61, .48); }
-.modal { width: min(34rem, 100%); position: relative; z-index: 1; max-height: calc(100svh - 3rem); overflow-y: auto; padding: 2rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: 0 1.5rem 4rem rgba(15, 39, 61, .24); }
+.backdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(218, 237, 252, .82); backdrop-filter: blur(5px); }
+.modal { width: min(43rem, 100%); position: relative; z-index: 1; max-height: calc(100svh - 3rem); overflow-y: auto; padding: 1.75rem 1.875rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: 0 1.5rem 4rem rgba(15, 39, 61, .18); }
 .modal::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
-.modal header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
-.modal h2 { font-size: 1.5rem; }
+.modal header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 2.4rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border); }
+.modal h2 { font-size: 1.35rem; }
 .modal header button { width: 2.5rem; height: 2.5rem; padding: 0; color: var(--color-text-muted); background: transparent; border: 0; font-size: 2rem; line-height: 1; }
-.modal form { display: grid; gap: 1rem; }
-.modal label { display: grid; gap: .5rem; color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
-.modal input { width: 100%; min-height: 3rem; padding: .75rem 1rem; background: var(--color-surface); border: 1px solid #cbd9e6; border-radius: .625rem; color: var(--color-text-primary); font: inherit; font-weight: var(--font-weight-regular); }
+.modal form { display: grid; gap: 2.35rem; }
+.modal label { display: grid; gap: 1.25rem; color: var(--color-text-primary); font-size: 1.15rem; font-weight: var(--font-weight-bold); }
+.modal input { width: 100%; min-height: 3.75rem; padding: .75rem 1rem; background: var(--color-surface); border: 1px solid #d7d7d7; border-radius: .625rem; color: var(--color-text-primary); font: inherit; font-weight: var(--font-weight-regular); }
 .modal input:focus { border-color: var(--color-primary); outline: 3px solid rgba(102, 169, 228, .18); }
-.nameInputRow { display: grid; grid-template-columns: 3.75rem 1fr; gap: 1rem; }
-.nameInputRow i { display: grid; place-items: center; background: var(--color-primary); border-radius: .75rem; }
-.nameInputRow i img { width: 1.8rem; height: 1.8rem; object-fit: contain; filter: brightness(0) invert(1); }
-.targetField { display: grid; gap: .75rem; margin-top: .5rem; }
-.targetField > div, .targetField small { display: flex; align-items: center; justify-content: space-between; }
-.targetField output { color: var(--color-primary); font-size: 1.25rem; font-weight: var(--font-weight-bold); }
+.nameInputRow { display: grid; grid-template-columns: 2.875rem 1fr; align-items: center; gap: 1rem; }
+.nameInputRow i { display: grid; place-items: center; background: transparent; }
+.nameInputRow i img { width: 2rem; height: 2rem; object-fit: contain; }
+.targetField { display: grid; gap: 1rem; }
+.targetField > strong { font-size: 1.15rem; }
+.targetField > p,
+.iconChoices > p { margin-top: -.55rem; color: var(--color-text-muted); font-size: .875rem; }
+.amountInput { min-height: 3.5rem; padding: .85rem 1rem; border: 1px solid #d7d7d7; border-radius: .625rem; font-size: 1.15rem; }
+.rangeWrap { height: 3.5rem; position: relative; padding-top: 2.1rem; }
+.rangeWrap output { position: absolute; top: 0; padding: .35rem .75rem; color: white; background: var(--color-primary); border-radius: .45rem; font-size: .8rem; font-weight: var(--font-weight-bold); white-space: nowrap; transform: translateX(-50%); }
+.rangeWrap output::after { position: absolute; top: 100%; left: 50%; content: ''; border-top: .45rem solid var(--color-primary); border-right: .4rem solid transparent; border-left: .4rem solid transparent; transform: translateX(-50%); }
 .targetField input[type='range'] { min-height: auto; padding: 0; accent-color: var(--color-primary); }
 .targetField small { color: var(--color-text-muted); }
-.iconChoices { margin: .5rem 0 0; padding: 0; border: 0; }
-.iconChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
-.iconChoices > div { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
-.iconChoices button { display: grid; aspect-ratio: 1; place-items: center; background: var(--color-surface-subtle); border: 1px solid transparent; border-radius: .75rem; font-size: 1.5rem; }
-.iconChoices button img { width: 2.25rem; height: 2.25rem; object-fit: contain; }
+.targetField small { display: flex; align-items: center; justify-content: space-between; }
+.iconChoices { padding: 0; border: 0; }
+.iconChoices legend { margin-bottom: 1rem; font-size: 1.15rem; font-weight: var(--font-weight-bold); }
+.iconChoices > div { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 1.2rem; margin-top: 1.65rem; }
+.iconChoices button { display: grid; aspect-ratio: 1; place-items: center; background: white; border: 1px solid #ddd; border-radius: .6rem; font-size: 1.5rem; }
+.iconChoices button img { width: 2rem; height: 2rem; object-fit: contain; }
 .iconChoices button.selectedIcon { background: #e1f0fc; border-color: var(--color-primary); }
-.actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .75rem; }
+.actions { display: grid; grid-template-columns: .95fr 1.05fr; gap: 1.5rem; margin-top: -.25rem; }
 @media (max-width: 32rem) { .modal { padding: 1.5rem; } .iconChoices > div { grid-template-columns: repeat(3, 1fr); } }

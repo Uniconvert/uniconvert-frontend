@@ -10,7 +10,7 @@
       { "categoryId": "transport", "categoryName": "교통", "amountHome": 120000, "ratio": 8, "iconKey": "transport" },
       { "categoryId": "education", "categoryName": "학비", "amountHome": 150000, "ratio": 10, "iconKey": "education" },
       { "categoryId": "travel", "categoryName": "여행", "amountHome": 800000, "ratio": 55, "iconKey": "travel" },
-      { "categoryId": "medical", "categoryName": "의료", "amountHome": 35000, "ratio": 3, "iconKey": "medical" }
+      { "categoryId": "communication", "categoryName": "통신", "amountHome": 35000, "ratio": 3, "iconKey": "communication" }
     ]
   }
 }

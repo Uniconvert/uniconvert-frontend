@@ -19,7 +19,7 @@
       { "categoryId": "transport", "name": "교통", "amountHome": 120000, "percent": 8, "iconKey": "transport" },
       { "categoryId": "education", "name": "학비", "amountHome": 150000, "percent": 10, "iconKey": "education" },
       { "categoryId": "travel", "name": "여행", "amountHome": 800000, "percent": 55, "iconKey": "travel" },
-      { "categoryId": "medical", "name": "의료", "amountHome": 35000, "percent": 3, "iconKey": "medical" }
+      { "categoryId": "communication", "name": "통신", "amountHome": 35000, "percent": 3, "iconKey": "communication" }
     ]
   }
 }

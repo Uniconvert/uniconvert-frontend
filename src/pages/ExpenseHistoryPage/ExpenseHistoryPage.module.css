@@ -1,4 +1,5 @@
 .page {
+  position: relative;
   display: grid;
   min-width: 0;
   min-height: 100%;
@@ -44,7 +45,7 @@
 .savedCard > button { display: block; margin: 1rem auto 0; color: var(--color-text-muted); background: transparent; border: 0; text-decoration: underline; }
 
 .modalBackdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 1.5rem; background: rgba(218, 237, 252, .82); backdrop-filter: blur(5px); }
-.savedModal { width: min(43rem, 100%); position: relative; z-index: 1; max-height: calc(100svh - 3rem); overflow: auto; padding: 2rem 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.savedModal { width: min(43rem, 100%); position: relative; z-index: 1; max-height: calc(100svh - 3rem); padding: 2rem 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
 .savedModal::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
 .savedModal header { display: flex; align-items: flex-start; gap: .75rem; }
 .savedModal header > div { display: grid; flex: 1; gap: .75rem; }
@@ -55,14 +56,15 @@
 .monthMenu button { padding: .45rem .75rem; text-align: left; background: transparent; border: 0; }
 .monthMenu button:hover, .monthMenu button[aria-selected='true'] { color: var(--color-primary); background: #eff7ff; }
 .manageButton { padding: .35rem; color: var(--color-primary); background: transparent; border: 0; font-size: 1rem; }
-.savedModal ul { margin-top: 1rem; list-style: none; }
+.savedModal ul { max-height: calc(100svh - 14rem); overflow-x: hidden; overflow-y: auto; margin-top: 1rem; list-style: none; }
 .savedModal li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .75rem; min-height: 6rem; border-bottom: 1px solid var(--color-border); }
 .savedModal li[draggable='true'] { grid-template-columns: auto 1fr auto auto; cursor: grab; }
 .savedModal li.dragging { opacity: .45; background: #eff7ff; }
 .savedExpenseMain { display: grid; grid-template-columns: 3.25rem 1fr; align-items: center; gap: .85rem; padding: 0; text-align: left; background: transparent; border: 0; }
 .dragHandle { color: var(--color-text-muted); font-size: 1.4rem; }
 .savedExpenseMain b i { margin-left: .45rem; color: var(--color-primary); font-style: normal; }
-.modalDelete { color: #ff5d5d; background: transparent; border: 0; font-size: 1.15rem; }
+.modalDelete { display: grid; width: 2rem; height: 2rem; flex: 0 0 2rem; place-items: center; padding: 0; background: transparent; border: 0; }
+.modalDelete img { display: block; width: 1.25rem; height: 1.25rem; object-fit: contain; }
 .closeModalButton { display: block; margin: 1.25rem auto 0; padding: .5rem 2rem; background: transparent; border: 0; font-size: 1.1rem; }
 .emptySaved { display: block !important; padding: 2rem 0; text-align: center; }
 

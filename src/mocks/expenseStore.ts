@@ -5,6 +5,12 @@ import type { CreateExpenseInput, ExpenseDetail, UpdateExpenseInput } from '@/ty
 
 const STORAGE_KEY = 'uniconvert.mockExpenses.v2'
 
+function normalizeCategories(expenses: ExpenseDetail[]) {
+  return expenses.map((expense) => expense.iconKey === 'medical'
+    ? { ...expense, iconKey: 'communication', categoryName: '통신' }
+    : expense)
+}
+
 function seedExpenses() {
   if (!isSeededMockUser()) return []
   return structuredClone((expenseDetailsMock as ApiResponse<ExpenseDetail[]>).data)
@@ -20,7 +26,9 @@ export function getStoredExpenses(): ExpenseDetail[] {
   }
 
   try {
-    return JSON.parse(stored) as ExpenseDetail[]
+    const expenses = normalizeCategories(JSON.parse(stored) as ExpenseDetail[])
+    localStorage.setItem(storageKey, JSON.stringify(expenses))
+    return expenses
   } catch {
     const initialExpenses = seedExpenses()
     localStorage.setItem(storageKey, JSON.stringify(initialExpenses))

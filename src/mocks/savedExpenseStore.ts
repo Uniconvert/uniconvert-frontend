@@ -5,6 +5,12 @@ import type { SavedExpense } from '@/types/expense'
 
 const STORAGE_KEY = 'uniconvert.mockSavedExpenses.v2'
 
+function normalizeCategories(expenses: SavedExpense[]) {
+  return expenses.map((expense) => expense.iconKey === 'medical'
+    ? { ...expense, iconKey: 'communication' }
+    : expense)
+}
+
 export function getStoredSavedExpenses(): SavedExpense[] {
   const storageKey = getMockStorageKey(STORAGE_KEY)
   const stored = localStorage.getItem(storageKey)
@@ -15,7 +21,11 @@ export function getStoredSavedExpenses(): SavedExpense[] {
     localStorage.setItem(storageKey, JSON.stringify(initial))
     return initial
   }
-  try { return JSON.parse(stored) as SavedExpense[] } catch {
+  try {
+    const expenses = normalizeCategories(JSON.parse(stored) as SavedExpense[])
+    localStorage.setItem(storageKey, JSON.stringify(expenses))
+    return expenses
+  } catch {
     localStorage.removeItem(storageKey)
     return getStoredSavedExpenses()
   }

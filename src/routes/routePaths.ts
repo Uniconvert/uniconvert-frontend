@@ -14,6 +14,7 @@ export const ROUTE_PATHS = {
   expenses: '/home/expenses',
   pots: '/home/pots',
   report: '/report',
+  reportMemos: '/report/memos',
   calculator: '/calculator',
   ocr: '/ocr',
   settings: '/settings',

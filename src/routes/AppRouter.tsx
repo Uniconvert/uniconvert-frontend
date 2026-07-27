@@ -6,6 +6,7 @@ import ExpenseHistoryPage from '@/pages/ExpenseHistoryPage/ExpenseHistoryPage'
 import ExpenseInputPage from '@/pages/ExpenseInputPage/ExpenseInputPage'
 import LandingPage from '@/pages/LandingPage/LandingPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
+import MemoPage from '@/pages/MemoPage/MemoPage'
 import NotFoundPage from '@/pages/NotFoundPage/NotFoundPage'
 import OcrUploadPage from '@/pages/OcrUploadPage/OcrUploadPage'
 import BaseCurrencyPage from '@/pages/onboarding/BaseCurrencyPage/BaseCurrencyPage'
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
           { path: ROUTE_PATHS.expenses, Component: ExpenseHistoryPage },
           { path: ROUTE_PATHS.pots, Component: PotsPage },
           { path: ROUTE_PATHS.report, Component: ReportPage },
+          { path: ROUTE_PATHS.reportMemos, Component: MemoPage },
           { path: ROUTE_PATHS.calculator, Component: CalculatorPage },
           { path: ROUTE_PATHS.ocr, Component: OcrUploadPage },
           { path: ROUTE_PATHS.settings, Component: SettingsPage },
