@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { login } from '@/api/auth'
 import { saveSession } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
@@ -123,6 +123,12 @@ function LoginPage() {
             로그인
           </Button>
           <GoogleLoginButton fullWidth onClick={handleGoogleLogin} />
+          <p className={styles.signUpPrompt}>
+            아직 계정이 없으신가요?
+            <Link className={styles.signUpLink} to={ROUTE_PATHS.signUp}>
+              회원가입하기
+            </Link>
+          </p>
 
           {statusMessage && (
             <p className={styles.status} role="status" aria-live="polite">

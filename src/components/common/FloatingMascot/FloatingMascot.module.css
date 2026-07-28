@@ -1,0 +1,22 @@
+.floatingMascotRail {
+  width: clamp(18rem, 25vw, 24rem);
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.floatingMascot {
+  width: 100%;
+  height: 14rem;
+  position: sticky;
+  top: calc(100svh - 15.5rem);
+}
+
+@media (max-width: 70rem) {
+  .floatingMascotRail {
+    display: none;
+  }
+}

@@ -4,12 +4,6 @@
   grid-template-columns: minmax(min(100%, 32rem), 1.7fr) minmax(min(100%, 20rem), 1fr);
   gap: clamp(1.5rem, 3vw, 5.5rem);
 }
-.successToast { display: grid; width: min(30rem, calc(100% - 2rem)); min-height: 5rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.8rem; left: 50%; padding: .9rem 1rem; background: white; border: 1px solid #65c28f; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
-.successToast > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #55b982; border: 2px solid #65c28f; border-radius: 50%; font-size: 1.35rem; }
-.successToast > div { display: grid; gap: .25rem; }
-.successToast > div span { color: var(--color-text-muted); font-size: .85rem; }
-.successToast > button { color: var(--color-text-muted); background: transparent; border: 0; font-size: 1.5rem; }
-
 .form {
   min-width: 0;
 }
@@ -23,25 +17,18 @@
 .formToolbar h1 { font-size: 1.75rem; }
 
 .uploadButton {
-  display: grid;
   width: 3.5rem;
   height: 3.5rem;
-  place-items: center;
-  color: var(--color-primary);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  padding: 0;
+  background: transparent;
+  border: 0;
   border-radius: 50%;
 }
 
-.uploadButton svg,
 .uploadButton img {
-  width: 1.75rem;
-  height: 1.75rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .uploadStatus {
@@ -113,7 +100,7 @@
 
 .datePicker > button { display: flex; width: 100%; min-height: 3.5rem; align-items: center; justify-content: space-between; padding: 0 1.25rem; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 1.05rem; }
 .datePicker > button img { width: 1.45rem; height: 1.45rem; object-fit: contain; }
-.calendar { width: min(20rem, 100%); position: absolute; z-index: 8; top: calc(100% + .4rem); left: 0; padding: 1rem; background: white; border: 1px solid #a9c8e7; border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+.calendar { width: min(20rem, 100%); position: absolute; z-index: 8; top: calc(100% + .4rem); right: 0; left: auto; padding: 1rem; background: white; border: 1px solid #a9c8e7; border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
 .calendar header { display: flex; align-items: center; justify-content: space-between; }
 .calendar header button { width: 2rem; height: 2rem; background: transparent; border: 0; font-size: 1.5rem; }
 .weekdays, .days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }

@@ -19,6 +19,7 @@ function FlowArrow() {
 function BudgetAllocationSummary({ monthlyBudget, allocatedAmount, availableAmount, currency }: BudgetAllocationSummaryProps) {
   const allocatedRate = monthlyBudget > 0 ? Math.round((allocatedAmount / monthlyBudget) * 1000) / 10 : 0
   const availableRate = monthlyBudget > 0 ? Math.round((availableAmount / monthlyBudget) * 1000) / 10 : 0
+  const isOverAllocated = allocatedAmount > monthlyBudget
 
   return (
     <section className={styles.summary} aria-label="월 예산 배분 현황">
@@ -30,10 +31,10 @@ function BudgetAllocationSummary({ monthlyBudget, allocatedAmount, availableAmou
         </div>
       </div>
       <FlowArrow />
-      <div className={styles.metric}>
+      <div className={`${styles.metric} ${isOverAllocated ? styles.overAllocated : ''}`}>
         <span className={styles.label}>Pots에 배정된 금액</span>
         <strong>{formatCurrencyAmount(allocatedAmount, currency)} <small>({allocatedRate}%)</small></strong>
-        <span className={styles.track} aria-hidden="true"><span style={{ width: `${allocatedRate}%` }} /></span>
+        <span className={styles.track} aria-hidden="true"><span style={{ width: `${Math.min(allocatedRate, 100)}%` }} /></span>
       </div>
       <FlowArrow />
       <div className={styles.metric}>

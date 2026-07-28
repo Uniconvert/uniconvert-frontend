@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
+import { logout } from '@/api/auth'
 import { clearSession, getSessionUser } from '@/auth/session'
+import ModalShell from '@/components/common/ModalShell/ModalShell'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { getMockAssetSummary } from '@/mocks/dashboardStore'
-import { getStoredPots, updateStoredPotsAllocation } from '@/mocks/potStore'
+import { updateStoredMonthlyBudget } from '@/mocks/potStore'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './DashboardLayout.module.css'
 
@@ -30,7 +34,7 @@ const navigationItems: NavigationItem[] = [
     label: '리포트',
     to: ROUTE_PATHS.report,
     icon: 'report',
-    matches: (pathname) => pathname === ROUTE_PATHS.report,
+    matches: (pathname) => pathname.startsWith(ROUTE_PATHS.report),
   },
   {
     label: '계산기',
@@ -67,53 +71,58 @@ const homeTabs = [
   },
 ]
 
+const reportTabs = [
+  {
+    label: '리포트',
+    to: ROUTE_PATHS.report,
+    matches: (pathname: string) => pathname === ROUTE_PATHS.report,
+  },
+  {
+    label: '메모',
+    to: ROUTE_PATHS.reportMemos,
+    matches: (pathname: string) => pathname === ROUTE_PATHS.reportMemos,
+  },
+]
+
 function BudgetEditModal({
-  initialAllocation,
-  maxBudget,
+  initialBudget,
+  maximumBudget,
   currencySymbol,
   onClose,
   onSave,
 }: {
-  initialAllocation: number
-  maxBudget: number
+  initialBudget: number
+  maximumBudget: number
   currencySymbol: string
   onClose: () => void
   onSave: (budget: number) => void
 }) {
-  const [budget, setBudget] = useState(initialAllocation)
-  const progress = maxBudget > 0 ? (budget / maxBudget) * 100 : 0
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  const [budget, setBudget] = useState(() => Math.min(initialBudget, maximumBudget))
+  const progress = maximumBudget > 0 ? (budget / maximumBudget) * 100 : 0
+  const rangeStep = currencySymbol === '₩' ? 10000 : 1
 
   const updateBudget = (value: string) => {
-    const nextBudget = Math.min(Number(value.replace(/\D/g, '')) || 0, maxBudget)
+    const nextBudget = Math.min(Number(value.replace(/\D/g, '')) || 0, maximumBudget)
     setBudget(nextBudget)
   }
 
   return (
-    <div className={styles.budgetModalBackdrop} role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose()
-    }}>
-      <section className={styles.budgetModal} role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
-        <header>
-          <h2 id="budget-modal-title">Pots 배정 금액 수정</h2>
-          <button type="button" aria-label="Pots 배정 금액 수정 닫기" onClick={onClose}>×</button>
-        </header>
-
-        <form onSubmit={(event) => { event.preventDefault(); onSave(budget) }}>
+    <ModalShell
+      title="예산 수정"
+      titleId="budget-modal-title"
+      closeLabel="예산 수정 닫기"
+      width="44rem"
+      bodyClassName={styles.budgetModalBody}
+      onClose={onClose}
+    >
+      <form onSubmit={(event) => { event.preventDefault(); onSave(budget) }}>
           <div className={styles.budgetModalCopy}>
-            <h3>월 Pots 배정 금액</h3>
-            <p>월 예산 중 Pots에 모으고 싶은 금액을 설정해주세요.</p>
+            <h3>월 예산 금액</h3>
+            <p>한 달 동안 사용할 총 예산 금액을 설정해주세요.</p>
           </div>
 
           <label className={styles.budgetInput}>
-            <span className={styles.srOnly}>월 Pots 배정 금액</span>
+            <span className={styles.srOnly}>월 예산 금액</span>
             <span aria-hidden="true">{currencySymbol}</span>
             <input inputMode="numeric" value={budget.toLocaleString('ko-KR')} onChange={(event) => updateBudget(event.target.value)} />
           </label>
@@ -123,23 +132,22 @@ function BudgetEditModal({
             <input
               type="range"
               min="0"
-              max={maxBudget}
-              step="10000"
+              max={maximumBudget}
+              step={rangeStep}
               value={budget}
-              aria-label="월 Pots 배정 금액 슬라이더"
+              aria-label="월 예산 금액 슬라이더"
               style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
               onChange={(event) => setBudget(Number(event.target.value))}
             />
-            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>월 예산 {currencySymbol} {maxBudget.toLocaleString('ko-KR')}</span></div>
+            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString('ko-KR')}</span></div>
           </div>
 
           <div className={styles.budgetModalActions}>
             <button type="button" onClick={onClose}>취소</button>
-            <button type="submit" disabled={maxBudget <= 0}>저장하기</button>
+            <button type="submit" disabled={budget <= 0}>저장하기</button>
           </div>
-        </form>
-      </section>
-    </div>
+      </form>
+    </ModalShell>
   )
 }
 
@@ -180,20 +188,42 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
 
 function DashboardLayout() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const now = new Date()
   const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
   const sessionUser = getSessionUser()
   const [assetSummary, setAssetSummary] = useState(getMockAssetSummary)
-  const [potsAllocation, setPotsAllocation] = useState(() => getStoredPots().allocatedAmount)
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [budgetVersion, setBudgetVersion] = useState(0)
+  const { toast, showToast, closeToast } = useToastQueue()
   const displayName = sessionUser?.nickname || '사용자'
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
-  const pageTabs = activeItem.label === '홈' ? homeTabs : [activeItem]
+  const pageTabs =
+    activeItem.icon === 'home'
+      ? homeTabs
+      : activeItem.icon === 'report'
+        ? reportTabs
+        : [activeItem]
   const activeNavigationIndex = navigationItems.indexOf(activeItem)
   const navigationItemsBefore = navigationItems.slice(0, activeNavigationIndex)
   const navigationItemsAfter = navigationItems.slice(activeNavigationIndex + 1)
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await logout()
+    } catch {
+      // 서버 로그아웃이 실패해도 브라우저의 인증 정보는 반드시 제거합니다.
+    } finally {
+      clearSession()
+      setIsLogoutModalOpen(false)
+      setIsLoggingOut(false)
+      navigate(ROUTE_PATHS.login, { replace: true })
+    }
+  }
 
   const renderNavigationItem = (
     item: NavigationItem,
@@ -214,6 +244,7 @@ function DashboardLayout() {
 
   return (
     <div className={styles.layout}>
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <header className={styles.topbar}>
         <Link className={styles.brand} to={ROUTE_PATHS.home}>
           <span className={styles.brandMarkFrame} aria-hidden="true">
@@ -270,15 +301,28 @@ function DashboardLayout() {
                 <button className={styles.assetEditButton} type="button" aria-label="총 보유 자산 편집" onClick={() => setIsBudgetModalOpen(true)}>
                   <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
                 </button>
-                <div className={styles.assetRing} aria-hidden="true"><img src="/assets/icons/pots/pot-wallet.png" alt="" /><small>{currentYearMonth}</small></div>
+                <div className={styles.assetRing} aria-hidden="true">
+                  <img className={styles.assetRingGraphic} src="/assets/illustrations/asset-ring.png" alt="" />
+                  <span className={styles.assetRingContent}>
+                    <img className={styles.assetRingWallet} src="/assets/icons/pots/pot-wallet.png" alt="" />
+                    <small>{currentYearMonth}</small>
+                  </span>
+                </div>
                 <h2 id="asset-summary-title">총 보유 자산</h2>
                 <p className={styles.assetTotal}>
                   {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString('ko-KR')}
                 </p>
-                <p className={styles.assetUsd}>({assetSummary.secondaryLabel})</p>
+                <p className={styles.assetUsd}>({assetSummary.localCurrencyAmountLabel})</p>
               </section>
 
-              <Link className={styles.logoutLink} to={ROUTE_PATHS.login} onClick={clearSession}>
+              <Link
+                className={styles.logoutLink}
+                to={ROUTE_PATHS.login}
+                onClick={(event) => {
+                  event.preventDefault()
+                  setIsLogoutModalOpen(true)
+                }}
+              >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9" />
                 </svg>
@@ -289,26 +333,27 @@ function DashboardLayout() {
         </nav>
       </aside>
 
-      <div className={styles.workspace}>
-        <nav
-          className={styles.pageTabs}
-          aria-label={activeItem.label === '홈' ? '홈 화면 메뉴' : '현재 화면'}
-        >
-          {pageTabs.map((tab) => {
-            const isActive = tab.matches(pathname)
+      <nav
+        className={styles.pageTabs}
+        aria-label={activeItem.label === '홈' ? '홈 화면 메뉴' : '현재 화면'}
+      >
+        {pageTabs.map((tab) => {
+          const isActive = tab.matches(pathname)
 
-            return (
-              <Link
-                key={tab.label}
-                to={tab.to}
-                className={isActive ? styles.activePageTab : undefined}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {tab.label}
-              </Link>
-            )
-          })}
-        </nav>
+          return (
+            <Link
+              key={tab.label}
+              to={tab.to}
+              className={isActive ? styles.activePageTab : undefined}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {tab.label}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className={styles.workspace}>
         <main className={styles.content}>
           <Outlet key={budgetVersion} />
         </main>
@@ -316,18 +361,49 @@ function DashboardLayout() {
 
       {isBudgetModalOpen && (
         <BudgetEditModal
-          initialAllocation={potsAllocation}
-          maxBudget={assetSummary.totalAssetHome}
+          initialBudget={assetSummary.totalAssetHome}
+          maximumBudget={assetSummary.homeCurrency === 'KRW' ? 3_000_000 : 3_000}
           currencySymbol={assetSummary.currencySymbol}
           onClose={() => setIsBudgetModalOpen(false)}
           onSave={(budget) => {
-            const updatedPots = updateStoredPotsAllocation(budget)
-            setPotsAllocation(updatedPots.allocatedAmount)
+            updateStoredMonthlyBudget(budget)
             setAssetSummary(getMockAssetSummary())
             setBudgetVersion((version) => version + 1)
             setIsBudgetModalOpen(false)
+            showToast({ variant: 'success', title: '수정되었어요' })
           }}
         />
+      )}
+
+      {isLogoutModalOpen && (
+        <ModalShell
+          title="로그아웃하시겠어요?"
+          titleId="logout-modal-title"
+          closeLabel="로그아웃 확인 팝업 닫기"
+          width="31rem"
+          bodyClassName={styles.logoutModalBody}
+          onClose={() => {
+            if (!isLoggingOut) setIsLogoutModalOpen(false)
+          }}
+        >
+          <p>현재 계정에서 로그아웃합니다.</p>
+          <div className={styles.logoutModalActions}>
+            <button
+              type="button"
+              disabled={isLoggingOut}
+              onClick={() => setIsLogoutModalOpen(false)}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={isLoggingOut}
+              onClick={() => void handleLogout()}
+            >
+              {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+            </button>
+          </div>
+        </ModalShell>
       )}
     </div>
   )

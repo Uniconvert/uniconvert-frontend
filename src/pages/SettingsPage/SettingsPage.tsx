@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { getEmailReportPreview } from '@/api/emailReports'
 import { getSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import type { AuthUser } from '@/types/auth'
 import type { EmailReportData } from '@/types/emailReport'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
@@ -15,9 +18,9 @@ function SettingsPage() {
   const [savedNickname, setSavedNickname] = useState(() => getSessionUser()?.nickname ?? '')
   const [nickname, setNickname] = useState(() => getSessionUser()?.nickname ?? '')
   const [profileImage, setProfileImage] = useState(() => getSessionUser()?.profileImage ?? '')
-  const [savedMessage, setSavedMessage] = useState('')
   const [emailReport, setEmailReport] = useState<EmailReportData | null>(null)
   const [reportError, setReportError] = useState('')
+  const { toast, showToast, closeToast } = useToastQueue()
 
   useEffect(() => {
     let isActive = true
@@ -47,6 +50,7 @@ function SettingsPage() {
       const nextProfileImage = String(reader.result ?? '')
       setProfileImage(nextProfileImage)
       setSessionUser(updateSessionUser({ profileImage: nextProfileImage }))
+      showToast({ variant: 'success', title: '수정되었어요' })
     })
     reader.readAsDataURL(file)
   }
@@ -58,13 +62,12 @@ function SettingsPage() {
     setSavedNickname(nextNickname)
     setNickname(nextNickname)
     setSessionUser(updateSessionUser({ nickname: nextNickname }))
-    setSavedMessage('프로필이 저장되었습니다.')
+    showToast({ variant: 'success', title: '수정되었어요' })
     // TODO: Swagger 확정 후 프로필 수정 API를 연결합니다.
   }
 
   const handleCancel = () => {
     setNickname(savedNickname)
-    setSavedMessage('')
   }
 
   const handleReportToggle = () => {
@@ -74,6 +77,7 @@ function SettingsPage() {
 
   return (
     <section className={styles.page} aria-labelledby="settings-title">
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <h1 id="settings-title">설정</h1>
 
       <div className={styles.leftColumn}>
@@ -114,7 +118,7 @@ function SettingsPage() {
           <div className={styles.profileFields}>
             <label>
               <span>닉네임</span>
-              <input value={nickname} maxLength={20} onChange={(event) => { setNickname(event.target.value); setSavedMessage('') }} />
+              <input value={nickname} maxLength={20} onChange={(event) => setNickname(event.target.value)} />
             </label>
             <label>
               <span>이메일</span>
@@ -123,7 +127,6 @@ function SettingsPage() {
           </div>
 
           <div className={styles.profileActions}>
-            <p role="status">{savedMessage}</p>
             <Button variant="outline" onClick={handleCancel}>취소</Button>
             <Button onClick={handleSave} disabled={!nickname.trim()}>저장</Button>
           </div>
@@ -163,12 +166,10 @@ function SettingsPage() {
           </section>
         </aside>
       ) : (
-        <aside className={styles.offVisual} aria-label="이메일 리포트가 꺼져 있습니다">
-          <p>지출 환경을 설정하고 관리하세요</p>
-          <span className={styles.thoughtLarge} />
-          <span className={styles.thoughtSmall} />
-          <img src="/assets/illustrations/mascot-check.png" alt="" aria-hidden="true" />
-        </aside>
+        <FloatingMascot
+          message="지출 환경을 설정하고 관리하세요"
+          imageSrc="/assets/illustrations/mascot-check.png"
+        />
       )}
     </section>
   )

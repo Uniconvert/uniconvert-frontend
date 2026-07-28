@@ -3,7 +3,7 @@ import { getMonthlyReport } from '@/api/reports'
 import type { MonthlyReportData } from '@/types/report'
 import { getCurrentYearMonth } from '@/utils/currency'
 import styles from './ReportPage.module.css'
-import Mascot from '@/components/common/Mascot/Mascot'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
 interface Expense {
   label: string
@@ -51,16 +51,20 @@ function BarChart({
           type="button"
           className={styles.selectorBtn}
           onClick={() => setIsOpen((prev) => !prev)}
+          aria-label={type === 'date' ? '지출 조회 기간' : '지출 조회 월'}
+          aria-haspopup={type === 'date' ? 'dialog' : 'listbox'}
           aria-expanded={isOpen}
         >
           {selectorText}
-          <span aria-hidden="true" />
+          <span className={styles.selectorChevron} aria-hidden="true" />
         </button>
       </div>
 
       {isOpen && (
         <div
           className={styles.dropdownBox}
+          role={type === 'date' ? 'dialog' : 'listbox'}
+          aria-label={type === 'date' ? '지출 조회 기간 선택' : '지출 조회 월 선택'}
           style={type === 'month' ? { width: '8rem', padding: '1rem 0' } : {}}
         >
           {type === 'date' ? (
@@ -99,13 +103,15 @@ function BarChart({
             </div>
           ) : (
             <div className={styles.monthList}>
-              {['2026.07', '2026.06', '2026.05', '2026.04', '2026.03'].map((monthStr, index) => {
-                const isSelected = index === 0;
+              {['2026.07', '2026.06', '2026.05', '2026.04', '2026.03'].map((monthStr) => {
+                const isSelected = monthStr === selectorText;
 
                 return (
                   <button
                     key={monthStr}
                     type="button"
+                    role="option"
+                    aria-selected={isSelected}
                     className={`${styles.monthListItem} ${isSelected ? styles.monthListItemSelected : ''}`}
                     onClick={() => setIsOpen(false)}
                   >
@@ -238,12 +244,10 @@ function ReportPage() {
         />
       </div>
 
-      <div className={styles.mascotArea} aria-hidden="true">
-        <Mascot
+      <FloatingMascot
           message="오늘 지출이 어제보다 5% 증가했어요"
           imageSrc="/assets/illustrations/mascot-check.png"
-        />
-      </div>
+      />
     </section>
   )
 }

@@ -1,32 +1,25 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import Button from '@/components/common/Button/Button'
+import ModalShell from '@/components/common/ModalShell/ModalShell'
 import styles from './FileUploadModal.module.css'
 
 interface FileUploadModalProps {
   isOpen: boolean
   onClose: () => void
-  onUpload?: (file: File) => void
+  onUpload?: (file: File) => void | Promise<void>
+  onError?: () => void
 }
 
 const MAX_FILE_SIZE = 30 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'csv']
 
-function FileUploadModal({ isOpen, onClose, onUpload }: FileUploadModalProps) {
+function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModalProps) {
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    if (!isOpen) return
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+  const [isUploading, setIsUploading] = useState(false)
 
   if (!isOpen) return null
 
@@ -45,23 +38,34 @@ function FileUploadModal({ isOpen, onClose, onUpload }: FileUploadModalProps) {
     return true
   }
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile) {
       setErrorMessage('업로드할 파일을 선택해주세요.')
       return
     }
-    onUpload?.(selectedFile)
+
+    setIsUploading(true)
+    try {
+      await onUpload?.(selectedFile)
+    } catch {
+      setErrorMessage('파일을 가져오지 못했습니다. 다시 시도해주세요.')
+      onError?.()
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
-    <div className={styles.backdrop} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="file-upload-title">
-        <header className={styles.header}>
-          <h2 id="file-upload-title">업로드 파일</h2>
-          <button className={styles.closeButton} type="button" onClick={onClose} aria-label="파일 업로드 닫기">×</button>
-        </header>
-
-        <div
+    <ModalShell
+      title="업로드 파일"
+      titleId="file-upload-title"
+      closeLabel="파일 업로드 닫기"
+      width="47.25rem"
+      minHeight="39.75rem"
+      bodyClassName={styles.modalBody}
+      onClose={onClose}
+    >
+      <div
           className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
           onDragEnter={(event) => { event.preventDefault(); setIsDragging(true) }}
           onDragOver={(event) => event.preventDefault()}
@@ -90,10 +94,9 @@ function FileUploadModal({ isOpen, onClose, onUpload }: FileUploadModalProps) {
 
         <div className={styles.actions}>
           <Button variant="outline" onClick={onClose}>취소</Button>
-          <Button onClick={handleUpload}>업로드</Button>
+          <Button onClick={handleUpload} isLoading={isUploading} disabled={isUploading}>업로드</Button>
         </div>
-      </section>
-    </div>
+    </ModalShell>
   )
 }
 

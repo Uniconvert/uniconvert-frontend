@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { createExpense, getExpenseHistory } from '@/api/expenses'
 import Button from '@/components/common/Button/Button'
 import FileUploadModal from '@/components/common/FileUploadModal/FileUploadModal'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import type { ExpenseDetail } from '@/types/expense'
 import { formatCurrencyAmount } from '@/utils/currency'
+import { getExchangeRate } from '@/utils/exchangeRate'
 import styles from './ExpenseInputPage.module.css'
 
 interface Category {
@@ -17,21 +20,13 @@ const categories: Category[] = [
   { id: 'food', label: '식비', iconSrc: '/assets/icons/categories/category-food.png' },
   { id: 'transport', label: '교통', iconSrc: '/assets/icons/categories/category-transport.png' },
   { id: 'shopping', label: '쇼핑', iconSrc: '/assets/icons/categories/category-shopping.png' },
-  { id: 'medical', label: '의료', iconSrc: '/assets/icons/categories/category-medical.png' },
+  { id: 'communication', label: '통신', iconSrc: '/assets/icons/categories/category-communication.png' },
   { id: 'education', label: '학업', iconSrc: '/assets/icons/categories/category-education.png' },
   { id: 'travel', label: '여행', iconSrc: '/assets/icons/categories/category-travel.png' },
-  { id: 'other', label: '추가', iconSrc: '/assets/icons/actions/action-add.png' },
+  { id: 'other', label: '기타', iconSrc: '/assets/icons/actions/action-more.png' },
 ]
 
-const exchangeRatesInKrw: Record<string, number> = {
-  KRW: 1,
-  USD: 1499.07,
-  EUR: 1711.83,
-  JPY: 9.23,
-  CNY: 207.65,
-}
-
-const currencies = ['USD', 'EUR', 'KRW'] as const
+const currencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW'] as const
 
 function getTodayDateInputValue() {
   const now = new Date()
@@ -49,11 +44,10 @@ function ExpenseInputPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
-  const [successMessage, setSuccessMessage] = useState('')
+  const { toast, showToast, closeToast } = useToastQueue()
   const [budgetSummary, setBudgetSummary] = useState({
     homeCurrency: 'KRW',
     monthlyBudgetHome: 0,
@@ -61,9 +55,7 @@ function ExpenseInputPage() {
   })
 
   const activeCurrency = currency
-  const sourceRateInKrw = exchangeRatesInKrw[currency]
-  const homeRateInKrw = exchangeRatesInKrw[budgetSummary.homeCurrency] ?? 1
-  const rate = sourceRateInKrw / homeRateInKrw
+  const rate = getExchangeRate(currency, budgetSummary.homeCurrency)
   const numericAmount = Number(amount) || 0
   const convertedAmount = Math.floor(numericAmount * rate)
   const projectedExpenseHome = budgetSummary.monthlyExpenseHome + convertedAmount
@@ -94,12 +86,13 @@ function ExpenseInputPage() {
       .catch(() => {
         if (!isActive) return
         setBudgetSummary({ homeCurrency: 'KRW', monthlyBudgetHome: 0, monthlyExpenseHome: 0 })
+        showToast({ variant: 'error', title: '환율 정보를 불러오지 못했어요' })
       })
 
     return () => {
       isActive = false
     }
-  }, [spentAt])
+  }, [spentAt, showToast])
 
   const moveCalendarMonth = (amount: number) => {
     const next = new Date(calendarYear, calendarMonthNumber - 1 + amount, 1)
@@ -111,7 +104,6 @@ function ExpenseInputPage() {
     if (numericAmount <= 0 || isSaving) return
 
     setIsSaving(true)
-    setErrorMessage('')
 
     try {
       await createExpense({
@@ -125,14 +117,26 @@ function ExpenseInputPage() {
         iconKey: selectedCategory.id,
         memo: memo.trim(),
       })
-      setSuccessMessage(`${selectedCategory.label} · ${merchant.trim() || '상점 미입력'} · ${activeCurrency} ${numericAmount.toLocaleString('en-US', { maximumFractionDigits: 2 })}`)
+      const currencySymbol = activeCurrency === 'KRW' ? '₩' : activeCurrency === 'USD' ? '$' : activeCurrency === 'EUR' ? '€' : '¥'
+      const formattedAmount = numericAmount.toLocaleString('en-US', {
+        minimumFractionDigits: activeCurrency === 'USD' || activeCurrency === 'EUR' ? 2 : 0,
+        maximumFractionDigits: 2,
+      })
+      showToast({
+        variant: 'success',
+        title: '지출이 성공적으로 저장되었어요!',
+        description: `${selectedCategory.label} · ${merchant.trim() || '상점 미입력'} · ${currencySymbol}${formattedAmount}`,
+      })
+      if (budgetSummary.monthlyBudgetHome > 0 && projectedExpenseHome > budgetSummary.monthlyBudgetHome) {
+        showToast({ variant: 'info', title: '이번 달 예산을 초과했어요' })
+      }
       setBudgetSummary((current) => ({
         ...current,
         monthlyExpenseHome: current.monthlyExpenseHome + convertedAmount,
       }))
       setAmount('')
     } catch {
-      setErrorMessage('지출을 저장하지 못했습니다.')
+      showToast({ variant: 'error', title: '지출을 저장하지 못했어요. 다시 시도해주세요' })
     } finally {
       setIsSaving(false)
     }
@@ -140,7 +144,7 @@ function ExpenseInputPage() {
 
   return (
     <section className={styles.page} aria-labelledby="expense-input-title">
-      {successMessage && <div className={styles.successToast} role="status"><b>✓</b><div><strong>지출이 성공적으로 저장되었어요!</strong><span>{successMessage}</span></div><button type="button" aria-label="알림 닫기" onClick={() => setSuccessMessage('')}>×</button></div>}
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formToolbar}>
           <h1 id="expense-input-title">지출 입력</h1>
@@ -157,7 +161,7 @@ function ExpenseInputPage() {
             <div className={styles.customSelect}>
               <button className={styles.currencySelectWrap} type="button" aria-label="통화 선택" aria-expanded={isCurrencyOpen} onClick={() => setIsCurrencyOpen((open) => !open)}>
               <img src={`/assets/icons/currencies/currency-${currency.toLowerCase()}.png`} alt="" aria-hidden="true" />
-                <strong>{currency}</strong><span aria-hidden="true">⌄</span>
+                <strong>{currency}</strong>
               </button>
               {isCurrencyOpen && <div className={styles.currencyMenu} role="listbox" aria-label="통화 목록">
                 {currencies.map((option) => <button key={option} type="button" role="option" aria-selected={currency === option} onClick={() => { setCurrency(option); setIsCurrencyOpen(false) }}>
@@ -217,7 +221,6 @@ function ExpenseInputPage() {
           </span>
         </label>
 
-        {errorMessage && <p role="alert">{errorMessage}</p>}
         <Button className={styles.saveButton} type="submit" fullWidth disabled={numericAmount <= 0} isLoading={isSaving}>지출 저장하기</Button>
       </form>
 
@@ -250,6 +253,7 @@ function ExpenseInputPage() {
       <FileUploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
+        onError={() => showToast({ variant: 'error', title: '가져오기에 실패했어요. 다시 시도해주세요' })}
         onUpload={(file) => {
           setUploadedFileName(file.name)
           setIsUploadOpen(false)
