@@ -1,9 +1,4 @@
-.backdrop { display: grid; position: fixed; z-index: 100; inset: 0; place-items: center; padding: 2rem; background: rgba(215,235,252,.72); backdrop-filter: blur(5px); }
-.modal { width: min(47.25rem, calc(100vw - 4rem)); min-height: 39.75rem; position: relative; z-index: 1; padding: 2.5rem; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
-.modal::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
-.header { display: flex; align-items: center; justify-content: space-between; }
-.header h2 { font-size: 1.125rem; font-weight: var(--font-weight-regular); }
-.closeButton { width: 2.5rem; height: 2.5rem; padding: 0; color: var(--color-text-primary); background: transparent; border: 0; font-size: 2.25rem; font-weight: 300; line-height: 1; }
+.modalBody { padding: 0 2.5rem 2.5rem; }
 .dropZone { display: flex; min-height: 21.5rem; flex-direction: column; align-items: center; justify-content: center; gap: 2.25rem; margin-top: 1.75rem; background: #fcfcfc; border: 2px dashed var(--color-primary); border-radius: var(--radius-md); transition: background-color var(--transition-fast); }
 .dropZone.dragging { background: var(--color-primary-light); }
 .dropZone img { width: 5.5rem; height: auto; }
@@ -16,8 +11,7 @@
 .actions { display: flex; justify-content: flex-end; gap: 1.5rem; margin-top: 3.25rem; }
 .actions button { min-width: 8.25rem; min-height: 3rem; padding-block: .5rem; font-size: 1rem; }
 @media (max-width: 40rem) {
-  .backdrop { padding: 1rem; }
-  .modal { width: 100%; min-height: auto; padding: 1.5rem; }
+  .modalBody { padding: 0 1.5rem 1.5rem; }
   .dropZone { min-height: 16rem; padding: 1.5rem; text-align: center; }
   .guide { flex-direction: column; gap: .5rem; }
   .actions { gap: .75rem; }

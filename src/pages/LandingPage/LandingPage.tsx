@@ -70,7 +70,7 @@ function LandingPage() {
 
         <div className={styles.heroContent}>
           <h1 id="landing-title" className={styles.title}>
-            외화 관리의 새로운 기준
+            낯선 나라에서도, 내 돈 감각은 그대로
             <img
               className={styles.titleArrow}
               src="/assets/icons/landing_arrow.png"

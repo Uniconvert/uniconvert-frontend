@@ -55,9 +55,9 @@ body {
   background: var(--color-primary-light);
 }
 
-@media (max-width: 1920px) and (min-width: 75rem) {
+@media (max-width: 1920px) {
   html {
-    /* 1rem의 기준을 16px 고정에서 화면 비율(vw)로 유연하게 변경 */
-    font-size: 0.8333vw; 
+    /* 화면이 좁아져도 rem 기준이 갑자기 커지지 않도록 연속적인 크기 유지 */
+    font-size: clamp(12px, 0.8333vw, 16px);
   }
 }

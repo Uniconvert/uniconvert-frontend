@@ -1,12 +1,5 @@
 .page { width: 100%; min-width: 0; min-height: calc(100svh - 13rem); position: relative; padding-right: 2.75rem; padding-left: .3125rem; }
 .page h1 { margin-bottom: 1.75rem; font-size: 1.75rem; line-height: 1.25; }
-.successToast { display: grid; width: min(30rem, calc(100% - 2rem)); min-height: 5rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.8rem; left: 50%; padding: .9rem 1rem; background: white; border: 1px solid #65c28f; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
-.successToast > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #55b982; border: 2px solid #65c28f; border-radius: 50%; font-size: 1.35rem; }
-.successToast > button { color: var(--color-text-muted); background: transparent; border: 0; font-size: 1.5rem; }
-.allocationWarning { display: grid; width: min(31rem, calc(100% - 2rem)); min-height: 4.75rem; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; position: fixed; z-index: 110; top: 11.25rem; left: 50%; padding: .85rem 1rem; background: white; border: 1px solid #eb6464; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: translateX(-50%); }
-.allocationWarning > b { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; color: #eb6464; border: 2px solid #eb6464; border-radius: 50%; font-size: 1.75rem; font-weight: 300; line-height: 1; }
-.allocationWarning > span { font-size: 1.05rem; font-weight: 700; }
-.allocationWarning > button { color: var(--color-text-muted); background: transparent; border: 0; font-size: 1.5rem; }
 .dashboardGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
@@ -48,41 +41,9 @@
 
 .walletIllustration img { width: min(112%, 26rem); max-width: none; height: auto; filter: drop-shadow(0 1rem 1.5rem rgba(77, 139, 195, .14)); }
 
-.encouragement {
-  width: clamp(18rem, 25vw, 24rem);
-  height: 14rem;
-  position: absolute;
-  z-index: 20;
-  top: 0;
-  right: 0;
-  pointer-events: none;
-  will-change: transform;
-}
-
-.modalBackdrop {
-  display: grid;
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  place-items: center;
-  padding: 1.5rem;
-  background: rgba(218, 237, 252, .82);
-  backdrop-filter: blur(5px);
-}
-
-.actionModal {
-  width: min(43rem, 100%);
-  max-height: calc(100svh - 3rem);
-  overflow-y: auto;
+.actionModalBody {
   padding: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 2.5rem);
-  background: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
 }
-
-.actionModal header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
-.actionModal header h2 { font-size: 1.4rem; }
-.actionModal header button { background: transparent; border: 0; color: var(--color-text-muted); font-size: 2rem; }
 .actionPotName { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
 
 .actionPotName img {
@@ -111,12 +72,13 @@
   height: clamp(5.5rem, 10vw, 7rem);
   place-items: center;
   overflow: hidden;
+  padding: 0;
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
 }
 
-.imageChoices button img { width: 100%; height: 100%; object-fit: cover; }
+.imageChoices button img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .uploadChoice { color: var(--color-primary); border: 2px dashed var(--color-primary); font-size: 1.7rem; cursor: pointer; }
 .uploadChoice small { font-size: .65rem; }
 .uploadChoice input { display: none; }
@@ -135,6 +97,53 @@
 
 .modalActions button:last-child { color: white; background: var(--color-primary); border-color: var(--color-primary); }
 .modalActions button:disabled { opacity: .5; }
+
+.deleteModalBody {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.deletePotName {
+  margin: 0 0 1.25rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.deleteModalActions {
+  display: grid;
+  gap: .75rem;
+}
+
+.deleteModalActions button {
+  min-height: 3.25rem;
+  padding: .75rem 1rem;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+}
+
+.deleteModalActions button:first-child {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.deleteModalActions button:nth-child(2) {
+  color: white;
+  background: #ef6464;
+  border-color: #ef6464;
+}
+
+.deleteModalActions button:last-child {
+  color: var(--color-text);
+  background: var(--color-surface-subtle);
+}
+
+.deleteModalActions button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
 @media (max-width: 90rem) {
   .page { padding-right: 0; padding-left: 0; }
   .dashboardGrid { grid-template-columns: minmax(0, 1.9fr) minmax(16rem, .8fr); gap: 2rem; }
@@ -145,7 +154,6 @@
 @media (max-width: 70rem) {
   .dashboardGrid { grid-template-columns: 1fr; }
   .sideColumn { grid-template-columns: minmax(14rem, .8fr) minmax(18rem, 1.2fr); }
-  .encouragement { display: none; }
 }
 @media (max-width: 48rem) {
   .page h1 { margin-bottom: 1.25rem; font-size: 1.5rem; }

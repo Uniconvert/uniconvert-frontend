@@ -109,6 +109,34 @@
   text-align: center;
 }
 
+.signUpPrompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.signUpLink {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.signUpLink:hover {
+  color: #3f8fd5;
+}
+
+.signUpLink:focus-visible {
+  border-radius: 0.25rem;
+  outline: 3px solid rgba(102, 169, 228, 0.28);
+  outline-offset: 0.2rem;
+}
+
 .coinDecoration,
 .exchangeDecoration {
   position: absolute;
