@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { deleteExpenseMemos, getExpenseMemos, updateExpenseMemo } from '@/api/memos'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
+import ModalShell from '@/components/common/ModalShell/ModalShell'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import type { ExpenseMemo } from '@/types/memo'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
 import styles from './MemoPage.module.css'
@@ -25,63 +28,49 @@ function MemoEditModal({
   const [memo, setMemo] = useState(item.memo)
   const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
-
   return (
-    <div
-      className={styles.modalBackdrop}
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose()
-      }}
+    <ModalShell
+      title="메모 수정"
+      titleId="memo-edit-title"
+      closeLabel="메모 수정 닫기"
+      width="44rem"
+      bodyClassName={styles.editModalBody}
+      onClose={onClose}
     >
-      <div className={styles.modalShell}>
-        <span className={styles.modalBookmark} aria-hidden="true" />
-        <section className={styles.editModal} role="dialog" aria-modal="true" aria-labelledby="memo-edit-title">
-          <header>
-            <h2 id="memo-edit-title">메모 수정</h2>
-            <button type="button" aria-label="메모 수정 닫기" onClick={onClose}>×</button>
-          </header>
-
-          <div className={styles.modalDescription}>
-            <h3>메모 내용</h3>
-            <p>{item.categoryName} 지출에 기록한 메모를 수정해주세요.</p>
-          </div>
-
-          <label>
-            <span className={styles.srOnly}>메모 내용</span>
-            <textarea
-              maxLength={200}
-              value={memo}
-              placeholder="메모를 입력하세요"
-              onChange={(event) => setMemo(event.target.value)}
-            />
-            <small>{memo.length}/200</small>
-          </label>
-
-          <div className={styles.modalActions}>
-            <button type="button" onClick={onClose}>취소</button>
-            <button
-              type="button"
-              disabled={memo.trim().length === 0 || isSaving}
-              onClick={async () => {
-                setIsSaving(true)
-                await onSave(memo)
-                setIsSaving(false)
-              }}
-            >
-              {isSaving ? '저장 중...' : '저장하기'}
-            </button>
-          </div>
-        </section>
+      <div className={styles.modalDescription}>
+        <h3>메모 내용</h3>
+        <p>{item.categoryName} 지출에 기록한 메모를 수정해주세요.</p>
       </div>
-    </div>
+
+      <label>
+        <span className={styles.srOnly}>메모 내용</span>
+        <textarea
+          maxLength={200}
+          value={memo}
+          placeholder="메모를 입력하세요"
+          onChange={(event) => setMemo(event.target.value)}
+        />
+        <small>{memo.length}/200</small>
+      </label>
+
+      <div className={styles.modalActions}>
+        <button type="button" onClick={onClose}>취소</button>
+        <button
+          type="button"
+          disabled={memo.trim().length === 0 || isSaving}
+          onClick={async () => {
+            setIsSaving(true)
+            try {
+              await onSave(memo)
+            } finally {
+              setIsSaving(false)
+            }
+          }}
+        >
+          {isSaving ? '저장 중...' : '저장하기'}
+        </button>
+      </div>
+    </ModalShell>
   )
 }
 
@@ -96,6 +85,7 @@ function MemoPage() {
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const { toast, showToast, closeToast } = useToastQueue()
 
   useEffect(() => {
     getExpenseMemos()
@@ -132,14 +122,19 @@ function MemoPage() {
 
   const removeMemos = async (expenseIds: string[]) => {
     if (expenseIds.length === 0) return
-    await deleteExpenseMemos(expenseIds)
-    setMemos((current) => current.filter((memo) => !expenseIds.includes(memo.expenseId)))
-    setSelectedIds((current) => current.filter((id) => !expenseIds.includes(id)))
-    setOpenMenuId(null)
+    try {
+      await deleteExpenseMemos(expenseIds)
+      setMemos((current) => current.filter((memo) => !expenseIds.includes(memo.expenseId)))
+      setSelectedIds((current) => current.filter((id) => !expenseIds.includes(id)))
+      setOpenMenuId(null)
+    } catch {
+      showToast({ variant: 'error', title: '메모 삭제에 실패했어요' })
+    }
   }
 
   return (
     <section className={styles.page} aria-labelledby="memo-page-title">
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <header className={styles.pageHeader}>
         <h1 id="memo-page-title">메모 모아보기</h1>
         <p>메모를 수정하고 관리할 수 있어요</p>
@@ -256,9 +251,15 @@ function MemoPage() {
           item={editingMemo}
           onClose={() => setEditingMemo(null)}
           onSave={async (memo) => {
-            const updated = await updateExpenseMemo(editingMemo.expenseId, memo)
-            if (updated) setMemos((current) => current.map((item) => item.expenseId === updated.expenseId ? updated : item))
-            setEditingMemo(null)
+            try {
+              const updated = await updateExpenseMemo(editingMemo.expenseId, memo)
+              if (!updated) throw new Error('Memo update failed')
+              setMemos((current) => current.map((item) => item.expenseId === updated.expenseId ? updated : item))
+              setEditingMemo(null)
+              showToast({ variant: 'success', title: '수정되었어요' })
+            } catch {
+              showToast({ variant: 'error', title: '수정하지 못했어요. 다시 시도해주세요' })
+            }
           }}
         />
       )}

@@ -41,6 +41,11 @@ const ONBOARDING_KEYS = [
 
 const MOCK_USER_STATE_KEY = 'uniconvert.mockUserState.v1'
 
+export interface SessionTokens {
+  accessToken: string
+  refreshToken: string
+}
+
 function readMockUserStates(): Record<string, StoredMockUserState> {
   try {
     return JSON.parse(localStorage.getItem(MOCK_USER_STATE_KEY) ?? '{}') as Record<string, StoredMockUserState>
@@ -80,7 +85,9 @@ function getStoredValue(key: keyof typeof SESSION_KEYS) {
 
 export function saveSession(result: LoginResult) {
   const user = hydrateMockUser(result.user)
-  const onboarding = getStoredMockUserState(user.userId)?.onboarding
+  const onboarding = user.mockDataMode
+    ? getStoredMockUserState(user.userId)?.onboarding
+    : undefined
 
   ONBOARDING_KEYS.forEach((key) => sessionStorage.removeItem(key))
   if (onboarding?.baseCurrency) sessionStorage.setItem('uniconvert.baseCurrency', onboarding.baseCurrency)
@@ -91,9 +98,14 @@ export function saveSession(result: LoginResult) {
   if (onboarding?.termsAgreements) sessionStorage.setItem('uniconvert.termsAgreements', JSON.stringify(onboarding.termsAgreements))
 
   sessionStorage.setItem(SESSION_KEYS.user, JSON.stringify(user))
-  sessionStorage.setItem(SESSION_KEYS.accessToken, result.accessToken)
-  sessionStorage.setItem(SESSION_KEYS.refreshToken, result.refreshToken)
+  saveSessionTokens(result)
   return user
+}
+
+/** 사용자 정보 조회 전에도 인증 요청을 보낼 수 있도록 토큰을 먼저 저장합니다. */
+export function saveSessionTokens(tokens: SessionTokens) {
+  sessionStorage.setItem(SESSION_KEYS.accessToken, tokens.accessToken)
+  sessionStorage.setItem(SESSION_KEYS.refreshToken, tokens.refreshToken)
 }
 
 /** 회원가입 API가 연결되기 전 약관부터 시작하는 Mock 사용자를 만듭니다. */

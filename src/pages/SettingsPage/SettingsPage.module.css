@@ -190,15 +190,11 @@
 
 .profileActions {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: auto auto;
   align-items: center;
+  justify-content: end;
   gap: 0.75rem;
   margin-top: 1.25rem;
-}
-
-.profileActions p {
-  color: var(--color-success);
-  font-size: 0.8rem;
 }
 
 .profileActions button {
@@ -433,10 +429,6 @@
 
   .profileActions {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .profileActions p {
-    grid-column: 1 / -1;
   }
 
   .reportPanel {

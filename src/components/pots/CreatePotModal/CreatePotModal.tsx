@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Button from '@/components/common/Button/Button'
+import ModalShell from '@/components/common/ModalShell/ModalShell'
 import { findPotCategory, POT_CATEGORY_OPTIONS } from '@/constants/potCategoryOptions'
 import type { CreatePotInput } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
@@ -37,16 +38,15 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
   }
 
   return (
-    <div className={styles.backdrop} role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose()
-    }}>
-      <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="create-pot-title">
-        <header>
-          <h2 id="create-pot-title">새로운 Pots 만들기</h2>
-          <button type="button" onClick={onClose} aria-label="닫기">×</button>
-        </header>
-
-        <form onSubmit={submit}>
+    <ModalShell
+      title="새로운 Pots 만들기"
+      titleId="create-pot-title"
+      closeLabel="새로운 Pots 만들기 닫기"
+      width="43rem"
+      bodyClassName={styles.modalBody}
+      onClose={onClose}
+    >
+      <form onSubmit={submit}>
           <label>
             <span>1. Pots 이름</span>
             <span className={styles.nameInputRow}><i><img src={selectedCategory.iconSrc} alt="" aria-hidden="true" /></i><input value={name} maxLength={30} placeholder="예) 유럽 여행, 비상금, 노트북 구매 등" onChange={(event) => setName(event.target.value)} required /></span>
@@ -75,9 +75,8 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
             <Button type="button" variant="outline" onClick={onClose}>취소</Button>
             <Button type="submit" isLoading={isSaving} disabled={!name.trim() || targetAmount <= 0}>저장하기</Button>
           </div>
-        </form>
-      </section>
-    </div>
+      </form>
+    </ModalShell>
   )
 }
 

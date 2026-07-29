@@ -1,4 +1,9 @@
+import { getOnboardingSettings } from '@/auth/session'
 import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
+import {
+  convertCurrencyAmount,
+  formatConvertedCurrencyAmount,
+} from '@/utils/exchangeRate'
 
 const currencySymbols: Record<string, string> = {
   KRW: '₩',
@@ -13,17 +18,24 @@ export interface MockAssetSummary {
   homeCurrency: string
   currencySymbol: string
   totalAssetHome: number
-  secondaryLabel: string
+  localCurrency: string
+  localCurrencyAmount: number
+  localCurrencyAmountLabel: string
 }
 
 export function getMockAssetSummary(): MockAssetSummary {
   const homeCurrency = getMockHomeCurrency()
   const monthlyBudget = getMockMonthlyBudget()
+  const selectedLocalCurrencies = getOnboardingSettings().localCurrencies ?? []
+  const localCurrency = selectedLocalCurrencies[0] ?? (homeCurrency === 'KRW' ? 'USD' : 'KRW')
+  const localCurrencyAmount = convertCurrencyAmount(monthlyBudget, homeCurrency, localCurrency)
 
   return {
     homeCurrency,
     currencySymbol: currencySymbols[homeCurrency] ?? homeCurrency,
     totalAssetHome: monthlyBudget,
-    secondaryLabel: monthlyBudget > 0 ? '월 예산' : '잔액 미설정',
+    localCurrency,
+    localCurrencyAmount,
+    localCurrencyAmountLabel: formatConvertedCurrencyAmount(localCurrencyAmount, localCurrency),
   }
 }

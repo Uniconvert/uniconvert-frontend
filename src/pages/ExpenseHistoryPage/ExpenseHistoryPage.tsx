@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react'
 import { deleteSavedExpense, getExpenseHistory, getSavedExpenses, updateSavedExpenseOrder } from '@/api/expenses'
+import ModalShell from '@/components/common/ModalShell/ModalShell'
 import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { formatCurrencyAmount, getCurrentYearMonth } from '@/utils/currency'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
 import styles from './ExpenseHistoryPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
-
-const assetArcs = [
-  { start: 0, length: 19, color: '#66a9e4' },
-  { start: 25, length: 19, color: '#9ecbf2' },
-  { start: 50, length: 19, color: '#62c494' },
-  { start: 75, length: 19, color: '#a9e8ca' },
-]
 
 const recentRangeOptions = [
   { value: 'day', label: '일' },
@@ -24,6 +18,7 @@ function ExpenseHistoryPage() {
   const [selectedMonth, setSelectedMonth] = useState(() => String(Number(getCurrentYearMonth().slice(5))))
   const [recentRange, setRecentRange] = useState('day')
   const [isRecentRangeOpen, setIsRecentRangeOpen] = useState(false)
+  const [isMonthlyPickerOpen, setIsMonthlyPickerOpen] = useState(false)
   const [data, setData] = useState<ExpenseHistoryData | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSavedExpensesOpen, setIsSavedExpensesOpen] = useState(false)
@@ -104,9 +99,7 @@ function ExpenseHistoryPage() {
 
       <div className={styles.leftColumn}>
         <section className={styles.assetCard} aria-labelledby="total-assets-title">
-          <svg className={styles.assetRing} viewBox="0 0 260 260" aria-hidden="true">
-            {assetArcs.map((arc) => <circle key={arc.start} cx="130" cy="130" r="101" pathLength="100" fill="none" stroke={arc.color} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${arc.length} ${100 - arc.length}`} strokeDashoffset={-arc.start} transform="rotate(-90 130 130)" />)}
-          </svg>
+          <img className={styles.assetRing} src="/assets/illustrations/asset-ring.png" alt="" aria-hidden="true" />
           <div className={styles.assetCenter}>
             <h2 id="total-assets-title">총 보유 자산</h2>
             <strong>{formatCurrencyAmount(data.monthlyBudgetHome, data.homeCurrency)}</strong>
@@ -140,7 +133,7 @@ function ExpenseHistoryPage() {
                 onClick={() => setIsRecentRangeOpen((open) => !open)}
               >
                 <span>{recentRangeOptions.find((option) => option.value === recentRange)?.label}</span>
-                <span aria-hidden="true">⌄</span>
+                <span className={styles.pickerChevron} aria-hidden="true" />
               </button>
               {isRecentRangeOpen && (
                 <div className={styles.rangeMenu} role="listbox" aria-label="저장된 지출 조회 기간 목록">
@@ -181,9 +174,36 @@ function ExpenseHistoryPage() {
         <section className={styles.monthlyCard} aria-labelledby="monthly-expenses-title">
           <header className={styles.monthlyHeader}>
             <h2 id="monthly-expenses-title">이번달 지출</h2>
-            <select value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value)} aria-label="지출 조회 월">
-              {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => <option key={month} value={month}>{month}월</option>)}
-            </select>
+            <div className={styles.monthlyPicker}>
+              <button
+                type="button"
+                aria-label="지출 조회 월"
+                aria-haspopup="listbox"
+                aria-expanded={isMonthlyPickerOpen}
+                onClick={() => setIsMonthlyPickerOpen((open) => !open)}
+              >
+                <span>{selectedMonth}월</span>
+                <span className={styles.pickerChevron} aria-hidden="true" />
+              </button>
+              {isMonthlyPickerOpen && (
+                <div className={styles.monthlyMenu} role="listbox" aria-label="지출 조회 월 목록">
+                  {Array.from({ length: 12 }, (_, index) => String(index + 1)).map((month) => (
+                    <button
+                      key={month}
+                      type="button"
+                      role="option"
+                      aria-selected={selectedMonth === month}
+                      onClick={() => {
+                        setSelectedMonth(month)
+                        setIsMonthlyPickerOpen(false)
+                      }}
+                    >
+                      {month}월
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </header>
 
           <div className={styles.monthlyBody}>
@@ -240,25 +260,44 @@ function ExpenseHistoryPage() {
       </div>
 
       {isSavedExpensesOpen && (
-        <div className={styles.modalBackdrop} role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setIsSavedExpensesOpen(false)
-        }}>
-          <section className={styles.savedModal} role="dialog" aria-modal="true" aria-labelledby="saved-modal-title">
-            <header>
-              <div>
-                <h2 id="saved-modal-title">최근 지출</h2>
-                <div className={styles.monthPicker}>
-                  <button type="button" aria-expanded={isMonthMenuOpen} onClick={() => setIsMonthMenuOpen((open) => !open)}>{currentYear}.{selectedMonth.padStart(2, '0')}⌄</button>
-                  {isMonthMenuOpen && <div className={styles.monthMenu} role="listbox" aria-label="최근 지출 조회 월">
-                    {Array.from({ length: 12 }, (_, index) => 12 - index).map((month) => (
-                      <button key={month} type="button" role="option" aria-selected={selectedMonth === String(month)} onClick={() => { setSelectedMonth(String(month)); setIsMonthMenuOpen(false) }}>{currentYear}.{String(month).padStart(2, '0')}</button>
-                    ))}
-                  </div>}
-                </div>
-              </div>
-              <button className={styles.manageButton} type="button" aria-label={isManagingExpenses ? '편집 완료' : '최근 지출 편집'} onClick={() => setIsManagingExpenses((current) => !current)}>{isManagingExpenses ? '완료 ×' : '✎'}</button>
-            </header>
-            <ul>
+        <ModalShell
+          title="최근 지출"
+          titleId="saved-modal-title"
+          width="50rem"
+          bodyClassName={styles.savedModalBody}
+          showCloseButton={false}
+          headerSupplement={(
+            <div className={styles.monthPicker}>
+              <button
+                type="button"
+                aria-label="최근 지출 조회 월"
+                aria-haspopup="listbox"
+                aria-expanded={isMonthMenuOpen}
+                onClick={() => setIsMonthMenuOpen((open) => !open)}
+              >
+                <span>{currentYear}.{selectedMonth.padStart(2, '0')}</span>
+                <span className={styles.pickerChevron} aria-hidden="true" />
+              </button>
+              {isMonthMenuOpen && <div className={styles.monthMenu} role="listbox" aria-label="최근 지출 조회 월">
+                {Array.from({ length: 12 }, (_, index) => 12 - index).map((month) => (
+                  <button key={month} type="button" role="option" aria-selected={selectedMonth === String(month)} onClick={() => { setSelectedMonth(String(month)); setIsMonthMenuOpen(false) }}>{currentYear}.{String(month).padStart(2, '0')}</button>
+                ))}
+              </div>}
+            </div>
+          )}
+          headerActions={(
+            <button
+              className={`${styles.manageButton} ${isManagingExpenses ? styles.manageButtonActive : ''}`}
+              type="button"
+              aria-label={isManagingExpenses ? '편집 완료' : '최근 지출 편집'}
+              onClick={() => setIsManagingExpenses((current) => !current)}
+            >
+              {isManagingExpenses ? '완료 ×' : '✎'}
+            </button>
+          )}
+          onClose={() => setIsSavedExpensesOpen(false)}
+        >
+          <ul>
               {filteredSavedExpenses.map((expense) => (
                 <li key={expense.expenseId} draggable={isManagingExpenses} className={draggedExpenseId === expense.expenseId ? styles.dragging : ''} onDragStart={() => setDraggedExpenseId(expense.expenseId)} onDragOver={(event) => event.preventDefault()} onDrop={() => handleDrop(expense.expenseId)} onDragEnd={() => setDraggedExpenseId(null)}>
                   {isManagingExpenses && <span className={styles.dragHandle} title="드래그하여 순서 변경" aria-hidden="true">⠿</span>}
@@ -280,10 +319,9 @@ function ExpenseHistoryPage() {
                 </li>
               ))}
               {filteredSavedExpenses.length === 0 && <li className={styles.emptySaved}>최근 지출이 없습니다.</li>}
-            </ul>
-            <button className={styles.closeModalButton} type="button" onClick={() => setIsSavedExpensesOpen(false)}>닫기</button>
-          </section>
-        </div>
+          </ul>
+          <button className={styles.closeModalButton} type="button" onClick={() => setIsSavedExpensesOpen(false)}>닫기</button>
+        </ModalShell>
       )}
     </section>
   )

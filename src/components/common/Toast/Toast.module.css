@@ -1,0 +1,119 @@
+.toast {
+  --toast-accent: #69c594;
+  display: grid;
+  width: fit-content;
+  min-width: min(31rem, calc(100vw - 2rem));
+  max-width: min(37rem, calc(100vw - 2rem));
+  min-height: 5.5rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  position: fixed;
+  z-index: 300;
+  top: clamp(7.25rem, 16vh, 11.25rem);
+  left: 50%;
+  padding: .85rem 1.25rem;
+  background: white;
+  border: 2px solid var(--toast-accent);
+  border-radius: 1.25rem;
+  box-shadow: 0 .5rem 1.4rem rgba(46, 152, 238, .3);
+  transform: translateX(-50%);
+  animation: toast-enter .2s ease-out;
+}
+
+.compact {
+  min-width: min(27.5rem, calc(100vw - 2rem));
+}
+
+.error {
+  --toast-accent: #ef7474;
+}
+
+.info {
+  --toast-accent: #f4a84d;
+}
+
+.icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  color: var(--toast-accent);
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 1.65rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.info .icon {
+  font-family: Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: .25rem;
+}
+
+.copy strong {
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.copy span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: .95rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast > button {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: #a4a4a4;
+  background: transparent;
+  border: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 40rem) {
+  .toast,
+  .compact {
+    width: calc(100vw - 2rem);
+    min-width: 0;
+  }
+
+  .toast {
+    gap: .85rem;
+    padding: .75rem 1rem;
+  }
+
+  .copy strong {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

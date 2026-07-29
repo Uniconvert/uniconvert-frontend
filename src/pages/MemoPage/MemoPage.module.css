@@ -421,72 +421,8 @@
   width: 7rem;
 }
 
-.modalBackdrop {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgb(188 222 249 / 62%);
-  backdrop-filter: blur(7px);
-}
-
-.modalShell {
-  position: relative;
-  width: min(44rem, 100%);
-}
-
-.modalBookmark {
-  position: absolute;
-  z-index: 0;
-  top: 3.15rem;
-  right: -2.55rem;
-  width: 3.25rem;
-  height: 7.75rem;
-  border-radius: 0 0.8rem 0.8rem 0;
-  background: var(--color-primary, #62a9e8);
-}
-
-.editModal {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 1.75rem 1.9rem 1.9rem;
-  border-radius: 1rem;
-  background: #fff;
-  box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 18%);
-}
-
-.editModal header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 1.35rem;
-  border-bottom: 1px solid #eceff1;
-}
-
-.editModal h2 {
-  margin: 0;
-}
-
-.editModal h2 {
-  font-size: 1.35rem;
-}
-
-.editModal header > button {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #999;
-  cursor: pointer;
-  font-size: 1.8rem;
-  line-height: 1;
+.editModalBody {
+  padding: 0 1.9rem 1.9rem;
 }
 
 .modalDescription {
@@ -505,14 +441,14 @@
   font-size: 0.9rem;
 }
 
-.editModal label {
+.editModalBody label {
   display: block;
   margin-top: 1rem;
   color: #444;
   font-weight: 600;
 }
 
-.editModal textarea {
+.editModalBody textarea {
   width: 100%;
   min-height: 7.5rem;
   box-sizing: border-box;
@@ -525,11 +461,11 @@
   font-weight: 400;
 }
 
-.editModal textarea:focus {
+.editModalBody textarea:focus {
   border-color: var(--color-primary, #62a9e8);
 }
 
-.editModal label small {
+.editModalBody label small {
   display: block;
   margin-top: 0.35rem;
   color: #aaa;
@@ -613,11 +549,7 @@
     padding-inline: 1rem;
   }
 
-  .modalBookmark {
-    display: none;
-  }
-
-  .editModal {
+  .editModalBody {
     padding: 1.35rem;
   }
 }
