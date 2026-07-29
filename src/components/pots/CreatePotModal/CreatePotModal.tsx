@@ -55,10 +55,17 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
           <div className={styles.targetField}>
             <strong>2. 목표 금액</strong>
             <p>이 Pots에 모으고 싶은 목표 금액을 설정해주세요.</p>
-            <div className={styles.amountInput}>{formatCurrencyAmount(targetAmount, currency)}</div>
             <div className={styles.rangeWrap}>
               <output style={{ left: `${tooltipRate}%` }}>{formatCurrencyAmount(targetAmount, currency)}</output>
-              <input type="range" min="0" max={maximumTargetAmount} step="10000" value={targetAmount} aria-label="목표 금액" onChange={(event) => setTargetAmount(Number(event.target.value))} />
+              <input
+                type="range"
+                min="0"
+                max={maximumTargetAmount}
+                step="10000"
+                value={targetAmount}
+                aria-label="목표 금액"
+                onChange={(event) => setTargetAmount(Number(event.target.value))}
+              />
             </div>
             <small><span>{formatCurrencyAmount(0, currency)}</span><span>{formatCurrencyAmount(maximumTargetAmount, currency)}</span></small>
           </div>
@@ -67,7 +74,7 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
             <legend>4. 대표 카테고리</legend>
             <p>Pots를 더 쉽게 구분할 수 있도록 이미지를 선택해 보세요.</p>
             <div>{POT_CATEGORY_OPTIONS.map((choice) => (
-              <button key={choice.id} type="button" className={choice.id === icon ? styles.selectedIcon : ''} aria-label={choice.label} aria-pressed={choice.id === icon} onClick={() => setIcon(choice.id)}><img src={choice.iconSrc} alt="" aria-hidden="true" /></button>
+              <button key={choice.id} type="button" className={choice.id === icon ? styles.selectedIcon : ''} aria-label={choice.label} aria-pressed={choice.id === icon} onClick={() => setIcon(choice.id)}><img src={choice.iconSrc} alt="" aria-hidden="true" style={{ transform: `scale(${choice.displayScale})` }} /></button>
             ))}</div>
           </fieldset>
 

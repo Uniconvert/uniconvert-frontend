@@ -59,7 +59,6 @@
 }
 
 .field > input,
-.currencySelectWrap,
 .readOnlyCurrency,
 .amountInputWrap,
 .datePicker > button {
@@ -76,27 +75,9 @@
   width: 100%;
 }
 
-.currencySelectWrap {
-  gap: 0.75rem;
-  width: 100%;
-  background: var(--color-surface);
-}
-
-.currencySelectWrap img {
-  width: 2.5rem;
-  height: 1.5rem;
-  object-fit: contain;
-}
-
 .krwIcon { display: grid; width: 2.5rem; height: 1.5rem; place-items: center; color: var(--color-primary); font-size: 1.4rem; }
 
-.currencySelectWrap strong { flex: 1; text-align: left; font-size: 1rem; }
-.customSelect, .datePicker { position: relative; }
-.currencyMenu { display: grid; width: 100%; position: absolute; z-index: 8; top: calc(100% + .4rem); overflow: hidden; background: white; border: 1px solid #a9c8e7; border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
-.currencyMenu button { display: grid; grid-template-columns: 2.5rem 1fr; align-items: center; gap: .75rem; padding: .8rem 1.25rem; text-align: left; background: transparent; border: 0; }
-.currencyMenu button:hover, .currencyMenu button[aria-selected='true'] { color: var(--color-primary); background: #eff7ff; }
-.currencyMenu img { width: 2.5rem; height: 1.5rem; object-fit: contain; }
-.currencyMenu b { display: grid; place-items: center; font-size: 1.3rem; }
+.datePicker { position: relative; }
 
 .datePicker > button { display: flex; width: 100%; min-height: 3.5rem; align-items: center; justify-content: space-between; padding: 0 1.25rem; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 1.05rem; }
 .datePicker > button img { width: 1.45rem; height: 1.45rem; object-fit: contain; }

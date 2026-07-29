@@ -1,0 +1,456 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100%;
+}
+
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageHeader h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  color: var(--color-primary, #66a9e4);
+}
+
+.pageHeader p {
+  margin: 0;
+  color: var(--color-text-muted, #9a9a9a);
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+}
+
+.contentWrapper {
+  display: flex;
+  gap: clamp(2rem, 4vw, 5rem);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.exchangeArea {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.calcCard,
+.historyArea {
+  width: clamp(300px, 22.4vw, 430px);
+  min-width: 300px;
+  height: clamp(300px, 38vh, 390px);
+  background: #fff;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: 15px;
+  padding: 3vh 1.5vw;
+  box-sizing: border-box;
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  margin: 0 0 1.5rem;
+  color: var(--color-primary, #62a9e8);
+  font-size: 1.375rem;
+  font-weight: 500;
+}
+
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.customSelect {
+  position: relative;
+}
+
+.currencySelectWrap,
+.amountBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 5.19vh;
+  min-height: 48px;
+  padding: 0 1.25vw;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: clamp(0.95rem, 1.5vw, 1.125rem);
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+}
+
+.currencySelectWrap img {
+  width: 2.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+.currencyName {
+  flex: 1;
+  text-align: left;
+  font-size: 1rem;
+  color: #222;
+}
+
+.currencyMenu {
+  display: grid;
+  width: 100%;
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.4rem);
+  overflow: hidden;
+  background: white;
+  border: 1px solid #a9c8e7;
+  border-radius: var(--radius-md, 0.5rem);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.currencyMenu button {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1.25rem;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: #222;
+  font-family: inherit;
+}
+
+.currencyMenu button:hover,
+.currencyMenu button[aria-selected="true"] {
+  color: var(--color-primary, #62a9e8);
+  background: #eff7ff;
+}
+
+.currencyMenu img {
+  width: 2.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+.currencyMenu b {
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+}
+
+.flagWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.flagIcon {
+  font-size: 1.25rem;
+}
+
+.amountText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.chevronDown {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid #888;
+  border-bottom: 2px solid #888;
+  transform: translateY(-25%) rotate(45deg);
+}
+
+.chevronRight {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid #888;
+  border-bottom: 2px solid #888;
+  transform: translateY(-25%) rotate(-45deg);
+}
+
+.chevronLeft {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid #888;
+  border-bottom: 2px solid #888;
+  transform: translateY(-25%) rotate(135deg);
+}
+
+.quickButtons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.quickBtn {
+  width: 100%;
+  padding: 0.6rem 0.25rem;
+  background: #fff;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: 0.5rem;
+  color: #333;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.quickBtn:hover {
+  background: #f4f6f8;
+}
+
+.swapBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swapIcon {
+  width: clamp(36px, 2.7vw, 52px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  display: block;
+}
+
+.swapBtn:hover {
+  transform: scale(1.05);
+}
+
+.statusMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #eef5fb;
+  border-radius: 0.5rem;
+  color: #4b86b8;
+  font-size: 0.9rem;
+}
+
+.statusDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--color-primary, #62a9e8);
+  border-radius: 50%;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.historyHeader h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #222;
+  font-weight: 600;
+}
+
+.viewAllBtn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(
+    0.35rem,
+    0.8vh,
+    0.5rem
+  ); /* 너무 넓지도, 너무 좁지도 않은 중간 간격 */
+  flex: 1;
+  justify-content: space-around;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem; /* 내부 패딩을 균형 있게 조정 */
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.historyItem.active {
+  background: #eef5fb;
+  border-color: #cbe3f7;
+}
+
+.historyInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.historyText {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.historyText span {
+  color: var(--color-primary, #62a9e8);
+  margin: 0 0.25rem;
+}
+
+.historyTime {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.modalHistoryContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 480px; /* 모달 내부 고정 공간감 확보 */
+  padding: 1rem 0;
+}
+
+.modalHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem; /* 아이템 간격을 넉넉하게 설정 */
+}
+
+.modalHistoryItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem; /* 리스트 아이템 높이와 내부 여백을 큼직하게 확장 */
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.modalHistoryInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.currencyTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.currencyCodeText {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.currencySubText {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.modalHistoryCalcText {
+  font-size: 1.1rem;
+  color: #333;
+  margin-left: 5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalHistoryCalcText span {
+  color: var(--color-primary, #62a9e8);
+  font-weight: 500;
+}
+
+.modalHistoryCalcText .resultText {
+  color: var(--color-primary, #62a9e8);
+  font-weight: 500;
+}
+
+.modalHistoryTime {
+  font-size: 0.95rem;
+  color: #999;
+}
+
+/* 하단 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.pageNavBtn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.pageNumberBtn {
+  background: var(--color-primary, #62a9e8);
+  color: #fff;
+  border: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mascotArea {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.speechBubble {
+  background: #fff;
+  border: 1px solid var(--color-primary, #62a9e8);
+  padding: 0.75rem 1.25rem;
+  border-radius: 2rem;
+  color: #333;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.speechBubble span {
+  color: var(--color-primary, #62a9e8);
+  font-weight: 600;
+}

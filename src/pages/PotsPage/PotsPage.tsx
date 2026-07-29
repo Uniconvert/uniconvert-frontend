@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPot, deletePot, getPots, updatePot } from '@/api/pots'
+import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
@@ -75,6 +76,10 @@ function PotsPage() {
   if (!data) return <p aria-live="polite">Pots 정보를 불러오는 중입니다.</p>
 
   const completedPot = data.pots.find((pot) => pot.savedAmount >= pot.targetAmount)
+  const editTargetRate = data.monthlyBudget > 0
+    ? Math.min((editTargetAmount / data.monthlyBudget) * 100, 100)
+    : 0
+  const editTooltipRate = Math.min(Math.max(editTargetRate, 8), 92)
 
   const reloadPots = async () => setData(await getPots())
 
@@ -219,14 +224,29 @@ function PotsPage() {
           {panelMode === 'edit' ? (
             <div className={styles.editFields}>
               <label className={styles.modalField}><span>1. Pots 이름</span><input value={editName} maxLength={30} onChange={(event) => setEditName(event.target.value)} /></label>
-              <label className={styles.modalField}><span>2. 목표 금액</span><input value={formatCurrencyAmount(editTargetAmount, data.homeCurrency)} readOnly /></label>
-              <label className={styles.rangeField}><input aria-label="목표 금액 수정" type="range" min="10000" max={data.monthlyBudget} step="10000" value={Math.min(editTargetAmount, data.monthlyBudget)} onChange={(event) => setEditTargetAmount(Number(event.target.value))} /><span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(data.monthlyBudget, data.homeCurrency)}</small></span></label>
+              <label className={styles.modalField}>
+                <span>2. 목표 금액</span>
+              </label>
+              <label className={styles.rangeField}>
+                <div className={styles.rangeWrap}>
+                  <output style={{ left: `${editTooltipRate}%` }}>{formatCurrencyAmount(editTargetAmount, data.homeCurrency)}</output>
+                  <input aria-label="목표 금액 수정" type="range" min="0" max={data.monthlyBudget} step="10000" value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)} onChange={(event) => setEditTargetAmount(Number(event.target.value))} />
+                </div>
+                <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(data.monthlyBudget, data.homeCurrency)}</small></span>
+              </label>
               <fieldset className={styles.imageChoices}><legend>3. 대표 이미지</legend><div>{representativeImages.map((imageSrc) => <button key={imageSrc} type="button" className={editImageSrc === imageSrc ? styles.selectedChoice : ''} onClick={() => setEditImageSrc(imageSrc)}><img src={imageSrc} alt="" /></button>)}<label className={styles.uploadChoice}>＋<small>직접 업로드</small><input type="file" accept="image/*" onChange={handleEditImageUpload} /></label></div></fieldset>
-              <fieldset className={styles.categoryChoices}><legend>4. 대표 카테고리</legend><div>{POT_CATEGORY_OPTIONS.map((option) => <button key={option.id} type="button" aria-label={option.label} className={findPotCategory(editIcon)?.id === option.id ? styles.selectedChoice : ''} onClick={() => setEditIcon(option.id)}><img src={option.iconSrc} alt="" aria-hidden="true" /></button>)}</div></fieldset>
+              <fieldset className={styles.categoryChoices}><legend>4. 대표 카테고리</legend><div>{POT_CATEGORY_OPTIONS.map((option) => <button key={option.id} type="button" aria-label={option.label} className={findPotCategory(editIcon)?.id === option.id ? styles.selectedChoice : ''} onClick={() => setEditIcon(option.id)}><img src={option.iconSrc} alt="" aria-hidden="true" style={{ transform: `scale(${option.displayScale})` }} /></button>)}</div></fieldset>
             </div>
           ) : (
             <label className={styles.rangeField}>
               <span>추가할 금액</span>
+              <CurrencyAmountInput
+                value={amountValue}
+                currency={data.homeCurrency}
+                max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)}
+                ariaLabel="추가할 금액 입력"
+                onChange={setAmountValue}
+              />
               <output>{formatCurrencyAmount(amountValue, data.homeCurrency)}</output>
               <input type="range" min="0" max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)} step="10000" value={amountValue} onChange={(event) => setAmountValue(Number(event.target.value))} />
               <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(Math.max(activePot.targetAmount - activePot.savedAmount, 0), data.homeCurrency)}</small></span>
