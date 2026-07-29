@@ -1,5 +1,5 @@
 import expenseHistoryMock from '@/mocks/expense-history.json'
-import { createStoredExpense, getStoredExpenses } from '@/mocks/expenseStore'
+import { createStoredExpense, getStoredExpenses, updateStoredExpense } from '@/mocks/expenseStore'
 import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
 import { getStoredSavedExpenses, saveStoredSavedExpenses } from '@/mocks/savedExpenseStore'
 import type { ApiResponse } from '@/types/api'
@@ -143,6 +143,29 @@ export function updateSavedExpenseOrder(expenses: SavedExpense[]) {
   return apiRequest<SavedExpense[]>('/saved-expenses/order', { success: true, data: expenses }, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expenseIds: expenses.map((expense) => expense.expenseId) }),
   })
+}
+
+export function updateSavedExpenseName(expense: SavedExpense, merchantName: string) {
+  const updatedExpense = { ...expense, merchantName: merchantName.trim() }
+
+  if (isUsingMockApi) {
+    const next = getStoredSavedExpenses().map((item) => (
+      item.expenseId === expense.expenseId ? updatedExpense : item
+    ))
+    saveStoredSavedExpenses(next)
+    updateStoredExpense(expense.expenseId, { merchantName: updatedExpense.merchantName })
+    return Promise.resolve(updatedExpense)
+  }
+
+  return apiRequest<SavedExpense>(
+    `/saved-expenses/${expense.expenseId}`,
+    { success: true, data: updatedExpense },
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ merchantName: updatedExpense.merchantName }),
+    },
+  )
 }
 
 export function deleteSavedExpense(expenseId: string) {

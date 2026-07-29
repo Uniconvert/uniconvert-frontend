@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createExpense, getExpenseHistory } from '@/api/expenses'
 import Button from '@/components/common/Button/Button'
+import CurrencyDropdown from '@/components/common/CurrencyDropdown/CurrencyDropdown'
+import type { CurrencyCode } from '@/components/common/CurrencyDropdown/currencyOptions'
 import FileUploadModal from '@/components/common/FileUploadModal/FileUploadModal'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
@@ -26,8 +28,6 @@ const categories: Category[] = [
   { id: 'other', label: '기타', iconSrc: '/assets/icons/actions/action-more.png' },
 ]
 
-const currencies = ['USD', 'EUR', 'JPY', 'CNY', 'KRW'] as const
-
 function getTodayDateInputValue() {
   const now = new Date()
   const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
@@ -35,7 +35,7 @@ function getTodayDateInputValue() {
 }
 
 function ExpenseInputPage() {
-  const [currency, setCurrency] = useState('USD')
+  const [currency, setCurrency] = useState<CurrencyCode>('USD')
   const [amount, setAmount] = useState('')
   const [spentAt, setSpentAt] = useState(getTodayDateInputValue)
   const [merchant, setMerchant] = useState('')
@@ -44,7 +44,6 @@ function ExpenseInputPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
   const { toast, showToast, closeToast } = useToastQueue()
@@ -158,17 +157,7 @@ function ExpenseInputPage() {
         <div className={styles.twoColumns}>
           <div className={styles.field}>
             <span>통화</span>
-            <div className={styles.customSelect}>
-              <button className={styles.currencySelectWrap} type="button" aria-label="통화 선택" aria-expanded={isCurrencyOpen} onClick={() => setIsCurrencyOpen((open) => !open)}>
-              <img src={`/assets/icons/currencies/currency-${currency.toLowerCase()}.png`} alt="" aria-hidden="true" />
-                <strong>{currency}</strong>
-              </button>
-              {isCurrencyOpen && <div className={styles.currencyMenu} role="listbox" aria-label="통화 목록">
-                {currencies.map((option) => <button key={option} type="button" role="option" aria-selected={currency === option} onClick={() => { setCurrency(option); setIsCurrencyOpen(false) }}>
-                  <img src={`/assets/icons/currencies/currency-${option.toLowerCase()}.png`} alt="" aria-hidden="true" /><span>{option}</span>
-                </button>)}
-              </div>}
-            </div>
+            <CurrencyDropdown value={currency} onChange={setCurrency} />
           </div>
 
           <label className={styles.field}>

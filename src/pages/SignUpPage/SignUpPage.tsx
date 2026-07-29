@@ -82,6 +82,7 @@ function SignUpPage() {
               onChange={(event) => { setPassword(event.target.value); setStatusMessage('') }}
             />
             <TextField
+              className={styles.passwordConfirmField}
               label="비밀번호 확인"
               type="password"
               name="passwordConfirm"

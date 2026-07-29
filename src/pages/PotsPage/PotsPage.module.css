@@ -58,9 +58,13 @@
 .modalField, .rangeField { display: grid; gap: .75rem; }
 .editFields { display: grid; gap: 1.25rem; }
 .modalField span, .rangeField > span:first-child { font-weight: var(--font-weight-bold); }
-.modalField input { min-height: 3.25rem; padding: 0 1rem; border: 1px solid var(--color-border); border-radius: .75rem; font: inherit; }
-.rangeField output { width: fit-content; margin: .5rem auto 0; padding: .4rem .8rem; color: white; background: var(--color-primary); border-radius: .5rem; font-weight: var(--font-weight-bold); }
-.rangeField input { width: 100%; accent-color: var(--color-primary); }
+.modalField > input { min-height: 3.25rem; padding: 0 1rem; border: 1px solid var(--color-border); border-radius: .75rem; font: inherit; }
+.rangeField > output { width: fit-content; margin: .5rem auto 0; padding: .4rem .8rem; color: white; background: var(--color-primary); border-radius: .5rem; font-weight: var(--font-weight-bold); }
+.rangeField > input[type='range'] { width: 100%; accent-color: var(--color-primary); }
+.rangeWrap { position: relative; height: 3.5rem; padding-top: 2.1rem; }
+.rangeWrap output { position: absolute; top: 0; width: fit-content; margin: 0; padding: .35rem .75rem; color: white; background: var(--color-primary); border-radius: .45rem; font-size: .8rem; font-weight: var(--font-weight-bold); white-space: nowrap; transform: translateX(-50%); }
+.rangeWrap output::after { position: absolute; top: 100%; left: 50%; content: ''; border-top: .45rem solid var(--color-primary); border-right: .4rem solid transparent; border-left: .4rem solid transparent; transform: translateX(-50%); }
+.rangeWrap input[type='range'] { width: 100%; accent-color: var(--color-primary); }
 .rangeLabels { display: flex; justify-content: space-between; color: var(--color-text-muted); }
 .imageChoices, .categoryChoices { margin: 0; padding: 0; border: 0; }
 .imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
@@ -83,7 +87,7 @@
 .uploadChoice small { font-size: .65rem; }
 .uploadChoice input { display: none; }
 .categoryChoices button { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; background: white; border: 1px solid var(--color-border); border-radius: .6rem; font-size: 1.45rem; }
-.categoryChoices button img { width: 2.1rem; height: 2.1rem; object-fit: contain; }
+.categoryChoices button img { width: 2.1rem; height: 2.1rem; object-fit: contain; transform-origin: center; }
 .selectedChoice { border-color: var(--color-primary) !important; outline: 2px solid #dbeeff; }
 .modalActions { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1rem; margin-top: 2rem; }
 

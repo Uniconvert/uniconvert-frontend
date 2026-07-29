@@ -34,17 +34,11 @@
 
 .card {
   display: flex;
-  width: min(41rem, calc(100vw - 4rem));
-  min-height: 48rem;
-  position: relative;
-  z-index: 1;
   flex-direction: column;
-  padding: 3rem 3.75rem;
-  background: rgba(255, 255, 255, .96);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  overflow-x: hidden;
+  overflow-y: hidden;
+  padding: 3.25rem 3.75rem;
 }
-.card::after { width: 2.625rem; height: 7.75rem; position: absolute; z-index: -1; top: 3.75rem; right: -2.625rem; content: ''; background: var(--color-primary); border-radius: 0 1rem 1rem 0; }
 
 .headingRow {
   text-align: center;
@@ -52,15 +46,21 @@
 
 .headingRow h1 {
   font-size: 2rem;
+  line-height: 1.25;
 }
-.headingRow p { margin-top: 1rem; color: var(--color-text-muted); }
+.headingRow p {
+  margin-top: 1.5rem;
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+}
 
 .avatarArea {
   width: 11.25rem;
   height: 11.25rem;
   position: relative;
+  flex: 0 0 auto;
   align-self: center;
-  margin-top: 2.25rem;
+  margin-top: 3.6875rem;
 }
 
 .avatar {
@@ -72,7 +72,7 @@
   color: #366894;
   background: linear-gradient(145deg, #fff3c7, #d7efff);
   border: 2px solid var(--color-primary);
-  border-radius: 50%;
+  border-radius: 2.25rem;
   font-size: 4rem;
   font-weight: var(--font-weight-bold);
 }
@@ -109,32 +109,73 @@
   clip: rect(0, 0, 0, 0);
 }
 
-.nicknameField { display: grid; gap: .75rem; margin-top: 2rem; font-size: 1.05rem; }
-.nicknameField input {
-  min-width: 0;
-  min-height: 4.375rem;
-  padding: 0 1rem;
-  color: var(--color-text-primary);
+.nicknameField {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.nicknameInput {
+  display: flex;
+  min-height: 4.125rem;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0 1.25rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+}
+
+.nicknameInput img {
+  width: 1.125rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  opacity: 0.5;
+}
+
+.nicknameField input {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
   outline: none;
   font-size: 1.125rem;
 }
 
-.nicknameField input:focus {
+.nicknameInput:focus-within {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 4px var(--color-focus-ring);
 }
 
-.goals { margin: 2.5rem 0 2.25rem; border: 0; }
-.goals legend { margin-bottom: 1.25rem; font-size: 1.05rem; font-weight: var(--font-weight-bold); }
+.goals { margin: 3.5rem 0 1.75rem; border: 0; }
+.goals legend {
+  width: 100%;
+  margin-bottom: 3rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-bold);
+}
 .goals legend span { color: var(--color-text-muted); font-weight: var(--font-weight-regular); }
-.goals > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
-.goals button { display: grid; min-height: 9rem; position: relative; place-items: center; align-content: center; gap: .75rem; color: var(--color-text-muted); background: #f7f7f7; border: 1px solid var(--color-border); border-radius: .75rem; font: inherit; }
-.goals button i { font-style: normal; font-size: 2.5rem; }
-.goals button b { display: grid; width: 2rem; height: 2rem; position: absolute; top: -.75rem; right: -.75rem; place-items: center; color: white; background: var(--color-primary); border-radius: 50%; }
+.goals > div {
+  display: flex;
+  justify-content: center;
+  gap: 3.625rem;
+}
+.goalOption { display: grid; width: 8rem; min-height: 9.375rem; position: relative; flex: 0 0 8rem; place-items: center; align-content: center; gap: .5rem; color: var(--color-text-muted); background: #f7f7f7; border: 1px solid var(--color-border); border-radius: .75rem; cursor: pointer; font: inherit; }
+.goalOption input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+.goalIcon { width: 5.5rem; height: 4.5rem; object-fit: contain; }
+.goalOption b { display: grid; width: 2.25rem; height: 2.25rem; position: absolute; top: -1.125rem; right: -1.125rem; place-items: center; color: white; background: #b5b5b5; border-radius: 50%; font-size: 1.25rem; }
 .goals .selectedGoal { color: var(--color-primary); background: #e5f2ff; border-color: var(--color-primary); }
+.goals .selectedGoal b { background: var(--color-primary); }
+.goalOption:focus-within { box-shadow: 0 0 0 4px var(--color-focus-ring); }
+
+.card > button:last-child {
+  min-height: 4.375rem;
+}
 
 .coinDecoration,
 .exchangeDecoration {
@@ -170,15 +211,14 @@
   .coinDecoration,
   .exchangeDecoration,
   .page::before,
-  .page::after,
-  .card::after {
+  .page::after {
     display: none;
   }
 }
 
 @media (max-width: 40rem) {
   .page { min-height: calc(100svh - (var(--space-4) * 2)); }
-  .card { width: 100%; min-height: auto; padding: 2rem 1.5rem; }
+  .card { min-height: auto; overflow-y: auto; padding: 2rem 1.5rem; }
   .avatarArea { width: 8.5rem; height: 8.5rem; }
-  .goals > div { grid-template-columns: 1fr; }
+  .goals > div { flex-direction: column; align-items: center; }
 }

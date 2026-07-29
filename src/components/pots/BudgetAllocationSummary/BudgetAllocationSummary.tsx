@@ -26,7 +26,7 @@ function BudgetAllocationSummary({ monthlyBudget, allocatedAmount, availableAmou
       <div className={`${styles.metric} ${styles.budgetMetric}`}>
         <span className={styles.walletIcon}><img src="/assets/icons/pots/pot-wallet.png" alt="" aria-hidden="true" /></span>
         <div>
-          <span className={styles.label}>월 예산</span>
+          <span className={styles.label}>총 보유 자산</span>
           <strong>{formatCurrencyAmount(monthlyBudget, currency)}</strong>
         </div>
       </div>

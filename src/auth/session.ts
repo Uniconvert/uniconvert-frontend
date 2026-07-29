@@ -40,6 +40,7 @@ const ONBOARDING_KEYS = [
 ] as const
 
 const MOCK_USER_STATE_KEY = 'uniconvert.mockUserState.v1'
+const FRESH_ONBOARDING_MOCK_EMAIL = 'onboarding@uniconvert.com'
 
 export interface SessionTokens {
   accessToken: string
@@ -65,6 +66,18 @@ function saveStoredMockUserState(userId: number, state: StoredMockUserState) {
   localStorage.setItem(MOCK_USER_STATE_KEY, JSON.stringify(states))
 }
 
+function clearStoredMockUserState(userId: number) {
+  const states = readMockUserStates()
+  delete states[String(userId)]
+
+  if (Object.keys(states).length === 0) {
+    localStorage.removeItem(MOCK_USER_STATE_KEY)
+    return
+  }
+
+  localStorage.setItem(MOCK_USER_STATE_KEY, JSON.stringify(states))
+}
+
 function hydrateMockUser(user: AuthUser): AuthUser {
   if (!user.mockDataMode) return user
   return { ...user, ...(getStoredMockUserState(user.userId)?.user ?? {}) }
@@ -84,6 +97,13 @@ function getStoredValue(key: keyof typeof SESSION_KEYS) {
 }
 
 export function saveSession(result: LoginResult) {
+  if (
+    result.user.mockDataMode === 'onboarding-empty'
+    && result.user.email === FRESH_ONBOARDING_MOCK_EMAIL
+  ) {
+    clearStoredMockUserState(result.user.userId)
+  }
+
   const user = hydrateMockUser(result.user)
   const onboarding = user.mockDataMode
     ? getStoredMockUserState(user.userId)?.onboarding
