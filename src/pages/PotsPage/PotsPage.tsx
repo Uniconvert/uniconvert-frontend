@@ -216,41 +216,76 @@ function PotsPage() {
           title={panelMode === 'add' ? '금액 추가' : 'Pots 수정하기'}
           titleId="pot-action-title"
           closeLabel={panelMode === 'add' ? '금액 추가 닫기' : 'Pots 수정 닫기'}
-          width="43rem"
-          bodyClassName={styles.actionModalBody}
+          width={panelMode === 'edit' ? '44rem' : '43rem'}
+          bodyClassName={panelMode === 'edit' ? styles.editModalBody : styles.actionModalBody}
           onClose={closePanel}
         >
-          <div className={styles.actionPotName}><img src={activePot.imageSrc} alt="" /><div><b>{activePot.name}</b><span>현재 {formatCurrencyAmount(activePot.savedAmount, data.homeCurrency)}</span></div></div>
           {panelMode === 'edit' ? (
             <div className={styles.editFields}>
-              <label className={styles.modalField}><span>1. Pots 이름</span><input value={editName} maxLength={30} onChange={(event) => setEditName(event.target.value)} /></label>
               <label className={styles.modalField}>
-                <span>2. 목표 금액</span>
+                <span>1. Pots 이름</span>
+                <span className={styles.editNameRow}>
+                  <img src={(findPotCategory(editIcon) ?? POT_CATEGORY_OPTIONS[0]).iconSrc} alt="" aria-hidden="true" />
+                  <input value={editName} maxLength={30} onChange={(event) => setEditName(event.target.value)} />
+                </span>
               </label>
-              <label className={styles.rangeField}>
-                <div className={styles.rangeWrap}>
-                  <output style={{ left: `${editTooltipRate}%` }}>{formatCurrencyAmount(editTargetAmount, data.homeCurrency)}</output>
-                  <input aria-label="목표 금액 수정" type="range" min="0" max={data.monthlyBudget} step="10000" value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)} onChange={(event) => setEditTargetAmount(Number(event.target.value))} />
+              <section className={styles.editTargetSection}>
+                <strong>2. 목표 금액</strong>
+                <p>이 Pots에 모으고 싶은 목표 금액을 설정해주세요.</p>
+                <label className={styles.rangeField}>
+                  <div className={styles.rangeWrap}>
+                    <output style={{ left: `${editTooltipRate}%` }}>{formatCurrencyAmount(editTargetAmount, data.homeCurrency)}</output>
+                    <input aria-label="목표 금액 수정" type="range" min="0" max={data.monthlyBudget} step="10000" value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)} onChange={(event) => setEditTargetAmount(Number(event.target.value))} />
+                  </div>
+                  <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(data.monthlyBudget, data.homeCurrency)}</small></span>
+                </label>
+              </section>
+              <fieldset className={styles.imageChoices}>
+                <legend>3. 대표 이미지</legend>
+                <p>Pots를 더 쉽게 구분할 수 있도록 이미지를 선택해 보세요.</p>
+                <div>
+                  {representativeImages.map((imageSrc, index) => {
+                    const isSelected = editImageSrc === imageSrc
+                    return (
+                      <button
+                        key={imageSrc}
+                        type="button"
+                        className={`${styles.imageChoice} ${isSelected ? styles.selectedImageChoice : ''}`}
+                        aria-label={`대표 이미지 ${index + 1}`}
+                        aria-pressed={isSelected}
+                        onClick={() => setEditImageSrc(imageSrc)}
+                      >
+                        <img src={imageSrc} alt="" />
+                        {isSelected && <span className={styles.selectedBadge} aria-hidden="true">✓</span>}
+                      </button>
+                    )
+                  })}
+                  <label className={styles.uploadChoice}>＋<small>직접 업로드</small><input type="file" accept="image/*" onChange={handleEditImageUpload} /></label>
                 </div>
-                <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(data.monthlyBudget, data.homeCurrency)}</small></span>
-              </label>
-              <fieldset className={styles.imageChoices}><legend>3. 대표 이미지</legend><div>{representativeImages.map((imageSrc) => <button key={imageSrc} type="button" className={editImageSrc === imageSrc ? styles.selectedChoice : ''} onClick={() => setEditImageSrc(imageSrc)}><img src={imageSrc} alt="" /></button>)}<label className={styles.uploadChoice}>＋<small>직접 업로드</small><input type="file" accept="image/*" onChange={handleEditImageUpload} /></label></div></fieldset>
-              <fieldset className={styles.categoryChoices}><legend>4. 대표 카테고리</legend><div>{POT_CATEGORY_OPTIONS.map((option) => <button key={option.id} type="button" aria-label={option.label} className={findPotCategory(editIcon)?.id === option.id ? styles.selectedChoice : ''} onClick={() => setEditIcon(option.id)}><img src={option.iconSrc} alt="" aria-hidden="true" style={{ transform: `scale(${option.displayScale})` }} /></button>)}</div></fieldset>
+              </fieldset>
+              <fieldset className={styles.categoryChoices}>
+                <legend>4. 대표 카테고리</legend>
+                <p>Pots를 더 쉽게 구분할 수 있도록 이모티콘을 선택해 보세요.</p>
+                <div>{POT_CATEGORY_OPTIONS.map((option) => <button key={option.id} type="button" aria-label={option.label} className={findPotCategory(editIcon)?.id === option.id ? styles.selectedChoice : ''} onClick={() => setEditIcon(option.id)}><img src={option.iconSrc} alt="" aria-hidden="true" style={{ transform: `scale(${option.displayScale})` }} /></button>)}</div>
+              </fieldset>
             </div>
           ) : (
-            <label className={styles.rangeField}>
-              <span>추가할 금액</span>
-              <CurrencyAmountInput
-                value={amountValue}
-                currency={data.homeCurrency}
-                max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)}
-                ariaLabel="추가할 금액 입력"
-                onChange={setAmountValue}
-              />
-              <output>{formatCurrencyAmount(amountValue, data.homeCurrency)}</output>
-              <input type="range" min="0" max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)} step="10000" value={amountValue} onChange={(event) => setAmountValue(Number(event.target.value))} />
-              <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(Math.max(activePot.targetAmount - activePot.savedAmount, 0), data.homeCurrency)}</small></span>
-            </label>
+            <>
+              <div className={styles.actionPotName}><img src={activePot.imageSrc} alt="" /><div><b>{activePot.name}</b><span>현재 {formatCurrencyAmount(activePot.savedAmount, data.homeCurrency)}</span></div></div>
+              <label className={styles.rangeField}>
+                <span>추가할 금액</span>
+                <CurrencyAmountInput
+                  value={amountValue}
+                  currency={data.homeCurrency}
+                  max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)}
+                  ariaLabel="추가할 금액 입력"
+                  onChange={setAmountValue}
+                />
+                <output>{formatCurrencyAmount(amountValue, data.homeCurrency)}</output>
+                <input type="range" min="0" max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)} step="10000" value={amountValue} onChange={(event) => setAmountValue(Number(event.target.value))} />
+                <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(Math.max(activePot.targetAmount - activePot.savedAmount, 0), data.homeCurrency)}</small></span>
+              </label>
+            </>
           )}
           <div className={styles.modalActions}><button type="button" onClick={closePanel}>취소</button><button type="button" onClick={handlePanelSave} disabled={isSaving || (panelMode === 'edit' ? !editName.trim() || editTargetAmount <= 0 : amountValue <= 0)}>{isSaving ? '저장 중...' : '저장하기'}</button></div>
         </ModalShell>

@@ -44,6 +44,11 @@
 .actionModalBody {
   padding: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 2.5rem);
 }
+
+.editModalBody {
+  padding: 1.6rem 1.9rem 1.5rem;
+}
+
 .actionPotName { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
 
 .actionPotName img {
@@ -56,9 +61,57 @@
 .actionPotName div { display: grid; gap: .35rem; }
 .actionPotName span { color: var(--color-text-muted); }
 .modalField, .rangeField { display: grid; gap: .75rem; }
-.editFields { display: grid; gap: 1.25rem; }
+.editFields { display: grid; gap: 1.75rem; }
 .modalField span, .rangeField > span:first-child { font-weight: var(--font-weight-bold); }
 .modalField > input { min-height: 3.25rem; padding: 0 1rem; border: 1px solid var(--color-border); border-radius: .75rem; font: inherit; }
+
+.editNameRow {
+  display: grid;
+  grid-template-columns: 2.875rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.editNameRow > img {
+  width: 2rem;
+  height: 2rem;
+  justify-self: center;
+  object-fit: contain;
+}
+
+.editNameRow > input {
+  width: 100%;
+  min-height: 3.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: .625rem;
+  font: inherit;
+}
+
+.editNameRow > input:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid rgba(102, 169, 228, .18);
+}
+
+.editTargetSection {
+  display: grid;
+  gap: .65rem;
+}
+
+.editTargetSection > strong,
+.imageChoices legend,
+.categoryChoices legend {
+  font-size: 1.15rem;
+}
+
+.editTargetSection > p,
+.imageChoices > p,
+.categoryChoices > p {
+  margin: -.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: .875rem;
+}
+
 .rangeField > output { width: fit-content; margin: .5rem auto 0; padding: .4rem .8rem; color: white; background: var(--color-primary); border-radius: .5rem; font-weight: var(--font-weight-bold); }
 .rangeField > input[type='range'] { width: 100%; accent-color: var(--color-primary); }
 .rangeWrap { position: relative; height: 3.5rem; padding-top: 2.1rem; }
@@ -68,28 +121,55 @@
 .rangeLabels { display: flex; justify-content: space-between; color: var(--color-text-muted); }
 .imageChoices, .categoryChoices { margin: 0; padding: 0; border: 0; }
 .imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
-.imageChoices > div, .categoryChoices > div { display: flex; flex-wrap: wrap; gap: .65rem; }
+.imageChoices > div, .categoryChoices > div { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
 
 .imageChoices button, .uploadChoice {
   display: grid;
-  width: clamp(4.5rem, 8vw, 5.5rem);
-  height: clamp(5.5rem, 10vw, 7rem);
+  width: 5.5rem;
+  height: 7rem;
   place-items: center;
-  overflow: hidden;
+  position: relative;
   padding: 0;
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
 }
 
-.imageChoices button img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.imageChoices button img { display: block; width: 100%; height: 100%; border-radius: .7rem; object-fit: cover; }
+.imageChoices button:nth-child(5) img { padding: .35rem; object-fit: contain; }
 .uploadChoice { color: var(--color-primary); border: 2px dashed var(--color-primary); font-size: 1.7rem; cursor: pointer; }
 .uploadChoice small { font-size: .65rem; }
 .uploadChoice input { display: none; }
+
+.selectedImageChoice {
+  border-color: var(--color-primary) !important;
+  outline: 2px solid #dbeeff;
+}
+
+.selectedBadge {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  position: absolute;
+  top: -.65rem;
+  right: -.65rem;
+  place-items: center;
+  color: white;
+  background: var(--color-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px white;
+  font-size: .95rem;
+  line-height: 1;
+}
+
 .categoryChoices button { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; background: white; border: 1px solid var(--color-border); border-radius: .6rem; font-size: 1.45rem; }
 .categoryChoices button img { width: 2.1rem; height: 2.1rem; object-fit: contain; transform-origin: center; }
 .selectedChoice { border-color: var(--color-primary) !important; outline: 2px solid #dbeeff; }
 .modalActions { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1rem; margin-top: 2rem; }
+
+.editModalBody > .modalActions {
+  margin-top: 1.5rem;
+}
 
 .modalActions button {
   min-height: clamp(2.5rem, 5vh, 3rem);
@@ -164,4 +244,6 @@
   .mainColumn { gap: 1.5rem; }
   .sideColumn { grid-template-columns: 1fr; }
   .walletIllustration { min-height: 13rem; }
+  .editFields { gap: 1.5rem; }
+  .editModalBody > .modalActions { margin-top: 1.25rem; }
 }
