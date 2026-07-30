@@ -172,7 +172,7 @@ function ExpenseInputPage() {
           <div className={styles.field}>
             <span>지출 날짜</span>
             <div className={styles.datePicker}>
-              <button type="button" aria-label="지출 날짜 선택" aria-expanded={isDateOpen} onClick={() => setIsDateOpen((open) => !open)}><span>{spentAt.replaceAll('-', '.')}</span><img src="/assets/icons/expenses/expense-calendar.png" alt="" aria-hidden="true" /></button>
+              <button type="button" aria-label="지출 날짜 선택" aria-expanded={isDateOpen} onClick={() => setIsDateOpen((open) => !open)}><img src="/assets/icons/expenses/expense-calendar.png" alt="" aria-hidden="true" /><span>{spentAt.replaceAll('-', '.')}</span></button>
               {isDateOpen && <div className={styles.calendar} role="dialog" aria-label="날짜 선택">
                 <header><button type="button" aria-label="이전 달" onClick={() => moveCalendarMonth(-1)}>‹</button><strong>{calendarYear}년 {calendarMonthNumber}월</strong><button type="button" aria-label="다음 달" onClick={() => moveCalendarMonth(1)}>›</button></header>
                 <div className={styles.weekdays}>{['일','월','화','수','목','금','토'].map((day) => <span key={day}>{day}</span>)}</div>
