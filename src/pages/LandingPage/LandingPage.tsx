@@ -4,10 +4,10 @@ import styles from './LandingPage.module.css'
 
 const features = [
   {
-    title: '실시간 환율',
+    title: '오늘의 환율',
     description: (
       <>
-        실시간 환율을 반영해
+        당일 환율을 반영해
         <br />
         언제나 정확한 금액을 제공합니다
       </>

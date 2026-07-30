@@ -1,0 +1,46 @@
+.field {
+  display: flex;
+  width: 100%;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: .75rem;
+  padding: 0 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.field:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 170, 231, .18);
+}
+
+.field input {
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+}
+
+.field input:disabled {
+  cursor: not-allowed;
+}
+
+.field:has(input:disabled) {
+  opacity: .55;
+  background: var(--color-control-disabled);
+}
+
+.symbol {
+  flex: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  pointer-events: none;
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ensureMockOnboardingSession, updateOnboardingSettings } from '@/auth/session'
+import AuthPanelShell from '@/components/auth/AuthPanelShell/AuthPanelShell'
 import Button from '@/components/common/Button/Button'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './TermsPage.module.css'
@@ -55,7 +56,14 @@ function TermsPage() {
       <img className={styles.coinDecoration} src="/assets/icons/login_coin.png" alt="" aria-hidden="true" />
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
 
-      <form className={styles.card} onSubmit={handleSubmit}>
+      <AuthPanelShell
+        as="form"
+        width="54.25rem"
+        minHeight="38rem"
+        className={styles.card}
+        ariaLabelledBy="terms-title"
+        onSubmit={handleSubmit}
+      >
         <h1 id="terms-title">약관 동의</h1>
         <p className={styles.description}>서비스 이용을 위해 약관에 동의해주세요</p>
 
@@ -93,7 +101,7 @@ function TermsPage() {
 
         <p className={styles.error} role="alert" aria-live="polite">{errorMessage}</p>
         <Button className={styles.confirmButton} type="submit" fullWidth disabled={!areRequiredAgreementsChecked}>확인</Button>
-      </form>
+      </AuthPanelShell>
     </section>
   )
 }

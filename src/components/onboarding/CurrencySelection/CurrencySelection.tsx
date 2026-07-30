@@ -1,4 +1,5 @@
 import styles from './CurrencySelection.module.css'
+import { CURRENCY_OPTIONS } from './currencyOptions'
 
 export interface CurrencyOption {
   code: string
@@ -7,13 +8,18 @@ export interface CurrencyOption {
 }
 
 interface CurrencySelectionProps {
-  currencies: CurrencyOption[]
+  currencies?: readonly CurrencyOption[]
   selectedCodes: string[]
   selectionMode: 'single' | 'multiple'
   onChange: (codes: string[]) => void
 }
 
-function CurrencySelection({ currencies, selectedCodes, selectionMode, onChange }: CurrencySelectionProps) {
+function CurrencySelection({
+  currencies = CURRENCY_OPTIONS,
+  selectedCodes,
+  selectionMode,
+  onChange,
+}: CurrencySelectionProps) {
   const handleSelect = (code: string) => {
     if (selectionMode === 'single') {
       onChange([code])

@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
-import { deleteSavedExpense, getExpenseHistory, getSavedExpenses, updateSavedExpenseOrder } from '@/api/expenses'
+import {
+  deleteSavedExpense,
+  getExpenseHistory,
+  getSavedExpenses,
+  updateSavedExpenseName,
+  updateSavedExpenseOrder,
+} from '@/api/expenses'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { formatCurrencyAmount, getCurrentYearMonth } from '@/utils/currency'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
@@ -15,17 +23,20 @@ const recentRangeOptions = [
 
 function ExpenseHistoryPage() {
   const currentYear = getCurrentYearMonth().slice(0, 4)
-  const [selectedMonth, setSelectedMonth] = useState(() => String(Number(getCurrentYearMonth().slice(5))))
+  const selectedMonth = String(Number(getCurrentYearMonth().slice(5)))
   const [recentRange, setRecentRange] = useState('day')
   const [isRecentRangeOpen, setIsRecentRangeOpen] = useState(false)
-  const [isMonthlyPickerOpen, setIsMonthlyPickerOpen] = useState(false)
   const [data, setData] = useState<ExpenseHistoryData | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSavedExpensesOpen, setIsSavedExpensesOpen] = useState(false)
   const [isManagingExpenses, setIsManagingExpenses] = useState(false)
   const [isMonthMenuOpen, setIsMonthMenuOpen] = useState(false)
+  const [recentModalMonth, setRecentModalMonth] = useState(() => String(Number(getCurrentYearMonth().slice(5))))
   const [savedExpenses, setSavedExpenses] = useState<SavedExpense[]>([])
   const [draggedExpenseId, setDraggedExpenseId] = useState<string | null>(null)
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null)
+  const [editingExpenseName, setEditingExpenseName] = useState('')
+  const { toast, showToast, closeToast } = useToastQueue()
 
   useEffect(() => {
     let isActive = true
@@ -56,6 +67,47 @@ function ExpenseHistoryPage() {
   }
 
   const filteredSavedExpenses = savedExpenses.filter((expense) => expense.spentAt.startsWith(`${currentYear}-${selectedMonth.padStart(2, '0')}`))
+  const filteredModalExpenses = savedExpenses.filter((expense) => expense.spentAt.startsWith(`${currentYear}-${recentModalMonth.padStart(2, '0')}`))
+
+  const openSavedExpenses = () => {
+    setRecentModalMonth(selectedMonth)
+    setIsMonthMenuOpen(false)
+    setIsSavedExpensesOpen(true)
+  }
+
+  const closeSavedExpenses = () => {
+    setIsMonthMenuOpen(false)
+    setIsManagingExpenses(false)
+    setEditingExpenseId(null)
+    setEditingExpenseName('')
+    setIsSavedExpensesOpen(false)
+  }
+
+  const startEditingExpenseName = (expense: SavedExpense) => {
+    setEditingExpenseId(expense.expenseId)
+    setEditingExpenseName(expense.merchantName)
+  }
+
+  const cancelEditingExpenseName = () => {
+    setEditingExpenseId(null)
+    setEditingExpenseName('')
+  }
+
+  const handleSaveExpenseName = async (expense: SavedExpense) => {
+    const nextName = editingExpenseName.trim()
+    if (!nextName) return
+
+    try {
+      const updated = await updateSavedExpenseName(expense, nextName)
+      setSavedExpenses((current) => current.map((item) => (
+        item.expenseId === updated.expenseId ? updated : item
+      )))
+      cancelEditingExpenseName()
+      showToast({ variant: 'success', title: '수정되었어요' })
+    } catch {
+      showToast({ variant: 'error', title: '수정하지 못했어요. 다시 시도해주세요' })
+    }
+  }
 
   const handleDrop = async (targetExpenseId: string) => {
     if (!draggedExpenseId || draggedExpenseId === targetExpenseId) return
@@ -95,6 +147,7 @@ function ExpenseHistoryPage() {
 
   return (
     <section className={styles.page} aria-labelledby="expense-history-title">
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <h1 id="expense-history-title" className={styles.srOnly}>지출 내역</h1>
 
       <div className={styles.leftColumn}>
@@ -121,13 +174,13 @@ function ExpenseHistoryPage() {
         <section className={styles.recentCard} aria-labelledby="recent-expenses-title">
           <header className={styles.cardHeader}>
             <div>
-              <h2 id="recent-expenses-title">저장된 지출</h2>
+              <h2 id="recent-expenses-title">카테고리별 지출</h2>
               <span>{recentExpenses.length}개 카테고리</span>
             </div>
             <div className={styles.rangePicker}>
               <button
                 type="button"
-                aria-label="저장된 지출 조회 기간"
+                aria-label="카테고리별 지출 조회 기간"
                 aria-haspopup="listbox"
                 aria-expanded={isRecentRangeOpen}
                 onClick={() => setIsRecentRangeOpen((open) => !open)}
@@ -136,7 +189,7 @@ function ExpenseHistoryPage() {
                 <span className={styles.pickerChevron} aria-hidden="true" />
               </button>
               {isRecentRangeOpen && (
-                <div className={styles.rangeMenu} role="listbox" aria-label="저장된 지출 조회 기간 목록">
+                <div className={styles.rangeMenu} role="listbox" aria-label="카테고리별 지출 조회 기간 목록">
                   {recentRangeOptions.map((option) => (
                     <button
                       key={option.value}
@@ -165,7 +218,7 @@ function ExpenseHistoryPage() {
                 </div>
               </li>
             ))}
-            {recentExpenses.length === 0 && <li>해당 기간에 저장된 지출이 없습니다.</li>}
+            {recentExpenses.length === 0 && <li>해당 기간에 카테고리별 지출이 없습니다.</li>}
           </ul>
         </section>
       </div>
@@ -174,40 +227,10 @@ function ExpenseHistoryPage() {
         <section className={styles.monthlyCard} aria-labelledby="monthly-expenses-title">
           <header className={styles.monthlyHeader}>
             <h2 id="monthly-expenses-title">이번달 지출</h2>
-            <div className={styles.monthlyPicker}>
-              <button
-                type="button"
-                aria-label="지출 조회 월"
-                aria-haspopup="listbox"
-                aria-expanded={isMonthlyPickerOpen}
-                onClick={() => setIsMonthlyPickerOpen((open) => !open)}
-              >
-                <span>{selectedMonth}월</span>
-                <span className={styles.pickerChevron} aria-hidden="true" />
-              </button>
-              {isMonthlyPickerOpen && (
-                <div className={styles.monthlyMenu} role="listbox" aria-label="지출 조회 월 목록">
-                  {Array.from({ length: 12 }, (_, index) => String(index + 1)).map((month) => (
-                    <button
-                      key={month}
-                      type="button"
-                      role="option"
-                      aria-selected={selectedMonth === month}
-                      onClick={() => {
-                        setSelectedMonth(month)
-                        setIsMonthlyPickerOpen(false)
-                      }}
-                    >
-                      {month}월
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </header>
 
           <div className={styles.monthlyBody}>
-            <div className={styles.donutWrap} aria-label={`총 지출 ${data.monthlyExpenseHome.toLocaleString('ko-KR')}원`}>
+            <div className={styles.donutWrap} aria-label={data.monthlyExpenseHome > 0 ? `총 지출 ${data.monthlyExpenseHome.toLocaleString('ko-KR')}원` : '지출 내역 없음'}>
               <svg className={styles.donut} viewBox="0 0 272 272" aria-hidden="true">
                 {donutSegments.map((segment) => (
                   <g key={segment.categoryId}>
@@ -216,10 +239,12 @@ function ExpenseHistoryPage() {
                   </g>
                 ))}
               </svg>
-              <div className={styles.donutCenter}>
-                <span>총 지출</span>
-                <strong>{formatCurrencyAmount(data.monthlyExpenseHome, data.homeCurrency)}</strong>
-              </div>
+              {data.monthlyExpenseHome > 0 && (
+                <div className={styles.donutCenter}>
+                  <span>총 지출</span>
+                  <strong>{formatCurrencyAmount(data.monthlyExpenseHome, data.homeCurrency)}</strong>
+                </div>
+              )}
             </div>
 
             <ul className={styles.categorySummary}>
@@ -249,7 +274,7 @@ function ExpenseHistoryPage() {
               </li>
             ))}
           </ul>
-          <button type="button" onClick={() => setIsSavedExpensesOpen(true)}>더보기</button>
+          <button type="button" onClick={openSavedExpenses}>더보기</button>
         </section>
 
         <FloatingMascot
@@ -275,12 +300,12 @@ function ExpenseHistoryPage() {
                 aria-expanded={isMonthMenuOpen}
                 onClick={() => setIsMonthMenuOpen((open) => !open)}
               >
-                <span>{currentYear}.{selectedMonth.padStart(2, '0')}</span>
+                <span>{currentYear}.{recentModalMonth.padStart(2, '0')}</span>
                 <span className={styles.pickerChevron} aria-hidden="true" />
               </button>
               {isMonthMenuOpen && <div className={styles.monthMenu} role="listbox" aria-label="최근 지출 조회 월">
                 {Array.from({ length: 12 }, (_, index) => 12 - index).map((month) => (
-                  <button key={month} type="button" role="option" aria-selected={selectedMonth === String(month)} onClick={() => { setSelectedMonth(String(month)); setIsMonthMenuOpen(false) }}>{currentYear}.{String(month).padStart(2, '0')}</button>
+                  <button key={month} type="button" role="option" aria-selected={recentModalMonth === String(month)} onClick={() => { setRecentModalMonth(String(month)); setIsMonthMenuOpen(false) }}>{currentYear}.{String(month).padStart(2, '0')}</button>
                 ))}
               </div>}
             </div>
@@ -290,21 +315,81 @@ function ExpenseHistoryPage() {
               className={`${styles.manageButton} ${isManagingExpenses ? styles.manageButtonActive : ''}`}
               type="button"
               aria-label={isManagingExpenses ? '편집 완료' : '최근 지출 편집'}
-              onClick={() => setIsManagingExpenses((current) => !current)}
+              onClick={() => {
+                setIsManagingExpenses((current) => !current)
+                cancelEditingExpenseName()
+              }}
             >
-              {isManagingExpenses ? '완료 ×' : '✎'}
+              {isManagingExpenses
+                ? '완료 ×'
+                : <img src="/assets/icons/actions/action-edit-recent.png" alt="" aria-hidden="true" />}
             </button>
           )}
-          onClose={() => setIsSavedExpensesOpen(false)}
+          onClose={closeSavedExpenses}
         >
           <ul>
-              {filteredSavedExpenses.map((expense) => (
-                <li key={expense.expenseId} draggable={isManagingExpenses} className={draggedExpenseId === expense.expenseId ? styles.dragging : ''} onDragStart={() => setDraggedExpenseId(expense.expenseId)} onDragOver={(event) => event.preventDefault()} onDrop={() => handleDrop(expense.expenseId)} onDragEnd={() => setDraggedExpenseId(null)}>
+              {filteredModalExpenses.map((expense) => (
+                <li
+                  key={expense.expenseId}
+                  draggable={isManagingExpenses && editingExpenseId !== expense.expenseId}
+                  className={[
+                    isManagingExpenses ? styles.managedExpense : '',
+                    draggedExpenseId === expense.expenseId ? styles.dragging : '',
+                  ].filter(Boolean).join(' ')}
+                  onDragStart={() => setDraggedExpenseId(expense.expenseId)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleDrop(expense.expenseId)}
+                  onDragEnd={() => setDraggedExpenseId(null)}
+                >
                   {isManagingExpenses && <span className={styles.dragHandle} title="드래그하여 순서 변경" aria-hidden="true">⠿</span>}
-                  <button type="button" className={styles.savedExpenseMain}>
+                  <div className={styles.savedExpenseMain}>
                     <span className={styles.expenseIcon}><img src={getCategoryIconPath(expense.iconKey)} alt="" aria-hidden="true" /></span>
-                    <span><b>{expense.merchantName}{isManagingExpenses && <i aria-hidden="true">✎</i>}</b><small>{expense.spentAt.slice(0, 10).replaceAll('-', '.')}</small></span>
-                  </button>
+                    <span className={styles.savedExpenseMeta}>
+                      {editingExpenseId === expense.expenseId ? (
+                        <form
+                          className={styles.nameEditForm}
+                          onSubmit={(event) => {
+                            event.preventDefault()
+                            void handleSaveExpenseName(expense)
+                          }}
+                        >
+                          <input
+                            type="text"
+                            value={editingExpenseName}
+                            maxLength={40}
+                            aria-label={`${expense.merchantName} 이름 수정`}
+                            autoFocus
+                            onChange={(event) => setEditingExpenseName(event.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Escape') cancelEditingExpenseName()
+                            }}
+                          />
+                          <button type="submit" disabled={!editingExpenseName.trim()}>저장</button>
+                          <button type="button" onClick={cancelEditingExpenseName}>취소</button>
+                        </form>
+                      ) : (
+                        <b>
+                          {expense.merchantName}
+                          {isManagingExpenses && (
+                            <button
+                              className={styles.nameEditButton}
+                              type="button"
+                              aria-label={`${expense.merchantName} 이름 수정`}
+                              onClick={() => startEditingExpenseName(expense)}
+                            >
+                              <img
+                                className={styles.nameEditIcon}
+                                src="/assets/icons/actions/action-edit-name.png"
+                                alt=""
+                                aria-hidden="true"
+                              />
+                            </button>
+                          )}
+                        </b>
+                      )}
+                      <small>{expense.spentAt.slice(0, 10).replaceAll('-', '.')}</small>
+                    </span>
+                  </div>
                   <strong>{formatCurrencyAmount(expense.convertedAmountHome, data.homeCurrency)}</strong>
                   {isManagingExpenses && (
                     <button
@@ -318,9 +403,9 @@ function ExpenseHistoryPage() {
                   )}
                 </li>
               ))}
-              {filteredSavedExpenses.length === 0 && <li className={styles.emptySaved}>최근 지출이 없습니다.</li>}
+              {filteredModalExpenses.length === 0 && <li className={styles.emptySaved}>최근 지출이 없습니다.</li>}
           </ul>
-          <button className={styles.closeModalButton} type="button" onClick={() => setIsSavedExpensesOpen(false)}>닫기</button>
+          <button className={styles.closeModalButton} type="button" onClick={closeSavedExpenses}>닫기</button>
         </ModalShell>
       )}
     </section>

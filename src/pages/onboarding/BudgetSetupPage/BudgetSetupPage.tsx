@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import Button from '@/components/common/Button/Button'
+import OnboardingPanel from '@/components/onboarding/OnboardingPanel/OnboardingPanel'
 import { getOnboardingSettings, updateOnboardingSettings } from '@/auth/session'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './BudgetSetupPage.module.css'
@@ -31,19 +31,20 @@ function BudgetSetupPage() {
   }
 
   return (
-    <section className={styles.page} aria-labelledby="budget-title">
+    <section className={styles.page}>
       <img className={styles.coinDecoration} src="/assets/icons/login_coin.png" alt="" aria-hidden="true" />
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
-      <form className={styles.card} onSubmit={handleSubmit}>
-        <div className={styles.progress} aria-label="온보딩 4단계 중 3단계">
-          <span /><span /><span /><span className={styles.pending} />
-        </div>
-        <h1 id="budget-title">이번 달 예산을 설정하세요</h1>
-        <p className={styles.description}>
-          {baseCurrency
-            ? `기준 통화(${baseCurrencyCode} · ${baseCurrency.name})를 기준으로 예산을 설정합니다.`
-            : '앞에서 선택한 기준 통화로 예산을 설정합니다.'}
-        </p>
+      <OnboardingPanel
+        titleId="budget-title"
+        title="이번 달 예산을 설정하세요"
+        description="기본 통화를 기준으로 예산을 설정합니다."
+        currentStep={3}
+        onSubmit={handleSubmit}
+        submitDisabled={!baseCurrency || Number(budget) <= 0}
+        submitLabel="시간대 설정"
+        height="42.5rem"
+        bottomAligned
+      >
         <label className={styles.budgetLabel} htmlFor="monthly-budget">월 예산</label>
         <p className={styles.notice}>예산을 초과하면 알려드릴게요</p>
         <div className={styles.amountField}>
@@ -58,10 +59,12 @@ function BudgetSetupPage() {
         </div>
         <div className={styles.help}>
           <strong>ⓘ 도움말</strong>
-          <p>고정 지출과 변동 지출을 구분해 예산을 설정하면 더욱 효율적으로 지출을 관리할 수 있습니다.</p>
+          <p>
+            이번 달 사용할 금액을 입력해 주세요. 입력한 금액을 기준으로 지출이 기본 통화로 환산되며,
+            귀국 항공권, 비상금처럼 따로 모아둘 돈은 Pots에서 분리할 수 있어요.
+          </p>
         </div>
-        <Button type="submit" fullWidth disabled={!baseCurrency || Number(budget) <= 0}>다음</Button>
-      </form>
+      </OnboardingPanel>
     </section>
   )
 }

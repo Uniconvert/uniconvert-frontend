@@ -6,20 +6,18 @@ import ModalShell from '@/components/common/ModalShell/ModalShell';
 // 지원하는 통화 목록
 const currencies = ['USD', 'EUR', 'JPY', 'KRW', 'CNY']
 
-interface ExchangeHistory {
-  id: number;
-  fromCurrency: string;
-  toCurrency: string;
-  amount: number;
-  convertedAmount: number;
-  appliedRate: number;
-  createdAt: string;
-  flag: string;
-  timeAgo: string;
-  isActive: boolean;
+interface HistoryItem {
+  id: number
+  currencyCode: string
+  code: string
+  name: string
+  text: string
+  result: string
+  time: string
+  isActive: boolean
 }
 
-const historyData = [
+const historyData: HistoryItem[] = [
   {
     id: 1,
     currencyCode: 'usd',
@@ -380,5 +378,4 @@ function CalculatorPage() {
     </section>
   )
 }
-
 export default CalculatorPage

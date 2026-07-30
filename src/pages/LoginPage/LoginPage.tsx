@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { login } from '@/api/auth'
 import { saveSession } from '@/auth/session'
+import AuthPanelShell from '@/components/auth/AuthPanelShell/AuthPanelShell'
 import Button from '@/components/common/Button/Button'
 import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
 import TextField from '@/components/common/TextField/TextField'
@@ -61,7 +62,7 @@ function LoginPage() {
         aria-hidden="true"
       />
 
-      <div className={styles.card}>
+      <AuthPanelShell width="42.25rem" minHeight="48.875rem" className={styles.card}>
         <h1 id="login-title" className={styles.visuallyHidden}>
           Uniconvert 로그인
         </h1>
@@ -136,7 +137,7 @@ function LoginPage() {
             </p>
           )}
         </form>
-      </div>
+      </AuthPanelShell>
     </section>
   )
 }
