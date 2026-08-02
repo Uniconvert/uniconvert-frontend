@@ -7,12 +7,13 @@
     "homeCurrency": "KRW",
     "totalExpenseHome": 1455000,
     "monthlyExpenses": [
-      { "yearMonth": "2026-01", "amountHome": 1850000 },
       { "yearMonth": "2026-02", "amountHome": 2200000 },
       { "yearMonth": "2026-03", "amountHome": 2000000 },
       { "yearMonth": "2026-04", "amountHome": 2500000 },
       { "yearMonth": "2026-05", "amountHome": 2200000 },
-      { "yearMonth": "2026-06", "amountHome": 1455000 }
+      { "yearMonth": "2026-06", "amountHome": 1455000 },
+      { "yearMonth": "2026-07", "amountHome": 1755000 },
+      { "yearMonth": "2026-08", "amountHome": 1155000 }
     ],
     "categoryBreakdown": [
       { "categoryId": "food", "name": "식비", "amountHome": 350000, "percent": 24, "iconKey": "food" },
