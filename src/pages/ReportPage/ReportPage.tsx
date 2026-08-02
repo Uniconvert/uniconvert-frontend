@@ -49,24 +49,14 @@ function BarChart({
   isOpen,
   onToggle,
 }: BarChartProps) {
-  const [calendarMonth, setCalendarMonth] = useState(() => {
+  const initialCalendarMonth = (() => {
     if (type === 'date' && selectedDate) {
       return selectedDate.slice(0, 7)
     }
     return selectedMonth
-  })
+  })()
 
-  useEffect(() => {
-    if (type === 'date' && selectedDate) {
-      setCalendarMonth(selectedDate.slice(0, 7))
-    }
-  }, [selectedDate, type])
-
-  useEffect(() => {
-    if (type === 'month' && selectedMonth) {
-      setCalendarMonth(selectedMonth)
-    }
-  }, [selectedMonth, type])
+  const [calendarMonth, setCalendarMonth] = useState(initialCalendarMonth)
 
   const [calendarYear, calendarMonthNumber] = calendarMonth.split('-').map(Number)
 
