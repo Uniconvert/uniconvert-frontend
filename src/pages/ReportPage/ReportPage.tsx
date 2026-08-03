@@ -599,7 +599,7 @@ function ReportPage() {
 
       {summaryMock.changeRate !== null && (
         <FloatingMascot
-          message={getMascotMessage(summaryMock.changeRate) as any}
+          message={getMascotMessage(summaryMock.changeRate)}
           imageSrc="/assets/illustrations/mascot-check.png"
         />
       )}
