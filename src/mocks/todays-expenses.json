@@ -1,0 +1,34 @@
+{
+  "success": true,
+  "code": "SUCCESS",
+  "message": "지출 내역 조회에 성공했습니다.",
+  "data": [
+    {
+      "id": 1,
+      "date": "2026-07-22",
+      "iconUrl": "/assets/icons/categories/category-food.png",
+      "title": "Starbucks",
+      "category": "식비",
+      "time": "10:39",
+      "krw": "₩ 42,000"
+    },
+    {
+      "id": 2,
+      "date": "2026-07-22",
+      "iconUrl": "/assets/icons/categories/category-transport.png",
+      "title": "지하철",
+      "category": "교통",
+      "time": "08:15",
+      "krw": "₩ 3,500"
+    },
+    {
+      "id": 3,
+      "date": "2026-07-22",
+      "iconUrl": "/assets/icons/categories/category-shopping.png",
+      "title": "Amazon",
+      "category": "쇼핑",
+      "time": "14:20",
+      "krw": "₩ 21,958"
+    }
+  ]
+}

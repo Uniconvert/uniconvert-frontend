@@ -2,8 +2,8 @@ import Mascot from '@/components/common/Mascot/Mascot'
 import styles from './FloatingMascot.module.css'
 
 interface FloatingMascotProps {
-  message: string
-  imageSrc: string
+  message: React.ReactNode;
+  imageSrc: string;
 }
 
 export default function FloatingMascot({ message, imageSrc }: FloatingMascotProps) {

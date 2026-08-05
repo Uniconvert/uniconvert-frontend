@@ -20,6 +20,37 @@
   margin-bottom: 1rem;
 }
 
+.headerWrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.emailreportBtn {
+  font-size: 1.2rem;
+  padding: 0.4rem 1.2rem;
+  border-radius: 0.5rem;
+  height: auto ;
+  min-height: 2rem ;
+  line-height: 1.2;
+  font-weight: normal;
+  white-space: nowrap;
+  margin-left: calc(1rem + 26.5vw);
+  margin-top: -1em;
+}
+
+.chevronright {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-top: 1px solid #FFF;
+  border-right: 1px solid #FFF;
+  transform: rotate(45deg) translateY(-0.1rem);
+}
+
 .reportContent {
   display: flex;
   min-width: 0;
@@ -53,6 +84,7 @@
 }
 
 .chartHeader {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -85,162 +117,137 @@
   transform: translateY(25%) rotate(225deg);
 }
 
-.dropdownBox {
-  position: absolute;
-  z-index: 10;
-  top: 4rem;
-  right: 1.875rem;
-  width: 17rem;
-  padding: 1.25rem;
-  border: 1px solid var(--color-border, #d8dde1);
-  border-radius: var(--radius-md, 0.75rem);
-  background: #fff;
-  box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 10%);
+.calendar { 
+  width: min(20rem, 100%); 
+  position: absolute; 
+  z-index: 8; 
+  top: calc(100% + 0rem);
+  right: -13rem; 
+  left: auto; 
+  padding: 0.5rem 1rem; 
+  background: white; 
+  border: 1px solid #a9c8e7; 
+  border-radius: var(--radius-md); 
+  box-shadow: var(--shadow-md); 
 }
 
-.calendarHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
+.calendar header { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
 }
 
-.calendarTitle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 500;
-  cursor: pointer;
-  color: #222;
-}
-
-.calendarTitle::after {
-  content: '';
-  display: inline-block;
-  width: 0.4rem;
-  height: 0.4rem;
-  border-right: 2px solid #999;
-  border-bottom: 2px solid #999;
-  transform: translateY(-25%) rotate(45deg);
-}
-
-.calendarNav {
+.calendar header button { 
+  width: 2.5rem; 
+  height: 2.5rem; 
+  background: transparent; 
+  border: 0; 
+  font-size: 1.75rem; 
   display: flex;
   align-items: center;
-  border: 1px solid var(--color-border, #d8dde1);
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.calendarNav button {
-  background: #fff;
-  border: none;
-  padding: 0.25rem 0.5rem;
+  justify-content: center;
   cursor: pointer;
-  font-size: 1rem;
-  color: #666;
+  border-radius: 50%;
   transition: background 0.2s;
 }
 
-.calendarNav button:hover {
-  background: #f0f4f8;
+.calendar header button:hover {
+  background: #eff7ff;
 }
 
-.calendarNav span {
-  width: 1px;
-  height: 0.8rem;
-  background: var(--color-border, #d8dde1);
-}
-
-.calendarGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  row-gap: 0.75rem;
-  text-align: center;
-}
-
-.calendarWeekday {
-  font-size: 0.875rem;
-  color: #333;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.calendarDay {
-  font-size: 1rem;
-  color: #333;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 50%;
-}
-
-.calendarDay:hover {
-  background: #f0f4f8;
-}
-
-.calendarDayEmpty {
-  visibility: hidden;
-}
-
-.calendarDaySelected {
-  color: var(--color-primary, #6AADEA);
-}
-
-.monthList {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem; /* 위아래 간격 */
-  align-items: center;
-  padding: 0.5rem 0;
-}
-
-.monthListItem {
-  background: none;
-  border: none;
-  font-size: 1.125rem;
-  color: #333;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s;
-}
-
-.monthListItem:hover {
-  color: var(--color-primary, #62a9e8);
-}
-
-.monthListItemSelected {
-  color: #3C688E; 
+.calendar header strong {
   font-weight: 500;
 }
 
-.monthListMoreBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.weekdays, 
+.days { 
+  display: grid; 
+  grid-template-columns: repeat(7, 1fr); 
+  text-align: center; 
 }
 
-.monthListMoreBtn::after {
-  content: '';
+.weekdays { 
+  margin-top: .75rem; 
+  color: var(--color-text-muted); 
+  font-size: .8rem; 
+  font-weight: 600;
+}
+
+.days { 
+  margin-top: .35rem; 
+  gap: .15rem; 
+}
+
+.days > * { 
+  display: grid; 
+  aspect-ratio: 1; 
+  place-items: center; 
+}
+
+.days button { 
+  background: transparent; 
+  border: 0; 
+}
+
+.days button:hover { 
+  background: #eff7ff; 
+  border-radius: 50%; 
+}
+
+.days button[data-in-range='true'] { 
+  color: var(--color-primary);
+}
+
+.days button[aria-pressed='true'] { 
+  background: #eff7ff; 
+  border-radius: 50%; 
+}
+
+.monthPicker {
+  position: relative;
   display: inline-block;
-  width: 0.6rem;
-  height: 0.6rem;
-  border-right: 2px solid #aaa;
-  border-bottom: 2px solid #aaa;
-  transform: rotate(45deg);
+}
+
+.monthMenu { 
+  display: flex; 
+  flex-direction: column;
+  width: max-content; 
+  min-width: 100%;   
+  max-height: 14rem; 
+  position: absolute; 
+  z-index: 3; 
+  top: 1.5rem; 
+  left: -1.3rem;        
+  overflow-y: auto;   
+  overflow-x: hidden; 
+  padding: .35rem 0; 
+  background: white; 
+  border: 1px solid #a9c8e7; 
+  border-radius: .5rem; 
+  box-shadow: var(--shadow-sm); 
+}
+
+.monthMenu button { 
+  padding: .45rem 1rem; 
+  text-align: left; 
+  background: transparent; 
+  border: 0; 
+  white-space: nowrap; 
+}
+
+.monthMenu button[aria-selected="true"] {
+  color: var(--color-primary, #62a9e8);
+  font-weight: medium;
+  background-color: #eff7ff; 
 }
 
 .chartBody {
   display: grid;
-  height: clamp(12.5rem, 22vh, 11.5rem);
+  height: clamp(10rem, 20vh, 11rem); 
   grid-template-columns: clamp(3.5rem, 8vw, 4.75rem) 1fr;
   gap: 0.75rem;
-  margin-top: clamp(1.25rem, 3vh, 2.5rem);
+  margin-top: clamp(3rem, 3vh, 4rem);
+  transform: translateX(-0.75em);
 }
 
 .axisLabels {
@@ -366,41 +373,243 @@
   font-size: 1.25rem !important; 
 }
 
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+.emailModalBackdrop {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgb(205 231 250 / 78%);
+  backdrop-filter: blur(5px);
+  padding: 1rem;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+}
+
+.emailModalWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 32.5rem; 
+  margin: auto; 
+  background: linear-gradient(to top, #6AADEA 0%, #ffffff 100%);
+  padding: 4rem 1.5rem 1.5rem 1.5rem; 
+  border-radius: 2rem;
+}
+
+.emailIllustration {
+  width: 18rem;
+  height: auto;
+  position: absolute;
+  z-index: 2;
+  top: -5rem;
+  right: -5rem;
+}
+
+.emailModalInner {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  width: 90%;
+  box-sizing: border-box; 
+  margin: -2.5rem auto 0 auto;
+}
+
+.emailHeader {
+  text-align: center;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+}
+.emailHeader h2 {
+  margin: 0 0 0.5rem;
+  color: #3C688E;
+  font-size: clamp(1.2rem, 3.5vw, 1.4rem);
+  font-weight: 600;
+}
+.emailHeader p {
+  margin: 0;
+  color: #A8C1D6;
+  font-size: clamp(1.0rem, 2vw, 1.1rem);
+  font-weight: 500;
+}
+
+.emailSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: clamp(0.25rem, 5vw, 0.75rem);
+  gap: 0.5rem;
+}
+
+.summaryBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.summaryBox span {
+  color: #A3BDD6;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  font-weight: 500;
   white-space: nowrap;
 }
+.summaryBox strong {
+  font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+  font-weight: 600;
+  white-space: nowrap;
+  color: #3C688E;
+}
+.summaryBox small {
+  color: #A3BDD6;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.textBlue { color: #6AADEA !important; }
+.textDarkBlue { color: #356792; }
 
-.mascotArea {
-  position: relative;
-  min-height: clamp(10rem, 20vh, 16rem);
-  flex: 1;
-  margin-top: clamp(-15rem, -20vw, -10rem); 
-  z-index: 1; 
-  pointer-events: none;
+.summaryArrow svg {
+  width: clamp(1.25rem, 3vw, 1.75rem);
+  height: clamp(1.25rem, 3vw, 1.75rem);
+  opacity: 0.7;
+  transform: translateX(-0.5rem);
 }
 
-@media (max-width: 48rem) {
-  .chartCard {
-    padding-inline: 1rem;
-  }
+.emailListSection h3,
+.emailChartSection h3 {
+  font-size: clamp(1rem, 3vw, 1.1rem);
+  color: #000;
+  margin: 0 0 1.25rem 0;
+  font-weight: 500;
+}
 
-  .chartBody {
-    grid-template-columns: 3.75rem 1fr;
-  }
+.emailListSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #F0F0F0;
+}
+.emailTxList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+.emailTxList li {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+}
+.txIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #F0F0F0;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  background: white;
+  flex-shrink: 0;
+}
+.txInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  gap: 0.5rem;
+}
+.txInfo strong { 
+  color: #222; 
+  font-size: 0.95rem; 
+  font-weight: 500; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.txInfo span { color: #999; font-size: 0.75rem; }
 
-  .timeBarChart,
-  .monthlyBarChart {
-    gap: 0.5rem;
-    padding-inline: 0.25rem;
-  }
+.txAmount {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+.txAmount strong { color: #222; font-size: 0.95rem; font-weight: 500; white-space: nowrap; }
+.txAmount span { color: #999; font-size: 0.75rem; white-space: nowrap; }
 
-  .amountTooltip {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.8rem;
-  }
+.emailChartSection {
+  margin-bottom: 2.5rem;
+}
+.emailChart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 7.5rem;
+  gap: 0.25rem;
+}
+.chartCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+  
+  flex: 1;
+}
+.chartBar {
+  width: clamp(2rem, 2.5vw, 2.5rem);
+  background: #A8C1D6;
+  border-radius: 0.4rem 0.4rem 0 0;
+}
+.barMax { background: #3C688E; }
+.barToday { background: #6AADEA; }
+
+.chartCol span {
+  color: #ABABAB;
+  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+}
+
+.chartTooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  width: max-content;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.5rem;
+  border: 0.5px solid #6AADEA;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: var(--color-primary, #62a9e8);
+  font-size: 0.55rem; /* 폰트 크기가 너무 작았다면 여기서 조절 가능 */
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.emailSendBtn {
+  background: #62A9E8;
+  color: white;
+  border: none;
+  border-radius: 0.8rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.emailSendBtn img {
+  width: 1rem;
+  height: 0.75rem;
+  filter: brightness(0) invert(1);
 }

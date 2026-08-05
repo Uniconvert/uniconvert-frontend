@@ -378,5 +378,4 @@ function CalculatorPage() {
     </section>
   )
 }
-
 export default CalculatorPage
