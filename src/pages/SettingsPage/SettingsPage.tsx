@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { getEmailReportPreview } from '@/api/emailReports'
+import { updateMyProfile } from '@/api/users'
 import { getSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
-import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import type { AuthUser } from '@/types/auth'
@@ -20,7 +20,14 @@ function SettingsPage() {
   const [profileImage, setProfileImage] = useState(() => getSessionUser()?.profileImage ?? '')
   const [emailReport, setEmailReport] = useState<EmailReportData | null>(null)
   const [reportError, setReportError] = useState('')
+  const [reportCycle, setReportCycle] = useState('daily') // 'daily' | 'weekly' | 'monthly'
+  const [reportTime, setReportTime] = useState('09:00')
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false)
+  const [tempSelectedTime, setTempSelectedTime] = useState(reportTime)
+  const [timePage, setTimePage] = useState(0)
   const { toast, showToast, closeToast } = useToastQueue()
+
+
 
   useEffect(() => {
     let isActive = true
@@ -30,6 +37,9 @@ function SettingsPage() {
         if (isActive) {
           setEmailReport(response)
           setIsEmailReportEnabled(response.isEnabled)
+          // 필요시 API에서 받아온 주기/시간 설정값 반영
+          // if (response.cycle) setReportCycle(response.cycle)
+          // if (response.time) setReportTime(response.time)
         }
       })
       .catch(() => {
@@ -55,15 +65,23 @@ function SettingsPage() {
     reader.readAsDataURL(file)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const nextNickname = nickname.trim()
     if (!nextNickname) return
 
-    setSavedNickname(nextNickname)
-    setNickname(nextNickname)
-    setSessionUser(updateSessionUser({ nickname: nextNickname }))
-    showToast({ variant: 'success', title: '수정되었어요' })
-    // TODO: Swagger 확정 후 프로필 수정 API를 연결합니다.
+    try {
+      const updatedUser = await updateMyProfile({
+        nickname: nextNickname,
+        imageUrl: profileImage,
+      })
+      setSavedNickname(updatedUser.nickname)
+      setNickname(updatedUser.nickname)
+      setProfileImage(updatedUser.profileImage)
+      setSessionUser(updateSessionUser(updatedUser))
+      showToast({ variant: 'success', title: '수정되었어요' })
+    } catch {
+      showToast({ variant: 'error', title: '수정에 실패했습니다' })
+    }
   }
 
   const handleCancel = () => {
@@ -75,6 +93,23 @@ function SettingsPage() {
     // TODO: Swagger 확정 후 이메일 리포트 수신 설정 API를 연결합니다.
   }
 
+  const allTimes = Array.from({ length: 24 }, (_, index) => {
+    const hour = String(index + 1).padStart(2, '0')
+    return `${hour}:00`
+  })
+
+  const ITEMS_PER_PAGE = 6
+  const displayedTimes = allTimes.slice(timePage * ITEMS_PER_PAGE, (timePage + 1) * ITEMS_PER_PAGE)
+
+  // 위/아래 화살표 클릭 핸들러
+  const handlePrevPage = () => {
+    setTimePage((prev) => Math.max(prev - 1, 0)) // 첫 페이지(0) 아래로 내려가지 않음
+  }
+
+  const handleNextPage = () => {
+    setTimePage((prev) => Math.min(prev + 1, Math.ceil(allTimes.length / ITEMS_PER_PAGE) - 1)) // 마지막 페이지 위로 올라가지 않음
+  }
+
   return (
     <section className={styles.page} aria-labelledby="settings-title">
       {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
@@ -82,23 +117,117 @@ function SettingsPage() {
 
       <div className={styles.leftColumn}>
         <section className={styles.emailSetting} aria-labelledby="email-report-setting-title">
-          <span className={styles.emailIcon} aria-hidden="true">
-            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>
-          </span>
-          <div>
-            <h2 id="email-report-setting-title">이메일로 리포트 보내기</h2>
-            <p>매일 지출 내역을 이메일로 받아보세요</p>
+          <div className={styles.emailSettingHeader}>
+            <span className={styles.emailIcon} aria-hidden="true">
+              <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 id="email-report-setting-title">이메일로 리포트 보내기</h2>
+              <p>매일 지출 내역을 이메일로 받아보세요</p>
+            </div>
+            <button
+              className={`${styles.toggle} ${isEmailReportEnabled ? styles.toggleOn : ''}`}
+              type="button"
+              role="switch"
+              aria-checked={isEmailReportEnabled}
+              aria-label="이메일 리포트 수신"
+              onClick={handleReportToggle}
+            >
+              <span />
+            </button>
           </div>
-          <button
-            className={`${styles.toggle} ${isEmailReportEnabled ? styles.toggleOn : ''}`}
-            type="button"
-            role="switch"
-            aria-checked={isEmailReportEnabled}
-            aria-label="이메일 리포트 수신"
-            onClick={handleReportToggle}
-          >
-            <span />
-          </button>
+
+          {isEmailReportEnabled && (
+            <div className={styles.emailSubOptions}>
+              <div className={styles.optionRow}>
+                <span className={styles.optionLabel}>받는 시간</span>
+                <div className={styles.selectWrapper}>
+                  <button
+                    type="button"
+                    className={styles.timeSelectButton}
+                    onClick={() => {
+                      setTempSelectedTime(reportTime)
+                      setIsTimeDropdownOpen((prev) => !prev)
+                    }}
+                  >
+                    <span className={styles.timeButtonContent}>
+                      <img src="public\assets\icons\time-setting.png" alt="" aria-hidden="true" />
+                      {reportTime}
+                    </span>
+                    <span className={styles.Chevrondown} aria-hidden="true" />
+                  </button>
+
+                  {isTimeDropdownOpen && (
+                    <div className={styles.timeDropdownPopup}>
+                      <button type="button" className={styles.popupArrowUp} aria-hidden="true" onClick={handlePrevPage} />
+
+                      <div className={styles.timeRadioList}>
+                        {displayedTimes.map((time) => (
+                          <label key={time} className={styles.timeRadioItem}>
+                            <input
+                              type="radio"
+                              name="reportTimeRadio"
+                              value={time}
+                              checked={tempSelectedTime === time}
+                              onChange={(e) => setTempSelectedTime(e.target.value)}
+                            />
+                            <span className={styles.timeText}>{time}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      <button type="button" className={styles.popupArrowDown} aria-hidden="true" onClick={handleNextPage} />
+
+                      <div className={styles.popupActions}>
+                        <Button variant="outline" onClick={() => setIsTimeDropdownOpen(false)}>
+                          취소
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setReportTime(tempSelectedTime)
+                            setIsTimeDropdownOpen(false)
+                          }}
+                        >
+                          확인
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.optionRow}>
+                <span className={styles.optionLabel}>발송 주기</span>
+                <div className={styles.cycleButtonGroup}>
+                  <button
+                    type="button"
+                    className={reportCycle === 'daily' ? styles.activeCycle : ''}
+                    onClick={() => setReportCycle('daily')}
+                  >
+                    매일
+                  </button>
+                  <button
+                    type="button"
+                    className={reportCycle === 'weekly' ? styles.activeCycle : ''}
+                    onClick={() => setReportCycle('weekly')}
+                  >
+                    매주
+                  </button>
+                  <button
+                    type="button"
+                    className={reportCycle === 'monthly' ? styles.activeCycle : ''}
+                    onClick={() => setReportCycle('monthly')}
+                  >
+                    매월
+                  </button>
+                </div>
+              </div>
+
+              <p className={styles.optionDescription}>
+                <img src="public\assets\icons\info.png" alt="정보" aria-hidden="true" />선택한 시간에 지출 내역 리포트가 이메일로 발송됩니다.
+              </p>
+            </div>
+          )}
         </section>
 
         <section className={styles.profileCard} aria-labelledby="profile-title">
@@ -110,7 +239,7 @@ function SettingsPage() {
                 : <span aria-hidden="true">{nickname.trim().charAt(0).toUpperCase()}</span>}
             </div>
             <button type="button" className={styles.changePhotoButton} aria-label="프로필 사진 변경" onClick={() => imageInputRef.current?.click()}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8a7 7 0 0 1 11.5-2.1L20 8M4 16l2.4 2.1A7 7 0 0 0 17.9 16" /></svg>
+              <img src="/assets/icons/actions/exchange-button.png" alt="" aria-hidden="true" />
             </button>
             <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} />
           </div>
@@ -131,46 +260,36 @@ function SettingsPage() {
             <Button onClick={handleSave} disabled={!nickname.trim()}>저장</Button>
           </div>
         </section>
-
-        <p className={styles.version}>버전: 1.0.0</p>
       </div>
-
-      {isEmailReportEnabled ? (
-        <aside className={styles.reportPanel} aria-label="이메일 리포트 미리보기">
-          <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
-          <section className={styles.reportCard}>
-            <h2>리포트 미리보기</h2>
-            {reportError && <p role="alert">{reportError}</p>}
-            <p className={styles.reportMonth}>{emailReport?.yearMonth.replace('-', '.') ?? '-'}</p>
-            <div className={styles.reportTotal}>
-              <span>총 지출 금액</span>
-              <strong>{emailReport ? formatCurrencyAmount(emailReport.totalExpenseHome, emailReport.homeCurrency) : '-'}</strong>
-            </div>
-            <hr />
-            <h3>카테고리별 지출</h3>
-            <ul className={styles.reportList}>
-              {emailReport?.categories.map((category) => (
-                <li key={category.categoryId}>
-                  <span className={styles.reportCategoryIcon}><img src={getCategoryIconPath(category.iconKey)} alt="" aria-hidden="true" /></span>
-                  <span className={styles.reportCategoryInfo}>
-                    <span><b>{category.categoryName}</b><strong>{formatCurrencyAmount(category.amountHome, emailReport.homeCurrency)}</strong></span>
-                    <span className={styles.reportProgress}><i style={{ width: `${category.ratio}%` }} /></span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <Button className={styles.sendReportButton} fullWidth>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>
-              이메일로 리포트 보내기
-            </Button>
-          </section>
-        </aside>
-      ) : (
-        <FloatingMascot
-          message="지출 환경을 설정하고 관리하세요"
-          imageSrc="/assets/illustrations/mascot-check.png"
-        />
-      )}
+      <aside className={styles.reportPanel} aria-label="이메일 리포트 미리보기">
+        <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
+        <section className={styles.reportCard}>
+          <h2>리포트 미리보기</h2>
+          {reportError && <p role="alert">{reportError}</p>}
+          <p className={styles.reportMonth}>{emailReport?.yearMonth.replace('-', '.') ?? '-'}</p>
+          <div className={styles.reportTotal}>
+            <span>총 지출 금액</span>
+            <strong>{emailReport ? formatCurrencyAmount(emailReport.totalExpenseHome, emailReport.homeCurrency) : '-'}</strong>
+          </div>
+          <hr />
+          <h3>카테고리별 지출</h3>
+          <ul className={styles.reportList}>
+            {emailReport?.categories.map((category) => (
+              <li key={category.categoryId}>
+                <span className={styles.reportCategoryIcon}><img src={getCategoryIconPath(category.iconKey)} alt="" aria-hidden="true" /></span>
+                <span className={styles.reportCategoryInfo}>
+                  <span><b>{category.categoryName}</b><strong>{formatCurrencyAmount(category.amountHome, emailReport.homeCurrency)}</strong></span>
+                  <span className={styles.reportProgress}><i style={{ width: `${category.ratio}%` }} /></span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Button className={styles.sendReportButton} fullWidth>
+            <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
+            이메일로 리포트 보내기
+          </Button>
+        </section>
+      </aside>
     </section>
   )
 }

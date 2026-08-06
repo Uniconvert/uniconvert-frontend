@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import styles from './CalculatorPage.module.css'
 import { convertCurrencyAmount } from '@/utils/exchangeRate'
 import ModalShell from '@/components/common/ModalShell/ModalShell';
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot';
 
 // 지원하는 통화 목록
 const currencies = ['USD', 'EUR', 'JPY', 'KRW', 'CNY']
@@ -194,7 +195,7 @@ function CalculatorPage() {
                   value={fromAmount}
                   onChange={handleAmountChange}
                   placeholder="0"
-                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 600, background: 'transparent' }}
+                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 500, background: 'transparent' }}
                 />
               </div>
             </div>
@@ -270,7 +271,7 @@ function CalculatorPage() {
                   type="text"
                   value={toAmount}
                   readOnly
-                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 600, background: 'transparent' }}
+                  style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 500, background: 'transparent' }}
                 />
               </div>
             </div>
@@ -296,13 +297,12 @@ function CalculatorPage() {
           </div>
 
           <div className={styles.historyList}>
-            {historyData.map((item) => (
+            {historyData.map((item, index) => (
               <div
                 key={item.id}
-                className={`${styles.historyItem} ${item.isActive ? styles.active : ''}`}
+                className={`${styles.historyItem} ${index === 0 ? styles.active : ''}`}
               >
                 <div className={styles.historyInfo}>
-                  {/* 국기 이미지 적용 */}
                   <img
                     src={`/assets/icons/currencies/currency-${item.currencyCode}.png`}
                     alt=""
@@ -310,7 +310,7 @@ function CalculatorPage() {
                     style={{ width: '2.5rem', height: '1.5rem', objectFit: 'contain' }}
                   />
                   <div className={styles.historyText}>
-                    {item.text} <span>→</span> {item.result}
+                    {item.text} <span>→ {item.result}</span> 
                   </div>
                 </div>
                 <span className={styles.historyTime}>{item.time}</span>
@@ -320,7 +320,6 @@ function CalculatorPage() {
         </div>
       </div>
 
-      {/* 3. 전체 보기 모달 (ModalShell) */}
       {isHistoryModalOpen && (
         <ModalShell
           title="최근 계산 내역"
@@ -369,11 +368,11 @@ function CalculatorPage() {
         </ModalShell>
       )}
 
-      {/* 3. 우측 하단 마스코트 영역 */}
       <div className={styles.mascotArea} aria-hidden="true">
-        <div className={styles.speechBubble}>
-          오늘 <span>환율이 0.8%</span> 증가했어요
-        </div>
+        <FloatingMascot
+          message="환율을 바로 적용하는 계산기를 사용해보세요!"
+          imageSrc="/assets/illustrations/mascot-check.png"
+        />
       </div>
     </section>
   )

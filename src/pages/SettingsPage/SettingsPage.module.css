@@ -14,6 +14,7 @@
   grid-row: 1;
   margin-bottom: 2rem;
   font-size: 1.75rem;
+  font-weight: 500;
 }
 
 .leftColumn {
@@ -25,14 +26,21 @@
 }
 
 .emailSetting {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.75rem;
+  gap: 0;
+}
+
+.emailSettingHeader {
   display: grid;
-  min-height: 5.625rem;
+  min-height: 3rem;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1.5rem;
-  padding: 1rem 1.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  width: 100%;
 }
 
 .emailIcon {
@@ -45,25 +53,260 @@
   border-radius: var(--radius-sm);
 }
 
-.emailIcon svg,
-.sendReportButton svg {
-  width: 1.75rem;
-  height: 1.75rem;
+.emailIcon img,
+.sendReportButton img {
+  width: 1.5rem;
+  height: 1.25rem;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
+  filter: brightness(0) invert(1);
 }
 
 .emailSetting h2 {
-  font-size: 1rem;
-  font-weight: var(--font-weight-regular);
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .emailSetting p {
   margin-top: 0.5rem;
   color: var(--color-text-muted);
+}
+.emailSubOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+}
+
+.optionRow {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.optionLabel {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  padding-left: 0.8rem;
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.timeSelectButton {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font: inherit;
+}
+
+.timeButtonContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.timeButtonContent img {
+  width: 1.125rem;
+  height: 1.125rem;
+  object-fit: contain;
+}
+
+.Chevrondown {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  border-right: 1.5px solid #666;
+  border-bottom: 1.5px solid #666;
+  transform: translateY(-15%) rotate(45deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+.timeDropdownPopup {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.popupArrowUp,
+.popupArrowDown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 1rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+.popupArrowUp::after {
+  content: '';
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-right: 1.5px solid #ABABAB;
+  border-bottom: 1.5px solid #ABABAB;
+  transform: translateY(25%) rotate(-135deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+.popupArrowDown::after {
+  content: '';
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-right: 1.5px solid #ABABAB;
+  border-bottom: 1.5px solid #ABABAB;
+  transform: translateY(-15%) rotate(45deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+.timeRadioList {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeRadioItem {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.timeRadioItem:last-child {
+  border-bottom: none;
+}
+
+/* 라디오 버튼 숨기고 커스텀 스타일 적용 */
+.timeRadioItem input[type='radio'] {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  margin: 0;
+}
+
+.timeRadioItem input[type='radio']:checked {
+  border-color: var(--color-primary);
+}
+
+.timeRadioItem input[type='radio']:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+
+.timeText {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 선택된 항목의 텍스트 색상을 포인트 컬러로 변경 */
+.timeRadioItem input[type='radio']:checked ~ .timeText {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.popupActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.popupActions Button {
+  width: 100%;
+  min-height: 2.5rem;
+  border-radius: 0.8rem;
+  font-weight: 500;
+}
+
+.cycleButtonGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.cycleButtonGroup button {
+  min-height: 2.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: #ABABAB;
+}
+
+.cycleButtonGroup button.activeCycle {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.optionDescription {
+  display: flex;
+  align-items: center;       /* 아이콘과 텍스트의 세로 중앙 정렬 */
+  gap: 0.5rem;               /* 이미지와 텍스트 사이의 간격 */
+  font-size: 0.9rem;
+  color: #ABABAB;
+  position: relative;
+  top: -0.5rem;
+  left: 0.75rem;
+}
+
+.optionDescription img{
+  width: 0.9rem;
+  height: 0.9rem;
+  object-fit: contain;
 }
 
 .toggle {
@@ -97,7 +340,7 @@
 .profileCard {
   min-height: fit-content;
   margin-top: clamp(1.5rem, 3vh, 2.5rem);
-  padding: clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(0.5rem, 3vw, 1rem);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -105,6 +348,8 @@
 .profileCard h2 {
   text-align: center;
   font-size: 1.25rem;
+  font-weight: 500;
+  color: #333;
 }
 
 .avatarWrap {
@@ -123,7 +368,7 @@
   color: #366894;
   background: linear-gradient(145deg, #fff4cc, #d9efff);
   border: 2px solid var(--color-primary);
-  border-radius: 25%;
+  border-radius: 2.5rem;
   font-weight: var(--font-weight-bold);
   font-size: clamp(2rem, 5vw, 3.5rem);
 }
@@ -135,27 +380,23 @@
 }
 
 .changePhotoButton {
-  display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: absolute;
-  right: -0.5rem;
+  right: -1rem;
   bottom: -0.25rem;
-  place-items: center;
-  color: var(--color-surface);
-  background: var(--color-primary);
-  border: 2px solid var(--color-surface);
+  padding: 0;
+  background: transparent; 
+  border: none;            
+  cursor: pointer;
   border-radius: 50%;
 }
 
-.changePhotoButton svg {
-  width: 1.75rem;
-  height: 1.75rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
+.changePhotoButton img {
+  width: 2.75rem;          
+  height: 2.75rem;
+  object-fit: contain;
 }
 
 .avatarWrap input[type='file'] {
@@ -172,6 +413,12 @@
   grid-template-columns: 4.25rem 1fr;
   align-items: center;
   gap: 0.75rem;
+}
+
+.profileFields span {
+  padding-left: 0.8rem;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 
 .profileFields input {
@@ -197,11 +444,13 @@
   margin-top: 1.25rem;
 }
 
-.profileActions button {
+.profileActions Button {
   min-width: 5.75rem;
-  min-height: clamp(2.5rem, 5vh, 3.125rem);
+  min-height: clamp(1.875rem, 5vh, 2.5rem);
   padding: 0.5rem 1rem;
   font-size: 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
 }
 
 .version {
@@ -215,11 +464,10 @@
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: start;
-  padding: clamp(2.5rem, 5vh, 4.5rem) clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 2vh, 2rem);
+  padding: clamp(5rem, 8vh, 8rem) clamp(1.25rem, 3vw, 2.5rem) clamp(2rem, 4vh, 3.5rem);
   background: linear-gradient(180deg, #FFFFFF 0%, #6AADEA 100%);
   border-radius: clamp(1.5rem, 4vw, 3.75rem);
 }
-
 .emailIllustration {
   width: clamp(8rem, 15vw, 13rem);
   height: auto;
@@ -276,12 +524,14 @@
 .reportCard h3 {
   font-size: 1rem;
   font-weight: var(--font-weight-regular);
+  
+  margin-top: clamp(1.25rem, 1.5vh, 1.75rem);
 }
 
 .reportList {
   display: grid;
   gap: clamp(0.35rem, 1vh, 0.625rem);
-  margin-top: clamp(0.75rem, 1.5vh, 1.25rem);
+  margin-top: clamp(1.25rem, 1.5vh, 1.75rem);
   list-style: none;
   padding: 0;
 }
@@ -323,6 +573,7 @@
 .reportCategoryInfo b,
 .reportCategoryInfo strong {
   font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .reportProgress {
@@ -341,45 +592,28 @@
 
 .sendReportButton {
   min-height: clamp(2.5rem, 5vh, 3.125rem);
-  margin-top: clamp(1.25rem, 2.5vh, 2rem);
-  font-size: 1rem;
+  margin-top: clamp(2.5rem, 2.5vh, 3.25rem);
+  font-size: 1.1rem;
+  background: #62A9E8;
+  color: white;
+  border: none;
+  border-radius: 0.6rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.sendReportButton svg {
+.sendReportButton img {
   width: 1.25rem;
-  height: 1.25rem;
+  height: 1rem;
+  filter: brightness(0) invert(1);
 }
-
-.offVisual {
-  min-height: 20rem;
-  position: relative;
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
-}
-
-.offVisual p {
-  position: absolute;
-  right: 7.5rem;
-  bottom: 7.5rem;
-  padding: .625rem 1.5rem;
-  background: var(--color-surface);
-  border: 2px solid #8ec5f7;
-  border-radius: var(--radius-pill);
-  font-size: 1.125rem;
-}
-
-.thoughtLarge,
-.thoughtSmall {
-  position: absolute;
-  background: var(--color-surface);
-  border: 2px solid #8ec5f7;
-  border-radius: 50%;
-}
-
-.thoughtLarge { width: 1.15rem; height: 1.15rem; right: 6.25rem; bottom: 6.5rem; }
-.thoughtSmall { width: .875rem; height: .875rem; right: 5.25rem; bottom: 5.75rem; }
-.offVisual img { width: 8rem; position: absolute; right: 0; bottom: 0; }
 
 @media (max-width: 87.5rem) {
   .page {
