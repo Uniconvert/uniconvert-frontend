@@ -48,25 +48,29 @@
   box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 0.1rem;
+  justify-content: flex-start;
+  gap: 0.75rem;
 }
 
 .cardTitle {
-  margin: 0 0 1.5rem;
+  margin: 0;
   color: var(--color-primary, #62a9e8);
   font-size: 1.375rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .inputGroup {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .inputLabel {
   display: block;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #555;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  font-weight: 500;
 }
 
 .customSelect {
@@ -87,7 +91,7 @@
   font-size: clamp(0.95rem, 1.5vw, 1.125rem);
   background: var(--color-surface, #fff);
   cursor: pointer;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .currencySelectWrap img {
@@ -204,7 +208,8 @@
   border: 1px solid var(--color-border, #d8dde1);
   border-radius: 0.5rem;
   color: #333;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
@@ -241,17 +246,19 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: #eef5fb;
+  background: #DCEEFF;
   border-radius: 0.5rem;
-  color: #4b86b8;
-  font-size: 0.9rem;
+  color: #3C688E;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .statusDot {
-  width: 0.5rem;
-  height: 0.5rem;
-  background: var(--color-primary, #62a9e8);
+  width: 0.75rem;
+  height: 0.75rem;
+  background: #6AADEA;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .historyHeader {
@@ -265,7 +272,7 @@
   margin: 0;
   font-size: 1.125rem;
   color: #222;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .viewAllBtn {
@@ -283,7 +290,7 @@
     0.35rem,
     0.8vh,
     0.5rem
-  ); /* 너무 넓지도, 너무 좁지도 않은 중간 간격 */
+  ); 
   flex: 1;
   justify-content: space-around;
 }
@@ -292,15 +299,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.9rem 1.25rem; /* 내부 패딩을 균형 있게 조정 */
+  padding: 1.25rem 1.25rem;
   border: 1px solid var(--color-border, #d8dde1);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   background: #fff;
 }
 
 .historyItem.active {
-  background: #eef5fb;
-  border-color: #cbe3f7;
+  background: #6AADEA3F;
+  border-color: #6AADEA;
 }
 
 .historyInfo {
@@ -431,7 +438,7 @@
 
 .mascotArea {
   position: fixed;
-  bottom: 2rem;
+  bottom: 16.5rem;
   right: 2rem;
   display: flex;
   flex-direction: column;

@@ -6,6 +6,11 @@ interface GetMyUserOptions {
   useMock?: boolean
 }
 
+export interface UpdateMyProfileInput {
+  nickname: string
+  imageUrl: string
+}
+
 function toAuthUser(response: UserMeResponseDto): AuthUser {
   return {
     userId: response.userId,
@@ -33,5 +38,26 @@ export async function getMyUser(options: GetMyUserOptions = {}) {
     { data: mockResponse },
     { useMock: options.useMock },
   )
+  return toAuthUser(response)
+}
+
+export async function updateMyProfile(input: UpdateMyProfileInput) {
+  const sessionUser = getSessionUser()
+  const mockResponse: UserMeResponseDto = {
+    userId: sessionUser?.userId ?? 0,
+    email: sessionUser?.email ?? '',
+    nickname: input.nickname,
+    imageUrl: input.imageUrl,
+    onboardingCompleted: sessionUser?.isOnboardingCompleted ?? false,
+  }
+
+  const response = await apiRequest<UserMeResponseDto>(
+    '/users/me',
+    { data: mockResponse },
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+)
   return toAuthUser(response)
 }
