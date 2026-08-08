@@ -5,11 +5,14 @@ export interface LoginCredentials {
   password: string
 }
 
+export type SignUpCredentials = LoginCredentials
+
 /** 백엔드 POST /auth/login 및 /auth/reissue 응답의 data 형식입니다. */
 export interface LoginResponseDto {
   userId: number
   email: string
   nickname: string
+  onboardingCompleted?: boolean
   accessToken: string
   refreshToken: string
 }

@@ -8,7 +8,9 @@ import styles from '../CurrencySetupPage.module.css'
 
 function LocalCurrenciesPage() {
   const navigate = useNavigate()
-  const [selectedCodes, setSelectedCodes] = useState<string[]>(() => getOnboardingSettings().localCurrencies ?? [])
+  const [selectedCodes, setSelectedCodes] = useState<string[]>(() => (
+    getOnboardingSettings().localCurrencies ?? []
+  ).slice(0, 1))
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -25,14 +27,14 @@ function LocalCurrenciesPage() {
       <OnboardingPanel
         titleId="local-currencies-title"
         title="현지에서 사용하는 통화를 선택해주세요"
-        description="자주 사용하는 통화를 여러 개 선택할 수 있습니다."
+        description="자주 사용하는 통화를 하나 선택해주세요."
         currentStep={2}
         onSubmit={handleSubmit}
         submitDisabled={selectedCodes.length === 0}
         height="49rem"
         compact
       >
-        <CurrencySelection selectedCodes={selectedCodes} selectionMode="multiple" onChange={setSelectedCodes} />
+        <CurrencySelection selectedCodes={selectedCodes} selectionMode="single" onChange={setSelectedCodes} />
       </OnboardingPanel>
     </section>
   )

@@ -71,7 +71,7 @@
   overflow: hidden;
   color: #366894;
   background: linear-gradient(145deg, #fff3c7, #d7efff);
-  border: 2px solid var(--color-primary);
+  border: 0;
   border-radius: 2.25rem;
   font-size: 4rem;
   font-weight: var(--font-weight-bold);
@@ -81,6 +81,7 @@
 .avatar img {
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   object-fit: cover;
 }
 
@@ -92,21 +93,18 @@
   right: .1rem;
   bottom: .1rem;
   place-items: center;
-  color: var(--color-surface);
-  background: var(--color-primary);
-  border: 3px solid var(--color-surface);
+  padding: 0;
+  background: transparent;
+  border: 0;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1.5rem;
-  font-weight: var(--font-weight-bold);
 }
 
-.changeAvatar input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+.changeAvatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .nicknameField {
@@ -172,6 +170,13 @@
 .goals .selectedGoal { color: var(--color-primary); background: #e5f2ff; border-color: var(--color-primary); }
 .goals .selectedGoal b { background: var(--color-primary); }
 .goalOption:focus-within { box-shadow: 0 0 0 4px var(--color-focus-ring); }
+
+.status {
+  margin: -1rem 0 .75rem;
+  color: var(--color-danger, #d04444);
+  text-align: center;
+  font-size: .95rem;
+}
 
 .card > button:last-child {
   min-height: 4.375rem;

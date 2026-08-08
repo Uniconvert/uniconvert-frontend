@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { login } from '@/api/auth'
-import { saveSession } from '@/auth/session'
+import { googleLogin, login } from '@/api/auth'
 import AuthPanelShell from '@/components/auth/AuthPanelShell/AuthPanelShell'
 import Button from '@/components/common/Button/Button'
-import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
+import GoogleIdentityButton from '@/components/common/GoogleIdentityButton/GoogleIdentityButton'
 import TextField from '@/components/common/TextField/TextField'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './LoginPage.module.css'
@@ -15,7 +14,19 @@ function LoginPage() {
   const [password, setPassword] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const googleClientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim()
   const canSubmit = email.trim().length > 0 && password.length > 0
+
+  const navigateAfterLogin = (sessionUser: Awaited<ReturnType<typeof login>>) => {
+    if (!sessionUser.isEmailVerified) {
+      navigate(ROUTE_PATHS.verifyEmail)
+    } else if (!sessionUser.isOnboardingCompleted) {
+      navigate(ROUTE_PATHS.onboardingBaseCurrency)
+    } else {
+      navigate(ROUTE_PATHS.home)
+    }
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -25,16 +36,9 @@ function LoginPage() {
     setStatusMessage('')
 
     try {
-      const result = await login({ email, password })
-      const sessionUser = saveSession(result)
+      const sessionUser = await login({ email, password })
 
-      if (!sessionUser.isEmailVerified) {
-        navigate(ROUTE_PATHS.verifyEmail)
-      } else if (!sessionUser.isOnboardingCompleted) {
-        navigate(ROUTE_PATHS.onboardingBaseCurrency)
-      } else {
-        navigate(ROUTE_PATHS.home)
-      }
+      navigateAfterLogin(sessionUser)
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : '로그인에 실패했습니다.')
     } finally {
@@ -42,9 +46,24 @@ function LoginPage() {
     }
   }
 
-  const handleGoogleLogin = () => {
-    // TODO: 백엔드 OAuth 지원 여부 확정 후 Google 로그인을 연결한다.
-    setStatusMessage('구글 로그인은 백엔드 연동 후 제공됩니다.')
+  const handleGoogleCredential = async (credential: string) => {
+    if (isGoogleLoading) return
+
+    setIsGoogleLoading(true)
+    setStatusMessage('')
+
+    try {
+      const sessionUser = await googleLogin(credential)
+      navigateAfterLogin(sessionUser)
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : 'Google 로그인에 실패했습니다.',
+      )
+    } finally {
+      setIsGoogleLoading(false)
+    }
   }
 
   return (
@@ -123,7 +142,12 @@ function LoginPage() {
           >
             로그인
           </Button>
-          <GoogleLoginButton fullWidth onClick={handleGoogleLogin} />
+          <GoogleIdentityButton
+            clientId={googleClientId}
+            disabled={isLoading || isGoogleLoading}
+            onCredential={handleGoogleCredential}
+            onError={setStatusMessage}
+          />
           <p className={styles.signUpPrompt}>
             아직 계정이 없으신가요?
             <Link className={styles.signUpLink} to={ROUTE_PATHS.signUp}>
