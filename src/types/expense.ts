@@ -34,6 +34,59 @@ export interface SavedExpense {
   spentAt: string
 }
 
+/** Swagger GET /expenses, GET /expenses/recent 응답 항목입니다. */
+export interface ExpenseListItemDto {
+  id?: number
+  merchantName?: string | null
+  categoryId?: number
+  categoryName?: string | null
+  iconKey?: string | null
+  convertedAmountHome?: number
+  originalCurrency?: string | null
+  originalAmount?: number
+  spentAt?: string | null
+}
+
+/** Spring Data의 GET /expenses 페이지 응답입니다. */
+export interface ExpensePageDto {
+  totalElements?: number
+  totalPages?: number
+  size?: number
+  content?: ExpenseListItemDto[]
+  number?: number
+  numberOfElements?: number
+  first?: boolean
+  last?: boolean
+  empty?: boolean
+}
+
+export interface BudgetResponseDto {
+  budgetId?: number
+  yearMonth?: string
+  monthlyLimitHome?: number
+}
+
+export interface ReportSummaryResponseDto {
+  totalAmount?: number
+}
+
+export interface ReportCategoryItemDto {
+  categoryId?: number
+  categoryName?: string | null
+  iconKey?: string | null
+  amount?: number
+  percentage?: number
+}
+
+export interface ReportCategoriesResponseDto {
+  totalAmount?: number
+  categories?: ReportCategoryItemDto[]
+}
+
+export interface ExpenseUserContextDto {
+  homeCurrencyCode?: string | null
+}
+
 export interface ExpenseDetail {
   expenseId: string
   currency: 'USD' | 'EUR' | 'JPY' | 'CNY' | 'KRW'

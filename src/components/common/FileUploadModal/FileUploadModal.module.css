@@ -1,4 +1,5 @@
 .modalBody { padding: 0 2.5rem 2.5rem; }
+:global(#file-upload-title) { font-weight: 600; }
 .dropZone { display: flex; min-height: 21.5rem; flex-direction: column; align-items: center; justify-content: center; gap: 2.25rem; margin-top: 1.75rem; background: #fcfcfc; border: 2px dashed var(--color-primary); border-radius: var(--radius-md); transition: background-color var(--transition-fast); }
 .dropZone.dragging { background: var(--color-primary-light); }
 .dropZone img { width: 5.5rem; height: auto; }

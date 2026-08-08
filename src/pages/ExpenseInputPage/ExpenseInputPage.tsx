@@ -195,7 +195,14 @@ function ExpenseInputPage() {
           <div className={styles.categoryList}>
             {categories.map((category) => (
               <button key={category.id} className={categoryId === category.id ? styles.selectedCategory : ''} type="button" aria-pressed={categoryId === category.id} onClick={() => setCategoryId(category.id)}>
-                {category.iconSrc ? <img src={category.iconSrc} alt="" aria-hidden="true" /> : <span className={styles.categorySymbol} aria-hidden="true">{category.symbol}</span>}
+                {category.iconSrc ? (
+                  <img
+                    className={['shopping', 'communication', 'education', 'travel'].includes(category.id) ? styles.largeCategoryIcon : undefined}
+                    src={category.iconSrc}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                ) : <span className={styles.categorySymbol} aria-hidden="true">{category.symbol}</span>}
                 <span>{category.label}</span>
               </button>
             ))}

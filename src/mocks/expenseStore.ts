@@ -4,6 +4,29 @@ import type { ApiResponse } from '@/types/api'
 import type { CreateExpenseInput, ExpenseDetail, UpdateExpenseInput } from '@/types/expense'
 
 const STORAGE_KEY = 'uniconvert.mockExpenses.v2'
+const SEEDED_EXPENSE_MONTH = '2026-07'
+
+function normalizeSeedExpenseDates(expenses: ExpenseDetail[]) {
+  if (!isSeededMockUser()) return expenses
+
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const currentYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
+  const lastDayOfCurrentMonth = new Date(currentYear, currentMonth, 0).getDate()
+
+  return expenses.map((expense) => {
+    if (!expense.spentAt.startsWith(SEEDED_EXPENSE_MONTH)) return expense
+
+    const day = Number(expense.spentAt.slice(8, 10))
+    if (!Number.isFinite(day)) return expense
+    const normalizedDay = String(Math.min(Math.max(day, 1), lastDayOfCurrentMonth)).padStart(2, '0')
+    return {
+      ...expense,
+      spentAt: `${currentYearMonth}-${normalizedDay}${expense.spentAt.slice(10)}`,
+    }
+  })
+}
 
 function normalizeCategories(expenses: ExpenseDetail[]) {
   return expenses.map((expense) => expense.iconKey === 'medical'
@@ -13,7 +36,9 @@ function normalizeCategories(expenses: ExpenseDetail[]) {
 
 function seedExpenses() {
   if (!isSeededMockUser()) return []
-  return structuredClone((expenseDetailsMock as ApiResponse<ExpenseDetail[]>).data)
+  return normalizeSeedExpenseDates(
+    structuredClone((expenseDetailsMock as ApiResponse<ExpenseDetail[]>).data),
+  )
 }
 
 export function getStoredExpenses(): ExpenseDetail[] {
@@ -26,7 +51,9 @@ export function getStoredExpenses(): ExpenseDetail[] {
   }
 
   try {
-    const expenses = normalizeCategories(JSON.parse(stored) as ExpenseDetail[])
+    const expenses = normalizeSeedExpenseDates(
+      normalizeCategories(JSON.parse(stored) as ExpenseDetail[]),
+    )
     localStorage.setItem(storageKey, JSON.stringify(expenses))
     return expenses
   } catch {
