@@ -100,5 +100,33 @@ export interface ExpenseDetail {
   memo: string
 }
 
-export type CreateExpenseInput = Omit<ExpenseDetail, 'expenseId'>
+export interface CreateExpenseInput extends Omit<ExpenseDetail, 'expenseId'> {
+  /** 실제 API의 카테고리 PK입니다. Mock에서는 없어도 됩니다. */
+  categoryId?: number
+}
+
+export interface ExpenseResponseDto {
+  id?: number
+  originalAmount?: number
+  originalCurrency?: string | null
+  appliedRate?: number
+  rateSource?: string | null
+  rateDate?: string | null
+  convertedAmountHome?: number
+  merchantName?: string | null
+  memo?: string | null
+  categoryId?: number
+  potId?: number | null
+  spentAt?: string | null
+}
+
+export interface ExpenseImportResponseDto {
+  provider?: string | null
+  totalRowCount?: number
+  savedCount?: number
+  excludedCount?: number
+  errorCount?: number
+  errors?: unknown[]
+}
+
 export type UpdateExpenseInput = Partial<CreateExpenseInput>

@@ -20,6 +20,9 @@ function toAuthUser(response: UserMeResponseDto): AuthUser {
     // 현재 백엔드에는 이메일 인증 상태 필드와 인증 API가 구현되어 있지 않습니다.
     isEmailVerified: true,
     isOnboardingCompleted: response.onboardingCompleted,
+    homeCurrencyCode: response.homeCurrencyCode ?? undefined,
+    localCurrencyCode: response.localCurrencyCode ?? undefined,
+    timezone: response.timezone ?? undefined,
   }
 }
 

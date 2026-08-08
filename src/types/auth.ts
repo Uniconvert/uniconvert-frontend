@@ -49,6 +49,9 @@ export interface AuthUser {
   profileImage: string
   isEmailVerified: boolean
   isOnboardingCompleted: boolean
+  homeCurrencyCode?: string
+  localCurrencyCode?: string
+  timezone?: string
   /** 실제 API 응답에는 없고, 프론트 Mock 시나리오 구분에만 사용합니다. */
   mockDataMode?: MockDataMode
 }

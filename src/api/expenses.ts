@@ -7,9 +7,11 @@ import type {
   BudgetResponseDto,
   CreateExpenseInput,
   ExpenseHistoryData,
+  ExpenseImportResponseDto,
   ExpenseListItem,
   ExpenseListItemDto,
   ExpensePageDto,
+  ExpenseResponseDto,
   ExpenseUserContextDto,
   ReportCategoriesResponseDto,
   ReportCategoryItemDto,
@@ -18,9 +20,12 @@ import type {
 } from '@/types/expense'
 import { apiRequest, isUsingMockApi } from './client'
 
-/** 전체 Mock 모드를 유지하면서 지출 조회만 실제 API로 전환할 수 있습니다. */
-export const isUsingMockExpenseReadApi =
+/** 전체 Mock 모드를 유지하면서 지출 도메인만 실제 API로 전환할 수 있습니다. */
+export const isUsingMockExpenseApi =
   isUsingMockApi && import.meta.env.VITE_USE_REAL_EXPENSE_API !== 'true'
+
+/** 기존 화면 코드와의 호환을 위한 별칭입니다. */
+export const isUsingMockExpenseReadApi = isUsingMockExpenseApi
 
 const categoryColors: Record<string, string> = {
   food: '#366384', transport: '#a9cbfa', education: '#153047',
@@ -479,12 +484,12 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
 }
 
 export function getExpenseHistory(yearMonth: string, range: string) {
-  if (isUsingMockExpenseReadApi) return Promise.resolve(buildMockHistory(yearMonth, range))
+  if (isUsingMockExpenseApi) return Promise.resolve(buildMockHistory(yearMonth, range))
   return buildRealHistory(yearMonth, range)
 }
 
-export function createExpense(input: CreateExpenseInput) {
-  if (isUsingMockApi) {
+export async function createExpense(input: CreateExpenseInput) {
+  if (isUsingMockExpenseApi) {
     const expense = createStoredExpense(input)
     const savedExpense: SavedExpense = {
       expenseId: expense.expenseId,
@@ -494,16 +499,82 @@ export function createExpense(input: CreateExpenseInput) {
       spentAt: expense.spentAt,
     }
     saveStoredSavedExpenses([savedExpense, ...getStoredSavedExpenses()])
-    return Promise.resolve(expense)
+    return expense
   }
-  return apiRequest('/expenses', { success: true, data: { expenseId: '', ...input } }, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
-  })
+
+  if (!input.categoryId) {
+    throw new Error('지출 카테고리를 다시 선택해 주세요.')
+  }
+
+  const spentAt = input.spentAt.includes('T') ? input.spentAt : `${input.spentAt}T12:00:00`
+  const response = await apiRequest<ExpenseResponseDto>(
+    '/expenses',
+    {
+      data: {
+        id: 0,
+        originalAmount: input.originalAmount,
+        originalCurrency: input.currency,
+        appliedRate: input.appliedRate,
+        convertedAmountHome: input.convertedAmountHome,
+        merchantName: input.merchantName,
+        memo: input.memo,
+        categoryId: input.categoryId,
+        spentAt,
+      },
+    },
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        originalAmount: input.originalAmount,
+        originalCurrency: input.currency,
+        spentAt,
+        categoryId: input.categoryId,
+        merchantName: input.merchantName || undefined,
+        memo: input.memo || undefined,
+      }),
+      useMock: false,
+    },
+  )
+
+  return {
+    expenseId: String(response.id ?? ''),
+    currency: (response.originalCurrency?.toUpperCase() || input.currency) as CreateExpenseInput['currency'],
+    originalAmount: response.originalAmount ?? input.originalAmount,
+    convertedAmountHome: response.convertedAmountHome ?? input.convertedAmountHome,
+    appliedRate: response.appliedRate ?? input.appliedRate,
+    spentAt: response.spentAt ?? spentAt,
+    merchantName: response.merchantName ?? input.merchantName,
+    categoryName: input.categoryName,
+    iconKey: input.iconKey,
+    memo: response.memo ?? input.memo,
+    categoryId: response.categoryId ?? input.categoryId,
+  }
+}
+
+export async function importExpenses(file: File) {
+  if (isUsingMockExpenseApi) {
+    return {
+      provider: 'MOCK',
+      totalRowCount: 1,
+      savedCount: 1,
+      excludedCount: 0,
+      errorCount: 0,
+      errors: [],
+    } satisfies ExpenseImportResponseDto
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiRequest<ExpenseImportResponseDto>(
+    '/expenses/import',
+    { data: { totalRowCount: 0, savedCount: 0, excludedCount: 0, errorCount: 0, errors: [] } },
+    { method: 'POST', body: formData, useMock: false },
+  )
 }
 
 /** 최근 지출은 서버가 보장하는 최신순을 다시 정렬해 화면 모델로 변환합니다. */
 export async function getRecentExpenses() {
-  if (isUsingMockExpenseReadApi) return getStoredSavedExpenses()
+  if (isUsingMockExpenseApi) return getStoredSavedExpenses()
 
   const recent = await resolveOrNull(apiRequest<ExpenseListItemDto[]>(
     '/expenses/recent',
@@ -529,7 +600,7 @@ export async function getRecentExpenses() {
 
 /** 최근 지출 모달에서 선택한 월의 전체 페이지를 조회합니다. */
 export async function getExpensesForMonth(yearMonth: string) {
-  if (isUsingMockExpenseReadApi) {
+  if (isUsingMockExpenseApi) {
     return getStoredSavedExpenses()
       .filter((expense) => expense.spentAt.startsWith(yearMonth))
       .sort((a, b) => b.spentAt.localeCompare(a.spentAt))
