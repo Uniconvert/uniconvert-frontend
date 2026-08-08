@@ -16,7 +16,7 @@ function synchronizeSummary(data: PotsData): PotsData {
     .reduce((sum, expense) => sum + Math.max(expense.convertedAmountHome, 0), 0)
   // Pots의 총 보유 자산은 온보딩에서 설정한 월 예산을 기준으로 고정합니다.
   const totalAssets = monthlyBudget
-  const allocatedAmount = data.pots.reduce((sum, pot) => sum + Math.max(pot.savedAmount, 0), 0)
+  const allocatedAmount = data.pots.reduce((sum, pot) => sum + Math.max(pot.thisMonthAmount, 0), 0)
   return {
     ...data,
     homeCurrency: getMockHomeCurrency(),
@@ -47,6 +47,9 @@ function seedData(): PotsData {
     ...data,
     pots: data.pots.map((pot) => ({
       ...pot,
+      thisMonthAmount: pot.thisMonthAmount ?? pot.savedAmount,
+      archived: pot.archived ?? false,
+      displayOrder: pot.displayOrder ?? 0,
       autoSavingEnabled: pot.autoSavingEnabled ?? (pot.monthlyContribution > 0),
     })),
   })
@@ -61,7 +64,16 @@ export function getStoredPots(): PotsData {
     return initialData
   }
   try {
-    const data = JSON.parse(stored) as PotsData
+    const parsed = JSON.parse(stored) as PotsData
+    const data = {
+      ...parsed,
+      pots: parsed.pots.map((pot) => ({
+        ...pot,
+        thisMonthAmount: pot.thisMonthAmount ?? pot.savedAmount,
+        archived: pot.archived ?? false,
+        displayOrder: pot.displayOrder ?? 0,
+      })),
+    }
     const synchronized = synchronizeSummary(data)
     localStorage.setItem(storageKey, JSON.stringify(synchronized))
     return synchronized
@@ -96,6 +108,9 @@ export function createStoredPot(input: CreatePotInput) {
     potId: `pot-${Date.now()}`,
     ...input,
     savedAmount: Math.min(Math.max(input.savedAmount, 0), data.availableAmount),
+    thisMonthAmount: Math.min(Math.max(input.savedAmount, 0), data.availableAmount),
+    archived: false,
+    displayOrder: data.pots.length,
   }
   saveData({ ...data, pots: [...data.pots, pot] })
   return pot
@@ -115,6 +130,8 @@ export function updateStoredPot(potId: string, input: UpdatePotInput) {
     ...current,
     ...input,
     potId,
+    savedAmount: nextSavedAmount,
+    thisMonthAmount: input.thisMonthAmount ?? current.thisMonthAmount,
     completedAt: nextSavedAmount >= nextTargetAmount
       ? current.completedAt ?? new Date().toISOString().slice(0, 10)
       : undefined,

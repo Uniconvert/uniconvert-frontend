@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { createPot, deletePot, getPots, updatePot } from '@/api/pots'
+import { allocatePotAmount, archivePot, createPot, getPots, isUsingMockPotsApi, updatePot } from '@/api/pots'
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
@@ -108,7 +108,7 @@ function PotsPage() {
         const amountToAdd = Math.min(amountValue, maximumAdditionalAmount)
         if (amountToAdd <= 0) return
         const nextSavedAmount = activePot.savedAmount + amountToAdd
-        await updatePot(activePot.potId, { savedAmount: nextSavedAmount })
+        await allocatePotAmount(activePot, amountToAdd)
         if (activePot.savedAmount < activePot.targetAmount && nextSavedAmount >= activePot.targetAmount) {
           showToast({ variant: 'success', title: `“${activePot.name}” 목표를 달성했어요!` })
         }
@@ -128,17 +128,20 @@ function PotsPage() {
     setDeleteTarget(pot)
   }
 
-  const handleDeleteWithRefund = async () => {
+  const handleArchivePot = async () => {
     if (!deleteTarget) return
 
     setIsSaving(true)
     try {
-      const deleted = await deletePot(deleteTarget.potId)
-      if (!deleted) throw new Error('Pot delete failed')
+      const archived = await archivePot(deleteTarget.potId)
+      if (!archived) throw new Error('Pot archive failed')
       await reloadPots()
       setDeleteTarget(null)
     } catch {
-      showToast({ variant: 'error', title: 'Pot을 삭제에 실패했어요' })
+      showToast({
+        variant: 'error',
+        title: isUsingMockPotsApi ? 'Pot을 삭제하지 못했어요' : 'Pot을 보관하지 못했어요',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -301,7 +304,7 @@ function PotsPage() {
 
       {deleteTarget && (
         <ModalShell
-          title="Pot을 삭제하고 금액을 되돌릴까요?"
+          title={isUsingMockPotsApi ? 'Pot을 삭제하고 금액을 되돌릴까요?' : 'Pot을 보관할까요?'}
           titleId="delete-pot-title"
           closeLabel="Pot 삭제 팝업 닫기"
           width="31rem"
@@ -310,13 +313,17 @@ function PotsPage() {
         >
           <p className={styles.deletePotName}>“{deleteTarget.name}”</p>
           <p className={styles.deleteRefundMessage}>
-            {deleteTarget.savedAmount > 0
-              ? `모아둔 ${formatCurrencyAmount(deleteTarget.savedAmount, data.homeCurrency)}은 사용 가능 금액으로 돌아갑니다.`
-              : '모아둔 금액이 없어 Pot만 삭제됩니다.'}
+            {isUsingMockPotsApi
+              ? deleteTarget.savedAmount > 0
+                ? `모아둔 ${formatCurrencyAmount(deleteTarget.savedAmount, data.homeCurrency)}은 사용 가능 금액으로 돌아갑니다.`
+                : '모아둔 금액이 없어 Pot만 삭제됩니다.'
+              : '목록에서 숨겨지며 기존 목표와 배정 내역은 유지됩니다.'}
           </p>
           <div className={styles.deleteModalActions}>
-            <button type="button" onClick={handleDeleteWithRefund} disabled={isSaving}>
-              {isSaving ? '삭제 중...' : '사용 가능 금액으로 되돌리고 삭제'}
+            <button type="button" onClick={handleArchivePot} disabled={isSaving}>
+              {isSaving
+                ? isUsingMockPotsApi ? '삭제 중...' : '보관 중...'
+                : isUsingMockPotsApi ? '사용 가능 금액으로 되돌리고 삭제' : 'Pot 보관하기'}
             </button>
             <button type="button" onClick={() => setDeleteTarget(null)} disabled={isSaving}>
               취소
