@@ -94,8 +94,8 @@ export async function googleLogin(idToken: string): Promise<AuthUser> {
   }
 
   const googleAuthPath =
-    String(import.meta.env.VITE_GOOGLE_AUTH_PATH ?? '/auth/google').trim() ||
-    '/auth/google'
+    String(import.meta.env.VITE_GOOGLE_AUTH_PATH ?? '/auth/social/google').trim() ||
+    '/auth/social/google'
   const response = await apiRequest<LoginResponseDto>(
     googleAuthPath,
     { data: emptyLoginResponse },

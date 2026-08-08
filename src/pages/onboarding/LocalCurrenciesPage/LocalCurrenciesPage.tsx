@@ -1,22 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import CurrencySelection from '@/components/onboarding/CurrencySelection/CurrencySelection'
+import type { CurrencyOption } from '@/components/onboarding/CurrencySelection/CurrencySelection'
 import OnboardingPanel from '@/components/onboarding/OnboardingPanel/OnboardingPanel'
 import { getOnboardingSettings, updateOnboardingSettings } from '@/auth/session'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from '../CurrencySetupPage.module.css'
+import { getCurrencies } from '@/api/currencies'
+import { CURRENCY_OPTIONS } from '@/components/onboarding/CurrencySelection/currencyOptions'
 
 function LocalCurrenciesPage() {
   const navigate = useNavigate()
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([...CURRENCY_OPTIONS])
   const [selectedCodes, setSelectedCodes] = useState<string[]>(() => (
     getOnboardingSettings().localCurrencies ?? []
   ).slice(0, 1))
+
+  useEffect(() => {
+    let isActive = true
+    getCurrencies().then((response) => {
+      if (isActive) setCurrencies(response)
+    }).catch(() => {
+      // 통화 목록 조회가 실패하면 기본 목록을 유지합니다.
+    })
+    return () => { isActive = false }
+  }, [])
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     sessionStorage.setItem('uniconvert.localCurrencies', JSON.stringify(selectedCodes))
     updateOnboardingSettings({ localCurrencies: selectedCodes })
-    // TODO: Swagger 확정 후 선택한 현지 통화 목록 저장 API를 연결합니다.
+    // 실제 저장은 마지막 프로필 단계의 POST /onboarding에서 한 번에 완료합니다.
     navigate(ROUTE_PATHS.onboardingBudget)
   }
 
@@ -34,7 +48,7 @@ function LocalCurrenciesPage() {
         height="49rem"
         compact
       >
-        <CurrencySelection selectedCodes={selectedCodes} selectionMode="single" onChange={setSelectedCodes} />
+        <CurrencySelection currencies={currencies} selectedCodes={selectedCodes} selectionMode="single" onChange={setSelectedCodes} />
       </OnboardingPanel>
     </section>
   )

@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { getMonthlyReport } from '@/api/reports'
+import { getMonthlyReport, sendMonthlyReport } from '@/api/reports'
+import { getExpenseHistory } from '@/api/expenses'
 import type { MonthlyReportData } from '@/types/report'
 
 import styles from './ReportPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import Button from '@/components/common/Button/Button'
 import { createPortal } from 'react-dom'
-import { getEmailReportPreview } from '@/api/emailReports'
-import type { EmailReportData } from '@/types/emailReport'
 import type { ExpenseHistoryData } from '@/types/expense'
 import { convertCurrencyAmount } from '@/utils/exchangeRate'
 import todayExpensesMock from '@/mocks/todays-expenses.json'
@@ -240,15 +239,14 @@ function ReportPage() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [emailStatus, setEmailStatus] = useState('')
   const [data, setData] = useState<ExpenseHistoryData | null>(null)
 
   const [summaryMock] = useState({
     changeRate: 5.0,
     comparedDate: '2026-07-25',
   })
-
-  const [, setReportError] = useState('')
-  const [, setEmailReport] = useState<EmailReportData | null>(null)
 
   useEffect(() => {
     if (!isEmailModalOpen) return
@@ -271,21 +269,32 @@ function ReportPage() {
   useEffect(() => {
     let isActive = true
 
-    getEmailReportPreview()
+    getExpenseHistory(currentYM, 'month')
       .then((response) => {
-        if (isActive) {
-          setEmailReport(response)
-          setData(response as unknown as ExpenseHistoryData)
-        }
+        if (isActive) setData(response)
       })
       .catch(() => {
-        if (isActive) setReportError('이메일 리포트를 불러오지 못했습니다.')
+        // 리포트 본문은 별도 API로 계속 표시하고 이메일 미리보기의 예산만 0으로 둡니다.
       })
 
     return () => {
       isActive = false
     }
-  }, [])
+  }, [currentYM])
+
+  const handleSendEmailReport = async () => {
+    if (isSendingEmail) return
+    setIsSendingEmail(true)
+    setEmailStatus('')
+    try {
+      await sendMonthlyReport()
+      setEmailStatus('이메일로 리포트를 보냈어요.')
+    } catch {
+      setEmailStatus('이메일 리포트를 보내지 못했어요. 다시 시도해주세요.')
+    } finally {
+      setIsSendingEmail(false)
+    }
+  }
 
   const getMascotMessage = (rate: number | null) => {
     if (rate === null) return null
@@ -586,10 +595,16 @@ function ReportPage() {
                 </div>
               </section>
 
-              <Button className={styles.emailSendBtn} fullWidth>
+              <Button
+                className={styles.emailSendBtn}
+                fullWidth
+                disabled={isSendingEmail}
+                onClick={handleSendEmailReport}
+              >
                 <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
-                이메일로 리포트 보내기
+                {isSendingEmail ? '보내는 중...' : '이메일로 리포트 보내기'}
               </Button>
+              {emailStatus && <p role="status">{emailStatus}</p>}
 
             </div>
           </div>

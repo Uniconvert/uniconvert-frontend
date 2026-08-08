@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getEmailReportPreview } from '@/api/emailReports'
+import { isUsingMockAuthApi } from '@/api/auth'
+import { sendMonthlyReport } from '@/api/reports'
 import { updateMyProfile } from '@/api/users'
 import { getSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
@@ -23,6 +25,7 @@ function SettingsPage() {
   const [reportCycle, setReportCycle] = useState('daily') // 'daily' | 'weekly' | 'monthly'
   const [reportTime, setReportTime] = useState('09:00')
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false)
+  const [isSendingReport, setIsSendingReport] = useState(false)
   const [tempSelectedTime, setTempSelectedTime] = useState(reportTime)
   const [timePage, setTimePage] = useState(0)
   const { toast, showToast, closeToast } = useToastQueue()
@@ -72,12 +75,11 @@ function SettingsPage() {
     try {
       const updatedUser = await updateMyProfile({
         nickname: nextNickname,
-        imageUrl: profileImage,
-      })
+      }, { useMock: isUsingMockAuthApi })
       setSavedNickname(updatedUser.nickname)
       setNickname(updatedUser.nickname)
-      setProfileImage(updatedUser.profileImage)
-      setSessionUser(updateSessionUser(updatedUser))
+      // 이미지 업로드 API가 없어 선택한 이미지는 현재 브라우저에서만 미리보기로 유지합니다.
+      setSessionUser(updateSessionUser({ ...updatedUser, profileImage }))
       showToast({ variant: 'success', title: '수정되었어요' })
     } catch {
       showToast({ variant: 'error', title: '수정에 실패했습니다' })
@@ -91,6 +93,19 @@ function SettingsPage() {
   const handleReportToggle = () => {
     setIsEmailReportEnabled((current) => !current)
     // TODO: Swagger 확정 후 이메일 리포트 수신 설정 API를 연결합니다.
+  }
+
+  const handleSendReport = async () => {
+    if (isSendingReport) return
+    setIsSendingReport(true)
+    try {
+      await sendMonthlyReport()
+      showToast({ variant: 'success', title: '이메일로 리포트를 보냈어요' })
+    } catch {
+      showToast({ variant: 'error', title: '이메일 리포트를 보내지 못했어요' })
+    } finally {
+      setIsSendingReport(false)
+    }
   }
 
   const allTimes = Array.from({ length: 24 }, (_, index) => {
@@ -284,9 +299,14 @@ function SettingsPage() {
               </li>
             ))}
           </ul>
-          <Button className={styles.sendReportButton} fullWidth>
+          <Button
+            className={styles.sendReportButton}
+            fullWidth
+            disabled={isSendingReport}
+            onClick={handleSendReport}
+          >
             <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
-            이메일로 리포트 보내기
+            {isSendingReport ? '보내는 중...' : '이메일로 리포트 보내기'}
           </Button>
         </section>
       </aside>
