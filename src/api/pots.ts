@@ -1,7 +1,8 @@
 import { createStoredPot, deleteStoredPot, getStoredPots, updateStoredPot } from '@/mocks/potStore'
 import { getMockHomeCurrency } from '@/mocks/mockScenario'
-import type { CreatePotInput, Pot, PotsData, UpdatePotInput } from '@/types/pot'
+import type { CreatePotInput, Pot, UpdatePotInput } from '@/types/pot'
 import { apiRequest, isUsingMockApi } from './client'
+import { getExpenseHistory } from './expenses'
 
 interface SubWalletResponse {
   subWalletId: number
@@ -35,25 +36,34 @@ function toPot(wallet: SubWalletResponse): Pot {
   }
 }
 
-export function getPots() {
+export async function getPots() {
   if (isUsingMockApi) return Promise.resolve(getStoredPots())
 
-  return apiRequest<SubWalletListResponse>('/sub-wallets', {
-    data: {
-      summary: { monthlyBudgetHome: 0, potsAllocatedAmountHome: 0, availableAmountHome: 0 },
-      subWallets: [],
-    },
-  }).then((response): PotsData => {
-    const pots = response.subWallets.map(toPot)
-    const allocatedAmount = pots.reduce((sum, pot) => sum + pot.targetAmount, 0)
-    return {
-      homeCurrency: getMockHomeCurrency(),
-      monthlyBudget: response.summary.monthlyBudgetHome,
-      allocatedAmount,
-      availableAmount: Math.max(response.summary.monthlyBudgetHome - allocatedAmount, 0),
-      pots,
-    }
-  })
+  const now = new Date()
+  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const [response, expenseHistory] = await Promise.all([
+    apiRequest<SubWalletListResponse>('/sub-wallets', {
+      data: {
+        summary: { monthlyBudgetHome: 0, potsAllocatedAmountHome: 0, availableAmountHome: 0 },
+        subWallets: [],
+      },
+    }),
+    getExpenseHistory(yearMonth, 'month'),
+  ])
+  const pots = response.subWallets.map(toPot)
+  const allocatedAmount = pots.reduce((sum, pot) => sum + Math.max(pot.savedAmount, 0), 0)
+  const totalAssets = response.summary.monthlyBudgetHome
+  const monthlyExpense = Math.max(expenseHistory.monthlyExpenseHome, 0)
+
+  return {
+    homeCurrency: getMockHomeCurrency(),
+    monthlyBudget: response.summary.monthlyBudgetHome,
+    totalAssets,
+    monthlyExpense,
+    allocatedAmount,
+    availableAmount: Math.max(totalAssets - monthlyExpense - allocatedAmount, 0),
+    pots,
+  }
 }
 
 export function createPot(input: CreatePotInput) {

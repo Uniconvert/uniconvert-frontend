@@ -127,8 +127,13 @@ function BudgetEditModal({
             <input inputMode="numeric" value={budget.toLocaleString('ko-KR')} onChange={(event) => updateBudget(event.target.value)} />
           </label>
 
-          <div className={styles.budgetRangeWrap}>
-            <output style={{ left: `${progress}%` }}>{currencySymbol} {budget.toLocaleString('ko-KR')}</output>
+          <div
+            className={styles.budgetRangeWrap}
+            style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
+          >
+            <output style={{ left: `${progress}%`, transform: `translateX(-${progress}%)` }}>
+              {currencySymbol} {budget.toLocaleString('ko-KR')}
+            </output>
             <input
               type="range"
               min="0"
@@ -136,7 +141,6 @@ function BudgetEditModal({
               step={rangeStep}
               value={budget}
               aria-label="월 예산 금액 슬라이더"
-              style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
               onChange={(event) => setBudget(Number(event.target.value))}
             />
             <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString('ko-KR')}</span></div>
@@ -298,7 +302,7 @@ function DashboardLayout() {
                 className={styles.assetSummary}
                 aria-labelledby="asset-summary-title"
               >
-                <button className={styles.assetEditButton} type="button" aria-label="총 보유 자산 편집" onClick={() => setIsBudgetModalOpen(true)}>
+                <button className={styles.assetEditButton} type="button" aria-label="이번 달 예산 편집" onClick={() => setIsBudgetModalOpen(true)}>
                   <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
                 </button>
                 <div className={styles.assetRing} aria-hidden="true">
@@ -308,7 +312,7 @@ function DashboardLayout() {
                     <small>{currentYearMonth}</small>
                   </span>
                 </div>
-                <h2 id="asset-summary-title">총 보유 자산</h2>
+                <h2 id="asset-summary-title">이번 달 예산</h2>
                 <p className={styles.assetTotal}>
                   {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString('ko-KR')}
                 </p>

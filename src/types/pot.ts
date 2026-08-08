@@ -27,6 +27,8 @@ export type UpdatePotInput = Partial<CreatePotInput>
 export interface PotsData {
   homeCurrency: string
   monthlyBudget: number
+  totalAssets: number
+  monthlyExpense: number
   allocatedAmount: number
   availableAmount: number
   pots: Pot[]

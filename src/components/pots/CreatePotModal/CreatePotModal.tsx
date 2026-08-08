@@ -64,6 +64,7 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
                 step="10000"
                 value={targetAmount}
                 aria-label="목표 금액"
+                style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${targetRate}%, #e5e5e5 ${targetRate}% 100%)` }}
                 onChange={(event) => setTargetAmount(Number(event.target.value))}
               />
             </div>

@@ -19,6 +19,7 @@ const representativeImages = [
   '/assets/images/goals/shopping-mall.png',
   '/assets/images/goals/travel-resort.png',
   '/assets/illustrations/mascot-finance.png',
+  '/assets/images/pots/representative-image-add.png',
 ]
 
 function PotsPage() {
@@ -34,7 +35,7 @@ function PotsPage() {
   const [editImageSrc, setEditImageSrc] = useState('')
   const [editIcon, setEditIcon] = useState('travel')
   const [deleteTarget, setDeleteTarget] = useState<Pot | null>(null)
-  const previousAllocationRef = useRef<Pick<PotsData, 'monthlyBudget' | 'allocatedAmount'> | null>(null)
+  const previousAllocationRef = useRef<Pick<PotsData, 'totalAssets' | 'monthlyExpense' | 'allocatedAmount'> | null>(null)
   const { toast, showToast, closeToast } = useToastQueue()
 
   useEffect(() => {
@@ -57,9 +58,9 @@ function PotsPage() {
     if (!data) return
 
     const previousAllocation = previousAllocationRef.current
-    const isOverAllocated = data.allocatedAmount > data.monthlyBudget
+    const isOverAllocated = data.monthlyExpense + data.allocatedAmount > data.totalAssets
     const wasOverAllocated = previousAllocation
-      ? previousAllocation.allocatedAmount > previousAllocation.monthlyBudget
+      ? previousAllocation.monthlyExpense + previousAllocation.allocatedAmount > previousAllocation.totalAssets
       : isOverAllocated
 
     if (!wasOverAllocated && isOverAllocated) {
@@ -67,7 +68,8 @@ function PotsPage() {
     }
 
     previousAllocationRef.current = {
-      monthlyBudget: data.monthlyBudget,
+      totalAssets: data.totalAssets,
+      monthlyExpense: data.monthlyExpense,
       allocatedAmount: data.allocatedAmount,
     }
   }, [data, showToast])
@@ -80,6 +82,9 @@ function PotsPage() {
     ? Math.min((editTargetAmount / data.monthlyBudget) * 100, 100)
     : 0
   const editTooltipRate = Math.min(Math.max(editTargetRate, 8), 92)
+  const maximumAdditionalAmount = activePot
+    ? Math.max(Math.min(activePot.targetAmount - activePot.savedAmount, data.availableAmount), 0)
+    : 0
 
   const reloadPots = async () => setData(await getPots())
 
@@ -100,7 +105,9 @@ function PotsPage() {
     setIsSaving(true)
     try {
       if (panelMode === 'add') {
-        const nextSavedAmount = Math.min(activePot.savedAmount + amountValue, activePot.targetAmount)
+        const amountToAdd = Math.min(amountValue, maximumAdditionalAmount)
+        if (amountToAdd <= 0) return
+        const nextSavedAmount = activePot.savedAmount + amountToAdd
         await updatePot(activePot.potId, { savedAmount: nextSavedAmount })
         if (activePot.savedAmount < activePot.targetAmount && nextSavedAmount >= activePot.targetAmount) {
           showToast({ variant: 'success', title: `“${activePot.name}” 목표를 달성했어요!` })
@@ -117,19 +124,11 @@ function PotsPage() {
     } finally { setIsSaving(false) }
   }
 
-  const handleEditImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.addEventListener('load', () => { if (typeof reader.result === 'string') setEditImageSrc(reader.result) })
-    reader.readAsDataURL(file)
-  }
-
   const handleDeletePot = (pot: Pot) => {
     setDeleteTarget(pot)
   }
 
-  const handleDeleteWithoutRefund = async () => {
+  const handleDeleteWithRefund = async () => {
     if (!deleteTarget) return
 
     setIsSaving(true)
@@ -152,12 +151,12 @@ function PotsPage() {
       const newPot = await createPot(input)
       setData((current) => {
         if (!current) return current
-        const allocatedAmount = current.allocatedAmount + newPot.targetAmount
+        const allocatedAmount = current.allocatedAmount + newPot.savedAmount
 
         return {
           ...current,
           allocatedAmount,
-          availableAmount: Math.max(current.monthlyBudget - allocatedAmount, 0),
+          availableAmount: Math.max(current.availableAmount - newPot.savedAmount, 0),
           pots: [...current.pots, newPot],
         }
       })
@@ -177,7 +176,7 @@ function PotsPage() {
       <div className={styles.dashboardGrid}>
         <div className={styles.mainColumn}>
           <BudgetAllocationSummary
-            monthlyBudget={data.monthlyBudget}
+            totalAssets={data.totalAssets}
             allocatedAmount={data.allocatedAmount}
             availableAmount={data.availableAmount}
             currency={data.homeCurrency}
@@ -217,6 +216,7 @@ function PotsPage() {
           titleId="pot-action-title"
           closeLabel={panelMode === 'add' ? '금액 추가 닫기' : 'Pots 수정 닫기'}
           width={panelMode === 'edit' ? '44rem' : '43rem'}
+          dialogClassName={panelMode === 'edit' ? styles.editModalDialog : undefined}
           bodyClassName={panelMode === 'edit' ? styles.editModalBody : styles.actionModalBody}
           onClose={closePanel}
         >
@@ -235,7 +235,16 @@ function PotsPage() {
                 <label className={styles.rangeField}>
                   <div className={styles.rangeWrap}>
                     <output style={{ left: `${editTooltipRate}%` }}>{formatCurrencyAmount(editTargetAmount, data.homeCurrency)}</output>
-                    <input aria-label="목표 금액 수정" type="range" min="0" max={data.monthlyBudget} step="10000" value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)} onChange={(event) => setEditTargetAmount(Number(event.target.value))} />
+                    <input
+                      aria-label="목표 금액 수정"
+                      type="range"
+                      min="0"
+                      max={data.monthlyBudget}
+                      step="10000"
+                      value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)}
+                      style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${editTargetRate}%, #e5e5e5 ${editTargetRate}% 100%)` }}
+                      onChange={(event) => setEditTargetAmount(Number(event.target.value))}
+                    />
                   </div>
                   <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(data.monthlyBudget, data.homeCurrency)}</small></span>
                 </label>
@@ -260,7 +269,6 @@ function PotsPage() {
                       </button>
                     )
                   })}
-                  <label className={styles.uploadChoice}>＋<small>직접 업로드</small><input type="file" accept="image/*" onChange={handleEditImageUpload} /></label>
                 </div>
               </fieldset>
               <fieldset className={styles.categoryChoices}>
@@ -277,23 +285,23 @@ function PotsPage() {
                 <CurrencyAmountInput
                   value={amountValue}
                   currency={data.homeCurrency}
-                  max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)}
+                  max={maximumAdditionalAmount}
                   ariaLabel="추가할 금액 입력"
                   onChange={setAmountValue}
                 />
                 <output>{formatCurrencyAmount(amountValue, data.homeCurrency)}</output>
-                <input type="range" min="0" max={Math.max(activePot.targetAmount - activePot.savedAmount, 0)} step="10000" value={amountValue} onChange={(event) => setAmountValue(Number(event.target.value))} />
-                <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(Math.max(activePot.targetAmount - activePot.savedAmount, 0), data.homeCurrency)}</small></span>
+                <input type="range" min="0" max={maximumAdditionalAmount} step="10000" value={Math.min(amountValue, maximumAdditionalAmount)} onChange={(event) => setAmountValue(Number(event.target.value))} />
+                <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(maximumAdditionalAmount, data.homeCurrency)}</small></span>
               </label>
             </>
           )}
-          <div className={styles.modalActions}><button type="button" onClick={closePanel}>취소</button><button type="button" onClick={handlePanelSave} disabled={isSaving || (panelMode === 'edit' ? !editName.trim() || editTargetAmount <= 0 : amountValue <= 0)}>{isSaving ? '저장 중...' : '저장하기'}</button></div>
+          <div className={styles.modalActions}><button type="button" onClick={closePanel}>취소</button><button type="button" onClick={handlePanelSave} disabled={isSaving || (panelMode === 'edit' ? !editName.trim() || editTargetAmount <= 0 : amountValue <= 0 || amountValue > maximumAdditionalAmount)}>{isSaving ? '저장 중...' : '저장하기'}</button></div>
         </ModalShell>
       )}
 
       {deleteTarget && (
         <ModalShell
-          title="Pot을 삭제하시겠어요?"
+          title="Pot을 삭제하고 금액을 되돌릴까요?"
           titleId="delete-pot-title"
           closeLabel="Pot 삭제 팝업 닫기"
           width="31rem"
@@ -301,12 +309,14 @@ function PotsPage() {
           onClose={() => setDeleteTarget(null)}
         >
           <p className={styles.deletePotName}>“{deleteTarget.name}”</p>
+          <p className={styles.deleteRefundMessage}>
+            {deleteTarget.savedAmount > 0
+              ? `모아둔 ${formatCurrencyAmount(deleteTarget.savedAmount, data.homeCurrency)}은 사용 가능 금액으로 돌아갑니다.`
+              : '모아둔 금액이 없어 Pot만 삭제됩니다.'}
+          </p>
           <div className={styles.deleteModalActions}>
-            <button type="button" disabled title="백엔드 정책 확정 후 연결 예정">
-              예산으로 환원 후 삭제
-            </button>
-            <button type="button" onClick={handleDeleteWithoutRefund} disabled={isSaving}>
-              {isSaving ? '삭제 중...' : '그대로 삭제 (저축액 소멸)'}
+            <button type="button" onClick={handleDeleteWithRefund} disabled={isSaving}>
+              {isSaving ? '삭제 중...' : '사용 가능 금액으로 되돌리고 삭제'}
             </button>
             <button type="button" onClick={() => setDeleteTarget(null)} disabled={isSaving}>
               취소
