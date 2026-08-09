@@ -2,7 +2,7 @@ import styles from './BudgetAllocationSummary.module.css'
 import { formatCurrencyAmount } from '@/utils/currency'
 
 interface BudgetAllocationSummaryProps {
-  monthlyBudget: number
+  totalAssets: number
   allocatedAmount: number
   availableAmount: number
   currency: string
@@ -16,10 +16,10 @@ function FlowArrow() {
   )
 }
 
-function BudgetAllocationSummary({ monthlyBudget, allocatedAmount, availableAmount, currency }: BudgetAllocationSummaryProps) {
-  const allocatedRate = monthlyBudget > 0 ? Math.round((allocatedAmount / monthlyBudget) * 1000) / 10 : 0
-  const availableRate = monthlyBudget > 0 ? Math.round((availableAmount / monthlyBudget) * 1000) / 10 : 0
-  const isOverAllocated = allocatedAmount > monthlyBudget
+function BudgetAllocationSummary({ totalAssets, allocatedAmount, availableAmount, currency }: BudgetAllocationSummaryProps) {
+  const allocatedRate = totalAssets > 0 ? Math.round((allocatedAmount / totalAssets) * 1000) / 10 : 0
+  const availableRate = totalAssets > 0 ? Math.round((availableAmount / totalAssets) * 1000) / 10 : 0
+  const isOverAllocated = allocatedAmount > totalAssets
 
   return (
     <section className={styles.summary} aria-label="월 예산 배분 현황">
@@ -27,7 +27,7 @@ function BudgetAllocationSummary({ monthlyBudget, allocatedAmount, availableAmou
         <span className={styles.walletIcon}><img src="/assets/icons/pots/pot-wallet.png" alt="" aria-hidden="true" /></span>
         <div>
           <span className={styles.label}>총 보유 자산</span>
-          <strong>{formatCurrencyAmount(monthlyBudget, currency)}</strong>
+          <strong>{formatCurrencyAmount(totalAssets, currency)}</strong>
         </div>
       </div>
       <FlowArrow />

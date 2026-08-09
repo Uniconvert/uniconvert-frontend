@@ -42,13 +42,18 @@ function ModalShell({
   const generatedTitleId = useId()
   const resolvedTitleId = titleId ?? generatedTitleId
   const dialogRef = useRef<HTMLElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') onCloseRef.current()
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -58,7 +63,7 @@ function ModalShell({
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [onClose])
+  }, [])
 
   const shellStyle: ModalShellStyle = {
     '--modal-width': width,

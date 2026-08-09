@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { createMockSignupSession } from '@/auth/session'
+import { signUp } from '@/api/auth'
 import Button from '@/components/common/Button/Button'
 import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
 import TextField from '@/components/common/TextField/TextField'
@@ -15,23 +15,36 @@ function SignUpPage() {
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const normalizedEmail = email.trim().toLowerCase()
   const isEmailValid = EMAIL_PATTERN.test(normalizedEmail)
-  const isPasswordValid = password.length >= 8
+  const isPasswordValid = password.length >= 8 && password.length <= 100
   const isPasswordConfirmed = password === passwordConfirm
   const canSubmit = isEmailValid && isPasswordValid && isPasswordConfirmed
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (!canSubmit) {
+    if (!canSubmit || isLoading) {
       setStatusMessage('입력 내용을 다시 확인해 주세요.')
       return
     }
 
-    createMockSignupSession(normalizedEmail)
-    navigate(ROUTE_PATHS.terms)
+    setIsLoading(true)
+    setStatusMessage('')
+
+    try {
+      await signUp({
+        email: normalizedEmail,
+        password,
+      })
+      navigate(ROUTE_PATHS.terms)
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : '회원가입에 실패했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleSignup = () => {
@@ -78,7 +91,7 @@ function SignUpPage() {
               autoComplete="new-password"
               required
               helperText="영문, 숫자 조합은 백엔드 정책 확정 후 적용됩니다."
-              errorMessage={password.length > 0 && !isPasswordValid ? '비밀번호는 8자 이상이어야 합니다.' : undefined}
+              errorMessage={password.length > 0 && !isPasswordValid ? '비밀번호는 8자 이상 100자 이하여야 합니다.' : undefined}
               onChange={(event) => { setPassword(event.target.value); setStatusMessage('') }}
             />
             <TextField
@@ -96,7 +109,7 @@ function SignUpPage() {
             />
           </div>
 
-          <Button type="submit" fullWidth disabled={!canSubmit}>이메일로 회원가입</Button>
+          <Button type="submit" fullWidth disabled={!canSubmit || isLoading} isLoading={isLoading}>이메일로 회원가입</Button>
           <div className={styles.divider}><span>또는</span></div>
           <GoogleLoginButton fullWidth onClick={handleGoogleSignup}>Google 계정으로 회원가입</GoogleLoginButton>
 

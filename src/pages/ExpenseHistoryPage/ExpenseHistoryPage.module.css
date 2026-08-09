@@ -56,13 +56,18 @@
 .manageButton img { width: 1.5rem; height: 1.5rem; object-fit: contain; }
 .manageButtonActive { width: auto; font-size: 1rem; }
 .savedModalBody ul { margin: 0; padding: 0; list-style: none; }
-.savedModalBody li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .75rem; min-height: 6rem; border-bottom: 1px solid var(--color-border); }
+.savedModalBody li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .75rem; min-height: 6rem; border-bottom: 1px solid rgb(222 222 222 / 45%); }
 .savedModalBody li.managedExpense { grid-template-columns: auto 1fr auto auto; }
 .savedModalBody li[draggable='true'] { cursor: grab; }
 .savedModalBody li.dragging { opacity: .45; background: #eff7ff; }
 .savedExpenseMain { display: grid; grid-template-columns: 3.25rem 1fr; align-items: center; gap: .85rem; padding: 0; text-align: left; background: transparent; border: 0; }
 .savedExpenseMain b { display: inline-flex; align-items: center; gap: .4rem; }
 .savedExpenseMeta { display: grid; min-width: 0; gap: .2rem; }
+.savedExpenseMeta b,
+.savedModalBody li > strong {
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 700;
+}
 .dragHandle { color: var(--color-text-muted); font-size: 1.4rem; }
 .nameEditButton { display: grid; width: 1.5rem; height: 1.5rem; flex: 0 0 1.5rem; place-items: center; padding: 0; background: transparent; border: 0; border-radius: .25rem; }
 .nameEditButton:hover { background: #eff7ff; }
@@ -257,6 +262,16 @@
   width: clamp(1.5rem, 2.5vw, 2rem);
   height: clamp(1.5rem, 2.5vw, 2rem);
   object-fit: contain;
+}
+
+.savedModalBody .expenseIcon img:is(
+  [src$='category-education.png'],
+  [src$='category-travel.png'],
+  [src$='category-shopping.png'],
+  [src$='category-communication.png']
+) {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .expenseIcon img[src$='action-add.png'] { width: 1.25rem; height: 1.25rem; }

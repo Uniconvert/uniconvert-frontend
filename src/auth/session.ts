@@ -96,15 +96,15 @@ function getStoredValue(key: keyof typeof SESSION_KEYS) {
   return legacyValue
 }
 
-export function saveSession(result: LoginResult) {
+export function saveSessionUser(userToSave: AuthUser) {
   if (
-    result.user.mockDataMode === 'onboarding-empty'
-    && result.user.email === FRESH_ONBOARDING_MOCK_EMAIL
+    userToSave.mockDataMode === 'onboarding-empty'
+    && userToSave.email === FRESH_ONBOARDING_MOCK_EMAIL
   ) {
-    clearStoredMockUserState(result.user.userId)
+    clearStoredMockUserState(userToSave.userId)
   }
 
-  const user = hydrateMockUser(result.user)
+  const user = hydrateMockUser(userToSave)
   const onboarding = user.mockDataMode
     ? getStoredMockUserState(user.userId)?.onboarding
     : undefined
@@ -118,7 +118,6 @@ export function saveSession(result: LoginResult) {
   if (onboarding?.termsAgreements) sessionStorage.setItem('uniconvert.termsAgreements', JSON.stringify(onboarding.termsAgreements))
 
   sessionStorage.setItem(SESSION_KEYS.user, JSON.stringify(user))
-  saveSessionTokens(result)
   return user
 }
 
@@ -148,28 +147,26 @@ export function ensureMockOnboardingSession() {
     },
   }
 
-  saveSession(result)
-  return result.user
+  saveSessionTokens(result)
+  return saveSessionUser(result.user)
 }
 
-export function createMockSignupSession(email: string) {
+/** Mock과 실제 회원가입이 동일한 세션 저장 흐름을 사용하도록 결과만 생성합니다. */
+export function createMockSignupResult(email: string, temporaryNickname: string): LoginResult {
   const userId = Date.now()
-  const result: LoginResult = {
+  return {
     accessToken: `mock-signup-access-token-${userId}`,
     refreshToken: `mock-signup-refresh-token-${userId}`,
     user: {
       userId,
       email,
-      nickname: '',
+      nickname: temporaryNickname,
       profileImage: '',
       isEmailVerified: true,
       isOnboardingCompleted: false,
       mockDataMode: 'onboarding-empty',
     },
   }
-
-  saveSession(result)
-  return result.user
 }
 
 export function getAccessToken() {
@@ -186,10 +183,47 @@ export function clearSession() {
   ONBOARDING_KEYS.forEach((key) => sessionStorage.removeItem(key))
 }
 
+function readStringArray(key: string) {
+  const storedValue = sessionStorage.getItem(key)
+  if (!storedValue) return undefined
+
+  try {
+    const parsedValue = JSON.parse(storedValue) as unknown
+    return Array.isArray(parsedValue)
+      ? parsedValue.filter((value): value is string => typeof value === 'string')
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** 온보딩 도중 입력한 값은 실제 API 전송 전까지 현재 브라우저 세션에 보관합니다. */
+function readPendingOnboardingSettings(): OnboardingSettings {
+  const baseCurrency = sessionStorage.getItem('uniconvert.baseCurrency') ?? undefined
+  const localCurrencies = readStringArray('uniconvert.localCurrencies')
+  const storedBudget = sessionStorage.getItem('uniconvert.monthlyBudget')
+  const monthlyBudget = storedBudget ? Number(storedBudget) : undefined
+  const timeZone = sessionStorage.getItem('uniconvert.timeZone') ?? undefined
+  const profileGoals = readStringArray('uniconvert.profileGoals')
+
+  return {
+    baseCurrency,
+    localCurrencies,
+    monthlyBudget: Number.isFinite(monthlyBudget) ? monthlyBudget : undefined,
+    timeZone,
+    profileGoals,
+  }
+}
+
 export function getOnboardingSettings(): OnboardingSettings {
   const user = getSessionUser()
-  if (!user?.mockDataMode) return {}
-  return getStoredMockUserState(user.userId)?.onboarding ?? {}
+  const pendingSettings = readPendingOnboardingSettings()
+  if (!user?.mockDataMode) return pendingSettings
+
+  return {
+    ...pendingSettings,
+    ...(getStoredMockUserState(user.userId)?.onboarding ?? {}),
+  }
 }
 
 export function updateOnboardingSettings(updates: Partial<OnboardingSettings>) {

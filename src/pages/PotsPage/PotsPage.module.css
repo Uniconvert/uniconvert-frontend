@@ -1,5 +1,12 @@
 .page { width: 100%; min-width: 0; min-height: calc(100svh - 13rem); position: relative; padding-right: 2.75rem; padding-left: .3125rem; }
-.page h1 { margin-bottom: 1.75rem; font-size: 1.75rem; line-height: 1.25; }
+.page h1 {
+  margin-bottom: 1.75rem;
+  color: #2f6f9f;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 1.625rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
 .dashboardGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
@@ -49,6 +56,11 @@
   padding: 1.6rem 1.9rem 1.5rem;
 }
 
+.editModalDialog h2 {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-semibold);
+}
+
 .actionPotName { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
 
 .actionPotName img {
@@ -63,6 +75,11 @@
 .modalField, .rangeField { display: grid; gap: .75rem; }
 .editFields { display: grid; gap: 1.75rem; }
 .modalField span, .rangeField > span:first-child { font-weight: var(--font-weight-bold); }
+.editModalBody .modalField > span,
+.editModalBody .rangeField > span:first-child {
+  font-size: .875rem;
+  font-weight: var(--font-weight-semibold);
+}
 .modalField > input { min-height: 3.25rem; padding: 0 1rem; border: 1px solid var(--color-border); border-radius: .75rem; font: inherit; }
 
 .editNameRow {
@@ -82,10 +99,13 @@
 .editNameRow > input {
   width: 100%;
   min-height: 3.75rem;
-  padding: 0 1rem;
-  border: 1px solid var(--color-border);
+  padding: .75rem 1rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid #d7d7d7;
   border-radius: .625rem;
   font: inherit;
+  font-weight: var(--font-weight-regular);
 }
 
 .editNameRow > input:focus {
@@ -108,7 +128,7 @@
 .imageChoices > p,
 .categoryChoices > p {
   margin: -.35rem 0 0;
-  color: var(--color-text-muted);
+  color: var(--color-text-primary);
   font-size: .875rem;
 }
 
@@ -117,13 +137,36 @@
 .rangeWrap { position: relative; height: 3.5rem; padding-top: 2.1rem; }
 .rangeWrap output { position: absolute; top: 0; width: fit-content; margin: 0; padding: .35rem .75rem; color: white; background: var(--color-primary); border-radius: .45rem; font-size: .8rem; font-weight: var(--font-weight-bold); white-space: nowrap; transform: translateX(-50%); }
 .rangeWrap output::after { position: absolute; top: 100%; left: 50%; content: ''; border-top: .45rem solid var(--color-primary); border-right: .4rem solid transparent; border-left: .4rem solid transparent; transform: translateX(-50%); }
-.rangeWrap input[type='range'] { width: 100%; accent-color: var(--color-primary); }
+.rangeWrap input[type='range'] {
+  width: 100%;
+  height: .5rem;
+  appearance: none;
+  background: #e5e5e5;
+  border-radius: 999px;
+}
+.rangeWrap input[type='range']::-webkit-slider-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  appearance: none;
+  background: var(--color-primary);
+  border: .2rem solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+}
+.rangeWrap input[type='range']::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  background: var(--color-primary);
+  border: .2rem solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+}
 .rangeLabels { display: flex; justify-content: space-between; color: var(--color-text-muted); }
 .imageChoices, .categoryChoices { margin: 0; padding: 0; border: 0; }
 .imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
 .imageChoices > div, .categoryChoices > div { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
 
-.imageChoices button, .uploadChoice {
+.imageChoices button {
   display: grid;
   width: 5.5rem;
   height: 7rem;
@@ -136,10 +179,7 @@
 }
 
 .imageChoices button img { display: block; width: 100%; height: 100%; border-radius: .7rem; object-fit: cover; }
-.imageChoices button:nth-child(5) img { padding: .35rem; object-fit: contain; }
-.uploadChoice { color: var(--color-primary); border: 2px dashed var(--color-primary); font-size: 1.7rem; cursor: pointer; }
-.uploadChoice small { font-size: .65rem; }
-.uploadChoice input { display: none; }
+.imageChoices button:nth-child(6) img { padding: .35rem; object-fit: contain; }
 
 .selectedImageChoice {
   border-color: var(--color-primary) !important;
@@ -164,6 +204,12 @@
 
 .categoryChoices button { display: grid; width: 3.25rem; height: 3.25rem; place-items: center; background: white; border: 1px solid var(--color-border); border-radius: .6rem; font-size: 1.45rem; }
 .categoryChoices button img { width: 2.1rem; height: 2.1rem; object-fit: contain; transform-origin: center; }
+.categoryChoices > div {
+  width: 100%;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
 .selectedChoice { border-color: var(--color-primary) !important; outline: 2px solid #dbeeff; }
 .modalActions { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1rem; margin-top: 2rem; }
 
@@ -175,6 +221,7 @@
   min-height: clamp(2.5rem, 5vh, 3rem);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
+  color: var(--color-text-muted);
   background: white;
   font: inherit;
 }
@@ -189,6 +236,13 @@
 .deletePotName {
   margin: 0 0 1.25rem;
   color: var(--color-text-muted);
+  text-align: center;
+}
+
+.deleteRefundMessage {
+  margin: 0 0 1.5rem;
+  color: var(--color-text);
+  line-height: 1.6;
   text-align: center;
 }
 
@@ -210,12 +264,6 @@
 .deleteModalActions button:first-child {
   color: var(--color-primary);
   border-color: var(--color-primary);
-}
-
-.deleteModalActions button:nth-child(2) {
-  color: white;
-  background: #ef6464;
-  border-color: #ef6464;
 }
 
 .deleteModalActions button:last-child {
@@ -245,5 +293,6 @@
   .sideColumn { grid-template-columns: 1fr; }
   .walletIllustration { min-height: 13rem; }
   .editFields { gap: 1.5rem; }
+  .categoryChoices > div { flex-wrap: wrap; justify-content: flex-start; }
   .editModalBody > .modalActions { margin-top: 1.25rem; }
 }

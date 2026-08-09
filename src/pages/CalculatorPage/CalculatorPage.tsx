@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import styles from './CalculatorPage.module.css'
 import { convertCurrencyAmount } from '@/utils/exchangeRate'
+import { getExchangeQuote, getExchangeQuoteHistory, type ExchangeQuoteDto } from '@/api/exchangeRates'
 import ModalShell from '@/components/common/ModalShell/ModalShell';
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot';
 
@@ -18,7 +19,7 @@ interface HistoryItem {
   isActive: boolean
 }
 
-const historyData: HistoryItem[] = [
+const fallbackHistoryData: HistoryItem[] = [
   {
     id: 1,
     currencyCode: 'usd',
@@ -63,6 +64,9 @@ function CalculatorPage() {
   const toSelectRef = useRef<HTMLDivElement>(null)
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+  const [quote, setQuote] = useState<ExchangeQuoteDto | null>(null)
+  const [quoteError, setQuoteError] = useState('')
+  const [historyData, setHistoryData] = useState(fallbackHistoryData)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -79,6 +83,34 @@ function CalculatorPage() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
+  }, [])
+
+  useEffect(() => {
+    let isActive = true
+    getExchangeQuoteHistory(0, 10)
+      .then((items) => {
+        if (!isActive || items.length === 0) return
+        setHistoryData(items.map((item, index) => {
+          const from = item.fromCurrency?.toUpperCase() || 'USD'
+          const to = item.toCurrency?.toUpperCase() || 'KRW'
+          const amount = item.amount ?? 0
+          const converted = item.convertedAmount ?? 0
+          return {
+            id: item.id ?? index,
+            currencyCode: from.toLowerCase(),
+            code: from,
+            name: from,
+            text: `${amount.toLocaleString()} ${from}`,
+            result: `${converted.toLocaleString()} ${to}`,
+            time: item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
+            isActive: index === 0,
+          }
+        }))
+      })
+      .catch(() => {
+        // 서버 내역 조회가 실패해도 계산기는 계속 사용할 수 있습니다.
+      })
+    return () => { isActive = false }
   }, [])
 
   const handleSwap = () => {
@@ -123,7 +155,32 @@ function CalculatorPage() {
 
   const numericFromAmount = Number(fromAmount.replace(/,/g, '')) || 0
 
-  const calculatedResult = convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
+  useEffect(() => {
+    if (numericFromAmount <= 0) return
+    let isActive = true
+    const timer = window.setTimeout(() => {
+      getExchangeQuote(fromCurrency, toCurrency, numericFromAmount)
+        .then((response) => {
+          if (!isActive) return
+          setQuote(response)
+          setQuoteError('')
+        })
+        .catch(() => {
+          if (isActive) setQuoteError('실시간 환율을 불러오지 못해 기본 환율로 계산했어요.')
+        })
+    }, 350)
+    return () => {
+      isActive = false
+      window.clearTimeout(timer)
+    }
+  }, [fromCurrency, numericFromAmount, toCurrency])
+
+  const isCurrentQuote = quote?.fromCurrency === fromCurrency
+    && quote?.toCurrency === toCurrency
+    && quote?.amount === numericFromAmount
+  const calculatedResult = isCurrentQuote
+    ? quote.convertedAmount ?? convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
+    : convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
 
   const toAmount = numericFromAmount === 0
     ? ''
@@ -278,7 +335,7 @@ function CalculatorPage() {
 
             <div className={styles.statusMessage}>
               <span className={styles.statusDot} />
-              <span>2026.07.23 환율이 적용되었습니다.</span>
+              <span>{quoteError || `${isCurrentQuote ? quote.rateDate ?? '최신' : '기본'} 환율이 적용되었습니다.`}</span>
             </div>
           </div>
         </div>

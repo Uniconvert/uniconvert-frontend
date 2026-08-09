@@ -1,0 +1,45 @@
+.root {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonHost {
+  width: 100%;
+  min-height: 2.75rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid #c8c8c8;
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.buttonHost > div,
+.buttonHost iframe {
+  width: 100% !important;
+  max-width: none !important;
+  border-radius: inherit !important;
+}
+
+.buttonHost [role='button'] {
+  border: 0 !important;
+  border-radius: calc(var(--radius-md) - 1px) !important;
+}
+
+.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.fallbackButton {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--color-border, #dadce0);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--color-text-secondary, #8a8a8a);
+  cursor: pointer;
+  font: inherit;
+}

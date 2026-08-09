@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import {
   deleteSavedExpense,
   getExpenseHistory,
-  getSavedExpenses,
+  getExpensesForMonth,
+  getRecentExpenses,
+  isUsingMockExpenseReadApi,
   updateSavedExpenseName,
   updateSavedExpenseOrder,
 } from '@/api/expenses'
@@ -33,6 +35,10 @@ function ExpenseHistoryPage() {
   const [isMonthMenuOpen, setIsMonthMenuOpen] = useState(false)
   const [recentModalMonth, setRecentModalMonth] = useState(() => String(Number(getCurrentYearMonth().slice(5))))
   const [savedExpenses, setSavedExpenses] = useState<SavedExpense[]>([])
+  const [recentExpensesError, setRecentExpensesError] = useState('')
+  const [modalExpenses, setModalExpenses] = useState<SavedExpense[]>([])
+  const [isModalExpensesLoading, setIsModalExpensesLoading] = useState(false)
+  const [modalExpensesError, setModalExpensesError] = useState('')
   const [draggedExpenseId, setDraggedExpenseId] = useState<string | null>(null)
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null)
   const [editingExpenseName, setEditingExpenseName] = useState('')
@@ -58,8 +64,41 @@ function ExpenseHistoryPage() {
   }, [currentYear, selectedMonth, recentRange])
 
   useEffect(() => {
-    getSavedExpenses().then(setSavedExpenses)
+    getRecentExpenses()
+      .then((expenses) => {
+        setSavedExpenses(expenses)
+        setRecentExpensesError('')
+      })
+      .catch(() => {
+        setSavedExpenses([])
+        setRecentExpensesError('최근 지출을 불러오지 못했습니다.')
+      })
   }, [])
+
+  useEffect(() => {
+    if (!isSavedExpensesOpen || isUsingMockExpenseReadApi) return
+
+    let isActive = true
+    const yearMonth = `${currentYear}-${recentModalMonth.padStart(2, '0')}`
+
+    getExpensesForMonth(yearMonth)
+      .then((expenses) => {
+        if (isActive) setModalExpenses(expenses)
+      })
+      .catch(() => {
+        if (isActive) {
+          setModalExpenses([])
+          setModalExpensesError('선택한 월의 지출 내역을 불러오지 못했습니다.')
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsModalExpensesLoading(false)
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [currentYear, isSavedExpensesOpen, recentModalMonth])
 
   const handleDeleteExpense = async (expenseId: string) => {
     const deleted = await deleteSavedExpense(expenseId)
@@ -67,11 +106,17 @@ function ExpenseHistoryPage() {
   }
 
   const filteredSavedExpenses = savedExpenses.filter((expense) => expense.spentAt.startsWith(`${currentYear}-${selectedMonth.padStart(2, '0')}`))
-  const filteredModalExpenses = savedExpenses.filter((expense) => expense.spentAt.startsWith(`${currentYear}-${recentModalMonth.padStart(2, '0')}`))
+  const filteredModalExpenses = isUsingMockExpenseReadApi
+    ? savedExpenses.filter((expense) => expense.spentAt.startsWith(`${currentYear}-${recentModalMonth.padStart(2, '0')}`))
+    : modalExpenses
 
   const openSavedExpenses = () => {
     setRecentModalMonth(selectedMonth)
     setIsMonthMenuOpen(false)
+    if (!isUsingMockExpenseReadApi) {
+      setIsModalExpensesLoading(true)
+      setModalExpensesError('')
+    }
     setIsSavedExpensesOpen(true)
   }
 
@@ -151,16 +196,16 @@ function ExpenseHistoryPage() {
       <h1 id="expense-history-title" className={styles.srOnly}>지출 내역</h1>
 
       <div className={styles.leftColumn}>
-        <section className={styles.assetCard} aria-labelledby="total-assets-title">
+        <section className={styles.assetCard} aria-labelledby="monthly-budget-title">
           <img className={styles.assetRing} src="/assets/illustrations/asset-ring.png" alt="" aria-hidden="true" />
           <div className={styles.assetCenter}>
-            <h2 id="total-assets-title">총 보유 자산</h2>
+            <h2 id="monthly-budget-title">이번 달 예산</h2>
             <strong>{formatCurrencyAmount(data.monthlyBudgetHome, data.homeCurrency)}</strong>
             <span>{data.yearMonth.replace('-', '.')}</span>
           </div>
           <div className={styles.budgetSummary}>
             <div className={styles.budgetHeader}>
-              <span>월 예산 대비</span>
+              <span>이번 달 예산 대비</span>
               <strong>{data.budgetUsagePercent}%</strong>
             </div>
             <div className={styles.progressTrack}><span style={{ width: `${Math.min(data.budgetUsagePercent, 100)}%` }} /></div>
@@ -266,6 +311,9 @@ function ExpenseHistoryPage() {
             <span>{data.yearMonth.replace('-', '.')}</span>
           </header>
           <ul>
+            {recentExpensesError && (
+              <li className={styles.emptySaved} role="alert">{recentExpensesError}</li>
+            )}
             {filteredSavedExpenses.slice(0, 2).map((expense) => (
               <li key={expense.expenseId}>
                 <span className={styles.expenseIcon}><img src={getCategoryIconPath(expense.iconKey)} alt="" aria-hidden="true" /></span>
@@ -273,6 +321,9 @@ function ExpenseHistoryPage() {
                 <strong>{formatCurrencyAmount(expense.convertedAmountHome, data.homeCurrency)}</strong>
               </li>
             ))}
+            {!recentExpensesError && filteredSavedExpenses.length === 0 && (
+              <li className={styles.emptySaved}>최근 지출이 없습니다.</li>
+            )}
           </ul>
           <button type="button" onClick={openSavedExpenses}>더보기</button>
         </section>
@@ -305,12 +356,27 @@ function ExpenseHistoryPage() {
               </button>
               {isMonthMenuOpen && <div className={styles.monthMenu} role="listbox" aria-label="최근 지출 조회 월">
                 {Array.from({ length: 12 }, (_, index) => 12 - index).map((month) => (
-                  <button key={month} type="button" role="option" aria-selected={recentModalMonth === String(month)} onClick={() => { setRecentModalMonth(String(month)); setIsMonthMenuOpen(false) }}>{currentYear}.{String(month).padStart(2, '0')}</button>
+                  <button
+                    key={month}
+                    type="button"
+                    role="option"
+                    aria-selected={recentModalMonth === String(month)}
+                    onClick={() => {
+                      setRecentModalMonth(String(month))
+                      setIsMonthMenuOpen(false)
+                      if (!isUsingMockExpenseReadApi) {
+                        setIsModalExpensesLoading(true)
+                        setModalExpensesError('')
+                      }
+                    }}
+                  >
+                    {currentYear}.{String(month).padStart(2, '0')}
+                  </button>
                 ))}
               </div>}
             </div>
           )}
-          headerActions={(
+          headerActions={isUsingMockExpenseReadApi ? (
             <button
               className={`${styles.manageButton} ${isManagingExpenses ? styles.manageButtonActive : ''}`}
               type="button"
@@ -324,11 +390,15 @@ function ExpenseHistoryPage() {
                 ? '완료 ×'
                 : <img src="/assets/icons/actions/action-edit-recent.png" alt="" aria-hidden="true" />}
             </button>
-          )}
+          ) : undefined}
           onClose={closeSavedExpenses}
         >
           <ul>
-              {filteredModalExpenses.map((expense) => (
+              {isModalExpensesLoading && <li className={styles.emptySaved}>불러오는 중입니다.</li>}
+              {!isModalExpensesLoading && modalExpensesError && (
+                <li className={styles.emptySaved} role="alert">{modalExpensesError}</li>
+              )}
+              {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.map((expense) => (
                 <li
                   key={expense.expenseId}
                   draggable={isManagingExpenses && editingExpenseId !== expense.expenseId}
@@ -403,7 +473,9 @@ function ExpenseHistoryPage() {
                   )}
                 </li>
               ))}
-              {filteredModalExpenses.length === 0 && <li className={styles.emptySaved}>최근 지출이 없습니다.</li>}
+              {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.length === 0 && (
+                <li className={styles.emptySaved}>최근 지출이 없습니다.</li>
+              )}
           </ul>
           <button className={styles.closeModalButton} type="button" onClick={closeSavedExpenses}>닫기</button>
         </ModalShell>

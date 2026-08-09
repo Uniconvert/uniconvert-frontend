@@ -11,7 +11,7 @@ interface FileUploadModalProps {
 }
 
 const MAX_FILE_SIZE = 30 * 1024 * 1024
-const ACCEPTED_EXTENSIONS = ['pdf', 'csv']
+const ACCEPTED_EXTENSIONS = ['csv']
 
 function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModalProps) {
   const inputId = useId()
@@ -26,7 +26,7 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
   const validateFile = (file: File) => {
     const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
     if (!ACCEPTED_EXTENSIONS.includes(extension)) {
-      setErrorMessage('PDF 또는 CSV 파일만 업로드할 수 있습니다.')
+      setErrorMessage('Wise 또는 Monzo CSV 파일만 업로드할 수 있습니다.')
       return false
     }
     if (file.size > MAX_FILE_SIZE) {
@@ -83,11 +83,11 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
           ) : (
             <p>여기에 파일을 드래그하거나 <label htmlFor={inputId}>클릭하여 업로드</label></p>
           )}
-          <input ref={fileInputRef} id={inputId} type="file" accept=".pdf,.csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) validateFile(file) }} />
+          <input ref={fileInputRef} id={inputId} type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) validateFile(file) }} />
         </div>
 
         <div className={styles.guide}>
-          <span>PDF/CSV 파일만 지원됩니다.</span>
+          <span>Wise/Monzo CSV 파일만 지원됩니다.</span>
           <span>최대 파일용량: 30MB</span>
         </div>
         {errorMessage && <p className={styles.error} role="alert">{errorMessage}</p>}

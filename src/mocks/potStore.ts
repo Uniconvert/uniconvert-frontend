@@ -1,5 +1,6 @@
 import potsMock from '@/mocks/pots.json'
 import { updateOnboardingSettings } from '@/auth/session'
+import { getStoredExpenses } from '@/mocks/expenseStore'
 import { getMockHomeCurrency, getMockMonthlyBudget, getMockStorageKey, isSeededMockUser } from '@/mocks/mockScenario'
 import type { ApiResponse } from '@/types/api'
 import type { CreatePotInput, Pot, PotsData, UpdatePotInput } from '@/types/pot'
@@ -8,13 +9,22 @@ const STORAGE_KEY = 'uniconvert.mockPots.v2'
 
 function synchronizeSummary(data: PotsData): PotsData {
   const monthlyBudget = getMockMonthlyBudget()
-  const allocatedAmount = data.pots.reduce((sum, pot) => sum + Math.max(pot.targetAmount, 0), 0)
+  const now = new Date()
+  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const monthlyExpense = getStoredExpenses()
+    .filter((expense) => expense.spentAt.startsWith(yearMonth))
+    .reduce((sum, expense) => sum + Math.max(expense.convertedAmountHome, 0), 0)
+  // Pots의 총 보유 자산은 온보딩에서 설정한 월 예산을 기준으로 고정합니다.
+  const totalAssets = monthlyBudget
+  const allocatedAmount = data.pots.reduce((sum, pot) => sum + Math.max(pot.thisMonthAmount, 0), 0)
   return {
     ...data,
     homeCurrency: getMockHomeCurrency(),
     monthlyBudget,
+    totalAssets,
+    monthlyExpense,
     allocatedAmount,
-    availableAmount: Math.max(monthlyBudget - allocatedAmount, 0),
+    availableAmount: Math.max(totalAssets - monthlyExpense - allocatedAmount, 0),
   }
 }
 
@@ -24,6 +34,8 @@ function seedData(): PotsData {
     return {
       homeCurrency: getMockHomeCurrency(),
       monthlyBudget,
+      totalAssets: monthlyBudget,
+      monthlyExpense: 0,
       allocatedAmount: 0,
       availableAmount: monthlyBudget,
       pots: [],
@@ -35,6 +47,9 @@ function seedData(): PotsData {
     ...data,
     pots: data.pots.map((pot) => ({
       ...pot,
+      thisMonthAmount: pot.thisMonthAmount ?? pot.savedAmount,
+      archived: pot.archived ?? false,
+      displayOrder: pot.displayOrder ?? 0,
       autoSavingEnabled: pot.autoSavingEnabled ?? (pot.monthlyContribution > 0),
     })),
   })
@@ -49,7 +64,16 @@ export function getStoredPots(): PotsData {
     return initialData
   }
   try {
-    const data = JSON.parse(stored) as PotsData
+    const parsed = JSON.parse(stored) as PotsData
+    const data = {
+      ...parsed,
+      pots: parsed.pots.map((pot) => ({
+        ...pot,
+        thisMonthAmount: pot.thisMonthAmount ?? pot.savedAmount,
+        archived: pot.archived ?? false,
+        displayOrder: pot.displayOrder ?? 0,
+      })),
+    }
     const synchronized = synchronizeSummary(data)
     localStorage.setItem(storageKey, JSON.stringify(synchronized))
     return synchronized
@@ -80,7 +104,14 @@ function saveData(data: PotsData) {
 
 export function createStoredPot(input: CreatePotInput) {
   const data = getStoredPots()
-  const pot: Pot = { potId: `pot-${Date.now()}`, ...input }
+  const pot: Pot = {
+    potId: `pot-${Date.now()}`,
+    ...input,
+    savedAmount: Math.min(Math.max(input.savedAmount, 0), data.availableAmount),
+    thisMonthAmount: Math.min(Math.max(input.savedAmount, 0), data.availableAmount),
+    archived: false,
+    displayOrder: data.pots.length,
+  }
   saveData({ ...data, pots: [...data.pots, pot] })
   return pot
 }
@@ -89,12 +120,18 @@ export function updateStoredPot(potId: string, input: UpdatePotInput) {
   const data = getStoredPots()
   const current = data.pots.find((pot) => pot.potId === potId)
   if (!current) return null
-  const nextSavedAmount = input.savedAmount ?? current.savedAmount
+  const requestedSavedAmount = input.savedAmount ?? current.savedAmount
+  const nextSavedAmount = Math.min(
+    Math.max(requestedSavedAmount, 0),
+    current.savedAmount + data.availableAmount,
+  )
   const nextTargetAmount = input.targetAmount ?? current.targetAmount
   const updated = {
     ...current,
     ...input,
     potId,
+    savedAmount: nextSavedAmount,
+    thisMonthAmount: input.thisMonthAmount ?? current.thisMonthAmount,
     completedAt: nextSavedAmount >= nextTargetAmount
       ? current.completedAt ?? new Date().toISOString().slice(0, 10)
       : undefined,

@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { logout } from '@/api/auth'
-import { clearSession, getSessionUser } from '@/auth/session'
+import { getBudget, isUsingMockBudgetApi, upsertBudget } from '@/api/budgets'
+import { getCurrentExchangeRate } from '@/api/exchangeRates'
+import { getMyUser } from '@/api/users'
+import { clearSession, getOnboardingSettings, getSessionUser } from '@/auth/session'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { getMockAssetSummary } from '@/mocks/dashboardStore'
-import { updateStoredMonthlyBudget } from '@/mocks/potStore'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { formatConvertedCurrencyAmount } from '@/utils/exchangeRate'
 import styles from './DashboardLayout.module.css'
 
 type NavigationIconName =
@@ -84,6 +87,10 @@ const reportTabs = [
   },
 ]
 
+const currencySymbols: Record<string, string> = {
+  KRW: '₩', USD: '$', EUR: '€', JPY: '¥', CNY: '¥', GBP: '£',
+}
+
 function BudgetEditModal({
   initialBudget,
   maximumBudget,
@@ -127,8 +134,13 @@ function BudgetEditModal({
             <input inputMode="numeric" value={budget.toLocaleString('ko-KR')} onChange={(event) => updateBudget(event.target.value)} />
           </label>
 
-          <div className={styles.budgetRangeWrap}>
-            <output style={{ left: `${progress}%` }}>{currencySymbol} {budget.toLocaleString('ko-KR')}</output>
+          <div
+            className={styles.budgetRangeWrap}
+            style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
+          >
+            <output style={{ left: `${progress}%`, transform: `translateX(-${progress}%)` }}>
+              {currencySymbol} {budget.toLocaleString('ko-KR')}
+            </output>
             <input
               type="range"
               min="0"
@@ -136,7 +148,6 @@ function BudgetEditModal({
               step={rangeStep}
               value={budget}
               aria-label="월 예산 금액 슬라이더"
-              style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
               onChange={(event) => setBudget(Number(event.target.value))}
             />
             <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString('ko-KR')}</span></div>
@@ -191,6 +202,7 @@ function DashboardLayout() {
   const navigate = useNavigate()
   const now = new Date()
   const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
+  const currentYearMonthApi = currentYearMonth.replace('.', '-')
   const sessionUser = getSessionUser()
   const [assetSummary, setAssetSummary] = useState(getMockAssetSummary)
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
@@ -210,6 +222,39 @@ function DashboardLayout() {
   const activeNavigationIndex = navigationItems.indexOf(activeItem)
   const navigationItemsBefore = navigationItems.slice(0, activeNavigationIndex)
   const navigationItemsAfter = navigationItems.slice(activeNavigationIndex + 1)
+
+  useEffect(() => {
+    if (isUsingMockBudgetApi) return
+
+    let isActive = true
+    Promise.all([
+      getBudget(currentYearMonthApi),
+      getMyUser({ useMock: false }),
+    ])
+      .then(async ([budget, user]) => {
+        const settings = getOnboardingSettings()
+        const homeCurrency = user.homeCurrencyCode || settings.baseCurrency || 'KRW'
+        const localCurrency = user.localCurrencyCode || settings.localCurrencies?.[0] || (homeCurrency === 'KRW' ? 'USD' : 'KRW')
+        const monthlyBudget = budget.monthlyLimitHome ?? 0
+        const exchange = await getCurrentExchangeRate(homeCurrency, localCurrency)
+        const localCurrencyAmount = monthlyBudget * (exchange.rate ?? 0)
+
+        if (!isActive) return
+        setAssetSummary({
+          homeCurrency,
+          currencySymbol: currencySymbols[homeCurrency] ?? homeCurrency,
+          totalAssetHome: monthlyBudget,
+          localCurrency,
+          localCurrencyAmount,
+          localCurrencyAmountLabel: formatConvertedCurrencyAmount(localCurrencyAmount, localCurrency),
+        })
+      })
+      .catch(() => {
+        if (isActive) showToast({ variant: 'error', title: '이번 달 예산을 불러오지 못했어요' })
+      })
+
+    return () => { isActive = false }
+  }, [currentYearMonthApi, showToast])
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -298,7 +343,7 @@ function DashboardLayout() {
                 className={styles.assetSummary}
                 aria-labelledby="asset-summary-title"
               >
-                <button className={styles.assetEditButton} type="button" aria-label="총 보유 자산 편집" onClick={() => setIsBudgetModalOpen(true)}>
+                <button className={styles.assetEditButton} type="button" aria-label="이번 달 예산 편집" onClick={() => setIsBudgetModalOpen(true)}>
                   <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
                 </button>
                 <div className={styles.assetRing} aria-hidden="true">
@@ -308,7 +353,7 @@ function DashboardLayout() {
                     <small>{currentYearMonth}</small>
                   </span>
                 </div>
-                <h2 id="asset-summary-title">총 보유 자산</h2>
+                <h2 id="asset-summary-title">이번 달 예산</h2>
                 <p className={styles.assetTotal}>
                   {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString('ko-KR')}
                 </p>
@@ -365,12 +410,19 @@ function DashboardLayout() {
           maximumBudget={assetSummary.homeCurrency === 'KRW' ? 3_000_000 : 3_000}
           currencySymbol={assetSummary.currencySymbol}
           onClose={() => setIsBudgetModalOpen(false)}
-          onSave={(budget) => {
-            updateStoredMonthlyBudget(budget)
-            setAssetSummary(getMockAssetSummary())
-            setBudgetVersion((version) => version + 1)
-            setIsBudgetModalOpen(false)
-            showToast({ variant: 'success', title: '수정되었어요' })
+          onSave={async (budget) => {
+            try {
+              const updated = await upsertBudget(currentYearMonthApi, budget)
+              setAssetSummary((current) => ({
+                ...current,
+                totalAssetHome: updated.monthlyLimitHome ?? budget,
+              }))
+              setBudgetVersion((version) => version + 1)
+              setIsBudgetModalOpen(false)
+              showToast({ variant: 'success', title: '수정되었어요' })
+            } catch {
+              showToast({ variant: 'error', title: '예산을 수정하지 못했어요' })
+            }
           }}
         />
       )}

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createExpense, getExpenseHistory } from '@/api/expenses'
+import { getCategories, getFallbackCategories } from '@/api/categories'
+import { createExpense, getExpenseHistory, importExpenses } from '@/api/expenses'
+import { getCurrentExchangeRate } from '@/api/exchangeRates'
 import Button from '@/components/common/Button/Button'
 import CurrencyDropdown from '@/components/common/CurrencyDropdown/CurrencyDropdown'
 import type { CurrencyCode } from '@/components/common/CurrencyDropdown/currencyOptions'
@@ -11,22 +13,7 @@ import { formatCurrencyAmount } from '@/utils/currency'
 import { getExchangeRate } from '@/utils/exchangeRate'
 import styles from './ExpenseInputPage.module.css'
 
-interface Category {
-  id: string
-  label: string
-  iconSrc?: string
-  symbol?: string
-}
-
-const categories: Category[] = [
-  { id: 'food', label: '식비', iconSrc: '/assets/icons/categories/category-food.png' },
-  { id: 'transport', label: '교통', iconSrc: '/assets/icons/categories/category-transport.png' },
-  { id: 'shopping', label: '쇼핑', iconSrc: '/assets/icons/categories/category-shopping.png' },
-  { id: 'communication', label: '통신', iconSrc: '/assets/icons/categories/category-communication.png' },
-  { id: 'education', label: '학업', iconSrc: '/assets/icons/categories/category-education.png' },
-  { id: 'travel', label: '여행', iconSrc: '/assets/icons/categories/category-travel.png' },
-  { id: 'other', label: '기타', iconSrc: '/assets/icons/actions/action-more.png' },
-]
+const fallbackCategories = getFallbackCategories()
 
 function getTodayDateInputValue() {
   const now = new Date()
@@ -39,7 +26,8 @@ function ExpenseInputPage() {
   const [amount, setAmount] = useState('')
   const [spentAt, setSpentAt] = useState(getTodayDateInputValue)
   const [merchant, setMerchant] = useState('')
-  const [categoryId, setCategoryId] = useState('food')
+  const [categories, setCategories] = useState(fallbackCategories)
+  const [categoryId, setCategoryId] = useState(fallbackCategories[0].id)
   const [memo, setMemo] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState('')
@@ -54,7 +42,7 @@ function ExpenseInputPage() {
   })
 
   const activeCurrency = currency
-  const rate = getExchangeRate(currency, budgetSummary.homeCurrency)
+  const [rate, setRate] = useState(() => getExchangeRate(currency, budgetSummary.homeCurrency))
   const numericAmount = Number(amount) || 0
   const convertedAmount = Math.floor(numericAmount * rate)
   const projectedExpenseHome = budgetSummary.monthlyExpenseHome + convertedAmount
@@ -64,11 +52,29 @@ function ExpenseInputPage() {
   const remainingBudgetHome = Math.max(budgetSummary.monthlyBudgetHome - projectedExpenseHome, 0)
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === categoryId) ?? categories[0],
-    [categoryId],
+    [categories, categoryId],
   )
   const [calendarYear, calendarMonthNumber] = calendarMonth.split('-').map(Number)
   const firstWeekday = new Date(calendarYear, calendarMonthNumber - 1, 1).getDay()
   const daysInMonth = new Date(calendarYear, calendarMonthNumber, 0).getDate()
+
+  useEffect(() => {
+    let isActive = true
+
+    getCategories()
+      .then((response) => {
+        if (!isActive || response.length === 0) return
+        setCategories(response)
+        setCategoryId((current) => (
+          response.some((category) => category.id === current) ? current : response[0].id
+        ))
+      })
+      .catch(() => {
+        if (isActive) showToast({ variant: 'error', title: '카테고리를 불러오지 못해 기본 목록을 사용해요' })
+      })
+
+    return () => { isActive = false }
+  }, [showToast])
 
   useEffect(() => {
     let isActive = true
@@ -93,6 +99,25 @@ function ExpenseInputPage() {
     }
   }, [spentAt, showToast])
 
+  useEffect(() => {
+    let isActive = true
+
+    getCurrentExchangeRate(currency, budgetSummary.homeCurrency)
+      .then((response) => {
+        if (isActive && typeof response.rate === 'number' && response.rate > 0) {
+          setRate(response.rate)
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setRate(getExchangeRate(currency, budgetSummary.homeCurrency))
+          showToast({ variant: 'error', title: '실시간 환율을 불러오지 못해 기본 환율을 사용해요' })
+        }
+      })
+
+    return () => { isActive = false }
+  }, [budgetSummary.homeCurrency, currency, showToast])
+
   const moveCalendarMonth = (amount: number) => {
     const next = new Date(calendarYear, calendarMonthNumber - 1 + amount, 1)
     setCalendarMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`)
@@ -105,7 +130,7 @@ function ExpenseInputPage() {
     setIsSaving(true)
 
     try {
-      await createExpense({
+      const savedExpense = await createExpense({
         currency: activeCurrency as ExpenseDetail['currency'],
         originalAmount: numericAmount,
         convertedAmountHome: convertedAmount,
@@ -113,7 +138,8 @@ function ExpenseInputPage() {
         spentAt,
         merchantName: merchant.trim(),
         categoryName: selectedCategory.label,
-        iconKey: selectedCategory.id,
+        iconKey: selectedCategory.iconKey,
+        categoryId: selectedCategory.serverId,
         memo: memo.trim(),
       })
       const currencySymbol = activeCurrency === 'KRW' ? '₩' : activeCurrency === 'USD' ? '$' : activeCurrency === 'EUR' ? '€' : '¥'
@@ -131,7 +157,7 @@ function ExpenseInputPage() {
       }
       setBudgetSummary((current) => ({
         ...current,
-        monthlyExpenseHome: current.monthlyExpenseHome + convertedAmount,
+        monthlyExpenseHome: current.monthlyExpenseHome + savedExpense.convertedAmountHome,
       }))
       setAmount('')
     } catch {
@@ -195,7 +221,12 @@ function ExpenseInputPage() {
           <div className={styles.categoryList}>
             {categories.map((category) => (
               <button key={category.id} className={categoryId === category.id ? styles.selectedCategory : ''} type="button" aria-pressed={categoryId === category.id} onClick={() => setCategoryId(category.id)}>
-                {category.iconSrc ? <img src={category.iconSrc} alt="" aria-hidden="true" /> : <span className={styles.categorySymbol} aria-hidden="true">{category.symbol}</span>}
+                <img
+                  className={['shopping', 'communication', 'education', 'travel'].includes(category.iconKey) ? styles.largeCategoryIcon : undefined}
+                  src={category.iconSrc}
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span>{category.label}</span>
               </button>
             ))}
@@ -225,7 +256,7 @@ function ExpenseInputPage() {
           <div className={styles.previewRow}>
             <span>카테고리</span>
             <strong>
-              {selectedCategory.iconSrc ? <img src={selectedCategory.iconSrc} alt="" aria-hidden="true" /> : <span aria-hidden="true">{selectedCategory.symbol}</span>}
+              <img src={selectedCategory.iconSrc} alt="" aria-hidden="true" />
               {selectedCategory.label}
             </strong>
           </div>
@@ -243,9 +274,17 @@ function ExpenseInputPage() {
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onError={() => showToast({ variant: 'error', title: '가져오기에 실패했어요. 다시 시도해주세요' })}
-        onUpload={(file) => {
+        onUpload={async (file) => {
+          const result = await importExpenses(file)
           setUploadedFileName(file.name)
           setIsUploadOpen(false)
+          showToast({ variant: 'success', title: `${result.savedCount ?? 0}건의 지출을 가져왔어요` })
+          const history = await getExpenseHistory(spentAt.slice(0, 7), 'month')
+          setBudgetSummary({
+            homeCurrency: history.homeCurrency,
+            monthlyBudgetHome: history.monthlyBudgetHome,
+            monthlyExpenseHome: history.monthlyExpenseHome,
+          })
         }}
       />
     </section>
