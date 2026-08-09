@@ -2,6 +2,7 @@ export interface Pot {
   potId: string
   name: string
   icon: string
+  representativeImageKey: string
   imageSrc: string
   targetAmount: number
   savedAmount: number
@@ -18,6 +19,7 @@ export interface Pot {
 export interface CreatePotInput {
   name: string
   icon: string
+  representativeImageKey: string
   imageSrc: string
   targetAmount: number
   savedAmount: number

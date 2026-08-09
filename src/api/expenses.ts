@@ -4,7 +4,6 @@ import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
 import { getStoredSavedExpenses, saveStoredSavedExpenses } from '@/mocks/savedExpenseStore'
 import type { ApiResponse } from '@/types/api'
 import type {
-  BudgetResponseDto,
   CreateExpenseInput,
   ExpenseHistoryData,
   ExpenseImportResponseDto,
@@ -18,6 +17,7 @@ import type {
   ReportSummaryResponseDto,
   SavedExpense,
 } from '@/types/expense'
+import { getBudget } from './budgets'
 import { apiRequest, isUsingMockApi } from './client'
 
 /** 전체 Mock 모드를 유지하면서 지출 도메인만 실제 API로 전환할 수 있습니다. */
@@ -385,11 +385,7 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
     userContext,
   ] = await Promise.all([
     resolveOrNull(getAllExpensePages(monthQuery)),
-    resolveOrNull(apiRequest<BudgetResponseDto>(
-      `/budgets/${encodeURIComponent(yearMonth)}`,
-      { data: { yearMonth, monthlyLimitHome: 0 } },
-      { useMock: false },
-    )),
+    resolveOrNull(getBudget(yearMonth, { useMock: false })),
     resolveOrNull(apiRequest<number>(
       `/expenses/remaining-budget?${new URLSearchParams({ yearMonth }).toString()}`,
       { data: 0 },
@@ -453,10 +449,7 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
   const rangeCategories = rangeCategoryReport
     ? mapReportCategories(rangeCategoryReport.categories ?? [], rangeTotal)
     : fallbackRangeCategories
-  const monthlyBudgetHome = toFiniteNumber(
-    budget?.monthlyLimitHome,
-    remainingBudget === null ? 0 : monthlyExpenseHome + remainingBudget,
-  )
+  const monthlyBudgetHome = toFiniteNumber(budget?.monthlyLimitHome)
   const remainingBudgetHome = remainingBudget === null
     ? Math.max(monthlyBudgetHome - monthlyExpenseHome, 0)
     : Math.max(remainingBudget, 0)

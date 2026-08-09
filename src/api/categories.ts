@@ -1,4 +1,4 @@
-import { getCategoryIconPath } from '@/utils/categoryIcon'
+import { getCategoryIconPath, normalizeCategoryIconKey } from '@/utils/categoryIcon'
 import { apiRequest, isUsingMockApi } from './client'
 
 export interface ExpenseCategoryOption {
@@ -29,10 +29,6 @@ const FALLBACK_CATEGORIES: ExpenseCategoryOption[] = [
 export const isUsingMockCategoryApi =
   isUsingMockApi && import.meta.env.VITE_USE_REAL_CATEGORY_API !== 'true'
 
-function normalizeIconKey(value?: string | null) {
-  return value?.trim().toLowerCase().replace(/^icon_/, '') || 'other'
-}
-
 export function getFallbackCategories() {
   return FALLBACK_CATEGORIES
 }
@@ -52,7 +48,7 @@ export async function getCategories() {
     ))
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((category) => {
-      const iconKey = normalizeIconKey(category.iconKey)
+      const iconKey = normalizeCategoryIconKey(category.iconKey)
       return {
         id: String(category.categoryId),
         serverId: category.categoryId,

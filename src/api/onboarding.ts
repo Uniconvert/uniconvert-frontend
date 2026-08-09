@@ -6,13 +6,16 @@ export interface OnboardingSaveInput {
   localCurrencyCode?: string
   monthlyLimitHome: number
   timezone?: string
+  profileImageKey?: string
+  primaryGoal?: string
 }
 
 export interface OnboardingResponseDto {
   userId: number
   email: string
   nickname: string
-  imageUrl?: string | null
+  profileImageKey?: string | null
+  primaryGoal?: string | null
   homeCurrencyCode?: string | null
   localCurrencyCode?: string | null
   timezone?: string | null
@@ -39,7 +42,8 @@ function createMockResponse(input?: OnboardingSaveInput): OnboardingResponseDto 
     userId: user?.userId ?? 0,
     email: user?.email ?? '',
     nickname: user?.nickname ?? '',
-    imageUrl: user?.profileImage ?? '',
+    profileImageKey: input?.profileImageKey ?? user?.profileImageKey ?? null,
+    primaryGoal: input?.primaryGoal ?? settings.profileGoals?.[0] ?? user?.primaryGoal ?? null,
     homeCurrencyCode: input?.homeCurrencyCode ?? settings.baseCurrency ?? null,
     localCurrencyCode: input?.localCurrencyCode ?? settings.localCurrencies?.[0] ?? null,
     timezone: input?.timezone ?? settings.timeZone ?? null,

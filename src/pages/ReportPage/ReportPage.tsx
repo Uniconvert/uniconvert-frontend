@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import { getMonthlyReport, sendMonthlyReport } from '@/api/reports'
-import { getExpenseHistory } from '@/api/expenses'
-import type { MonthlyReportData } from '@/types/report'
+import { sendMonthlyReport } from '@/api/reports'
 
 import styles from './ReportPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import Button from '@/components/common/Button/Button'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { createPortal } from 'react-dom'
-import type { ExpenseHistoryData } from '@/types/expense'
 import { convertCurrencyAmount } from '@/utils/exchangeRate'
 import todayExpensesMock from '@/mocks/todays-expenses.json'
 import { getOnboardingSettings } from '@/auth/session'
+import { getApiErrorNotice } from '@/utils/apiError'
+import { useMonthlyReportData } from '@/hooks/useMonthlyReportData'
 
 interface Expense {
   label: string
@@ -224,9 +225,6 @@ function BarChart({
 }
 
 function ReportPage() {
-  const [report, setReport] = useState<MonthlyReportData | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
-
   const todayObj = new Date()
   const todayStr = todayObj.toISOString().slice(0, 10)
 
@@ -240,8 +238,14 @@ function ReportPage() {
 
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
-  const [emailStatus, setEmailStatus] = useState('')
-  const [data, setData] = useState<ExpenseHistoryData | null>(null)
+  const { toast, showToast, closeToast } = useToastQueue()
+  const dateReportMonth = selectedDate ? selectedDate.slice(0, 7) : currentYM
+  const {
+    report,
+    expenseHistory: data,
+    errorMessage,
+    retry,
+  } = useMonthlyReportData({ reportYearMonth: dateReportMonth, budgetYearMonth: currentYM })
 
   const [summaryMock] = useState({
     changeRate: 5.0,
@@ -266,31 +270,17 @@ function ReportPage() {
     }
   }, [isEmailModalOpen])
 
-  useEffect(() => {
-    let isActive = true
-
-    getExpenseHistory(currentYM, 'month')
-      .then((response) => {
-        if (isActive) setData(response)
-      })
-      .catch(() => {
-        // 리포트 본문은 별도 API로 계속 표시하고 이메일 미리보기의 예산만 0으로 둡니다.
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [currentYM])
-
   const handleSendEmailReport = async () => {
     if (isSendingEmail) return
     setIsSendingEmail(true)
-    setEmailStatus('')
     try {
       await sendMonthlyReport()
-      setEmailStatus('이메일로 리포트를 보냈어요.')
-    } catch {
-      setEmailStatus('이메일 리포트를 보내지 못했어요. 다시 시도해주세요.')
+      showToast({ variant: 'success', title: '이메일로 리포트를 보냈어요.' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '이메일 리포트를 보내지 못했습니다.'),
+      })
     } finally {
       setIsSendingEmail(false)
     }
@@ -328,28 +318,6 @@ function ReportPage() {
   }
   monthList.reverse()
 
-  const dateReportMonth = selectedDate ? selectedDate.slice(0, 7) : currentYM
-
-  useEffect(() => {
-    let isActive = true
-
-    getMonthlyReport(dateReportMonth)
-      .then((response) => {
-        if (isActive) {
-          setReport(response)
-        }
-      })
-      .catch((error) => {
-        if (isActive) {
-          setErrorMessage(error instanceof Error ? error.message : '리포트를 불러오지 못했습니다.')
-        }
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [dateReportMonth])
-
   useEffect(() => {
     const handleOutsideSelect = (event: MouseEvent) => {
       const target = event.target as HTMLElement
@@ -369,11 +337,34 @@ function ReportPage() {
   }, [])
 
   if (errorMessage) {
-    return <section className={styles.page}><p role="alert">{errorMessage}</p></section>
+    return (
+      <section className={styles.page}>
+        <div className={styles.pageHeader}>
+          <h1>리포트</h1>
+          <p>나의 지출 흐름을 한눈에 확인해보세요.</p>
+        </div>
+        <div className={styles.feedbackCard} role="alert">
+          <h2>리포트를 표시하지 못했어요</h2>
+          <p>{errorMessage}</p>
+          <span>서버 연결 상태를 확인한 뒤 다시 시도해 주세요.</span>
+          <button type="button" onClick={retry}>다시 시도</button>
+        </div>
+      </section>
+    )
   }
 
   if (!report) {
-    return <section className={styles.page} aria-busy="true"><p>리포트를 불러오는 중입니다.</p></section>
+    return (
+      <section className={styles.page} aria-busy="true">
+        <div className={styles.pageHeader}>
+          <h1>리포트</h1>
+          <p>나의 지출 흐름을 한눈에 확인해보세요.</p>
+        </div>
+        <div className={styles.feedbackCard}>
+          <p aria-live="polite">리포트를 불러오는 중입니다.</p>
+        </div>
+      </section>
+    )
   }
 
   const targetDate = selectedDate || todayStr
@@ -443,6 +434,7 @@ function ReportPage() {
 
   return (
     <section className={styles.page} ref={containerRef}>
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <div className={styles.pageHeader}>
         <h1>리포트</h1>
         <div className={styles.headerWrapper}>
@@ -604,8 +596,6 @@ function ReportPage() {
                 <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
                 {isSendingEmail ? '보내는 중...' : '이메일로 리포트 보내기'}
               </Button>
-              {emailStatus && <p role="status">{emailStatus}</p>}
-
             </div>
           </div>
         </div>,

@@ -22,7 +22,8 @@ export interface UserMeResponseDto {
   userId: number
   email: string
   nickname: string
-  imageUrl?: string | null
+  profileImageKey?: string | null
+  primaryGoal?: string | null
   homeCurrencyCode?: string | null
   localCurrencyCode?: string | null
   timezone?: string | null
@@ -37,6 +38,8 @@ export interface MockAuthUser {
   password: string
   nickname: string
   profileImage: string
+  profileImageKey?: string
+  primaryGoal?: string
   isEmailVerified: boolean
   isOnboardingCompleted: boolean
   mockDataMode: MockDataMode
@@ -47,6 +50,8 @@ export interface AuthUser {
   email: string
   nickname: string
   profileImage: string
+  profileImageKey?: string
+  primaryGoal?: string
   isEmailVerified: boolean
   isOnboardingCompleted: boolean
   homeCurrencyCode?: string

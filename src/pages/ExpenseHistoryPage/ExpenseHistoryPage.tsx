@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   deleteSavedExpense,
-  getExpenseHistory,
-  getExpensesForMonth,
-  getRecentExpenses,
   isUsingMockExpenseReadApi,
   updateSavedExpenseName,
   updateSavedExpenseOrder,
@@ -11,9 +8,11 @@ import {
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
+import { useExpenseHistoryData } from '@/hooks/useExpenseHistoryData'
+import type { SavedExpense } from '@/types/expense'
 import { formatCurrencyAmount, getCurrentYearMonth } from '@/utils/currency'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
+import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './ExpenseHistoryPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
@@ -28,77 +27,30 @@ function ExpenseHistoryPage() {
   const selectedMonth = String(Number(getCurrentYearMonth().slice(5)))
   const [recentRange, setRecentRange] = useState('day')
   const [isRecentRangeOpen, setIsRecentRangeOpen] = useState(false)
-  const [data, setData] = useState<ExpenseHistoryData | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
   const [isSavedExpensesOpen, setIsSavedExpensesOpen] = useState(false)
   const [isManagingExpenses, setIsManagingExpenses] = useState(false)
   const [isMonthMenuOpen, setIsMonthMenuOpen] = useState(false)
   const [recentModalMonth, setRecentModalMonth] = useState(() => String(Number(getCurrentYearMonth().slice(5))))
-  const [savedExpenses, setSavedExpenses] = useState<SavedExpense[]>([])
-  const [recentExpensesError, setRecentExpensesError] = useState('')
-  const [modalExpenses, setModalExpenses] = useState<SavedExpense[]>([])
-  const [isModalExpensesLoading, setIsModalExpensesLoading] = useState(false)
-  const [modalExpensesError, setModalExpensesError] = useState('')
   const [draggedExpenseId, setDraggedExpenseId] = useState<string | null>(null)
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null)
   const [editingExpenseName, setEditingExpenseName] = useState('')
   const { toast, showToast, closeToast } = useToastQueue()
-
-  useEffect(() => {
-    let isActive = true
-
-    getExpenseHistory(`${currentYear}-${selectedMonth.padStart(2, '0')}`, recentRange)
-      .then((response) => {
-        if (isActive) {
-          setData(response)
-          setErrorMessage('')
-        }
-      })
-      .catch(() => {
-        if (isActive) setErrorMessage('지출 내역을 불러오지 못했습니다.')
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [currentYear, selectedMonth, recentRange])
-
-  useEffect(() => {
-    getRecentExpenses()
-      .then((expenses) => {
-        setSavedExpenses(expenses)
-        setRecentExpensesError('')
-      })
-      .catch(() => {
-        setSavedExpenses([])
-        setRecentExpensesError('최근 지출을 불러오지 못했습니다.')
-      })
-  }, [])
-
-  useEffect(() => {
-    if (!isSavedExpensesOpen || isUsingMockExpenseReadApi) return
-
-    let isActive = true
-    const yearMonth = `${currentYear}-${recentModalMonth.padStart(2, '0')}`
-
-    getExpensesForMonth(yearMonth)
-      .then((expenses) => {
-        if (isActive) setModalExpenses(expenses)
-      })
-      .catch(() => {
-        if (isActive) {
-          setModalExpenses([])
-          setModalExpensesError('선택한 월의 지출 내역을 불러오지 못했습니다.')
-        }
-      })
-      .finally(() => {
-        if (isActive) setIsModalExpensesLoading(false)
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [currentYear, isSavedExpensesOpen, recentModalMonth])
+  const {
+    data,
+    errorMessage,
+    recentExpenses: savedExpenses,
+    setRecentExpenses: setSavedExpenses,
+    recentExpensesError,
+    modalExpenses,
+    isModalExpensesLoading,
+    modalExpensesError,
+    retry,
+  } = useExpenseHistoryData({
+    yearMonth: `${currentYear}-${selectedMonth.padStart(2, '0')}`,
+    range: recentRange,
+    isRecentModalOpen: isSavedExpensesOpen,
+    recentModalYearMonth: `${currentYear}-${recentModalMonth.padStart(2, '0')}`,
+  })
 
   const handleDeleteExpense = async (expenseId: string) => {
     const deleted = await deleteSavedExpense(expenseId)
@@ -113,10 +65,6 @@ function ExpenseHistoryPage() {
   const openSavedExpenses = () => {
     setRecentModalMonth(selectedMonth)
     setIsMonthMenuOpen(false)
-    if (!isUsingMockExpenseReadApi) {
-      setIsModalExpensesLoading(true)
-      setModalExpensesError('')
-    }
     setIsSavedExpensesOpen(true)
   }
 
@@ -149,8 +97,11 @@ function ExpenseHistoryPage() {
       )))
       cancelEditingExpenseName()
       showToast({ variant: 'success', title: '수정되었어요' })
-    } catch {
-      showToast({ variant: 'error', title: '수정하지 못했어요. 다시 시도해주세요' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '지출 내역을 수정하지 못했습니다.'),
+      })
     }
   }
 
@@ -167,8 +118,28 @@ function ExpenseHistoryPage() {
     await updateSavedExpenseOrder(reordered)
   }
 
-  if (errorMessage) return <p role="alert">{errorMessage}</p>
-  if (!data) return <p aria-live="polite">지출 내역을 불러오는 중입니다.</p>
+  if (errorMessage) {
+    return (
+      <section className={`${styles.page} ${styles.feedbackPage}`} aria-labelledby="expense-history-title">
+        <div className={styles.feedbackCard} role="alert">
+          <h1 id="expense-history-title">지출 내역</h1>
+          <p>{errorMessage}</p>
+          <span>서버 연결 상태를 확인한 뒤 다시 시도해 주세요.</span>
+          <button type="button" onClick={retry}>다시 시도</button>
+        </div>
+      </section>
+    )
+  }
+  if (!data) {
+    return (
+      <section className={`${styles.page} ${styles.feedbackPage}`} aria-busy="true">
+        <div className={styles.feedbackCard}>
+          <h1>지출 내역</h1>
+          <p aria-live="polite">지출 내역을 불러오는 중입니다.</p>
+        </div>
+      </section>
+    )
+  }
 
   const recentExpenses = data.recentExpenses
   const categorySummary = data.categories
@@ -364,10 +335,6 @@ function ExpenseHistoryPage() {
                     onClick={() => {
                       setRecentModalMonth(String(month))
                       setIsMonthMenuOpen(false)
-                      if (!isUsingMockExpenseReadApi) {
-                        setIsModalExpensesLoading(true)
-                        setModalExpensesError('')
-                      }
                     }}
                   >
                     {currentYear}.{String(month).padStart(2, '0')}

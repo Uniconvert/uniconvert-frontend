@@ -1,5 +1,11 @@
 import { createStoredPot, deleteStoredPot, getStoredPots, updateStoredPot } from '@/mocks/potStore'
+import {
+  getDefaultPotRepresentativeImageKey,
+  getPotRepresentativeImageKeyBySrc,
+  getPotRepresentativeImageSrc,
+} from '@/constants/potRepresentativeImages'
 import type { CreatePotInput, Pot, PotsData, UpdatePotInput } from '@/types/pot'
+import { getBudget } from './budgets'
 import { apiRequest, isUsingMockApi } from './client'
 import { getExpenseHistory } from './expenses'
 
@@ -7,6 +13,7 @@ interface PotResponseDto {
   potId?: number
   name?: string | null
   goalCategory?: string | null
+  representativeImageKey?: string | null
   targetAmount?: number
   savedAmount?: number
   monthlyAllocation?: number
@@ -23,13 +30,6 @@ interface PotAllocationResponseDto {
   potName?: string | null
   yearMonth?: string | null
   amount?: number
-}
-
-const POT_IMAGES: Record<string, string> = {
-  travel: '/assets/images/goals/travel-resort.png',
-  education: '/assets/images/goals/education-campus.png',
-  shopping: '/assets/images/goals/shopping-mall.png',
-  savings: '/assets/images/pots/representative-image-add.png',
 }
 
 export const isUsingMockPotsApi =
@@ -52,11 +52,16 @@ function toServerGoalCategory(value: string) {
 
 function toPot(response: PotResponseDto, fallback?: Partial<Pot>): Pot {
   const icon = toClientGoalCategory(response.goalCategory ?? fallback?.icon)
+  const representativeImageKey = response.representativeImageKey
+    ?? fallback?.representativeImageKey
+    ?? getPotRepresentativeImageKeyBySrc(fallback?.imageSrc)
+    ?? getDefaultPotRepresentativeImageKey(icon)
   return {
     potId: String(response.potId ?? fallback?.potId ?? ''),
     name: response.name?.trim() || fallback?.name || '이름 없는 Pot',
     icon,
-    imageSrc: fallback?.imageSrc || POT_IMAGES[icon] || '/assets/illustrations/wallet.png',
+    representativeImageKey,
+    imageSrc: getPotRepresentativeImageSrc(representativeImageKey),
     targetAmount: response.targetAmount ?? fallback?.targetAmount ?? 0,
     savedAmount: response.savedAmount ?? fallback?.savedAmount ?? 0,
     monthlyContribution: response.monthlyAllocation ?? fallback?.monthlyContribution ?? 0,
@@ -72,13 +77,14 @@ export async function getPots(): Promise<PotsData> {
   if (isUsingMockPotsApi) return getStoredPots()
 
   const yearMonth = getCurrentYearMonth()
-  const [responses, expenseHistory] = await Promise.all([
+  const [responses, expenseHistory, budget] = await Promise.all([
     apiRequest<PotResponseDto[]>(
       '/pots?includeArchived=false',
       { data: [] },
       { useMock: false },
     ),
-    getExpenseHistory(yearMonth, 'month'),
+    getExpenseHistory(yearMonth, 'month').catch(() => null),
+    getBudget(yearMonth, { useMock: false }).catch(() => null),
   ])
 
   const pots = responses.map((response) => toPot(response))
@@ -87,17 +93,19 @@ export async function getPots(): Promise<PotsData> {
     0,
   )
   const serverDerivedAllocation = Math.max(
-    expenseHistory.monthlyBudgetHome
-      - expenseHistory.monthlyExpenseHome
-      - expenseHistory.remainingBudgetHome,
+    (expenseHistory?.monthlyBudgetHome ?? 0)
+      - (expenseHistory?.monthlyExpenseHome ?? 0)
+      - (expenseHistory?.remainingBudgetHome ?? 0),
     0,
   )
   const allocatedAmount = Math.max(activeAllocation, serverDerivedAllocation)
-  const totalAssets = expenseHistory.monthlyBudgetHome
-  const monthlyExpense = Math.max(expenseHistory.monthlyExpenseHome, 0)
+  const totalAssets = expenseHistory?.monthlyBudgetHome
+    ?? budget?.monthlyLimitHome
+    ?? 0
+  const monthlyExpense = Math.max(expenseHistory?.monthlyExpenseHome ?? 0, 0)
 
   return {
-    homeCurrency: expenseHistory.homeCurrency,
+    homeCurrency: expenseHistory?.homeCurrency ?? 'KRW',
     monthlyBudget: totalAssets,
     totalAssets,
     monthlyExpense,
@@ -118,6 +126,7 @@ export async function createPot(input: CreatePotInput): Promise<Pot> {
       body: JSON.stringify({
         name: input.name,
         goalCategory: toServerGoalCategory(input.icon),
+        representativeImageKey: input.representativeImageKey,
         targetAmount: input.targetAmount,
         monthlyAllocation: input.monthlyContribution,
       }),
@@ -141,6 +150,7 @@ export async function updatePot(potId: string, input: UpdatePotInput) {
       body: JSON.stringify({
         name: input.name,
         goalCategory: input.icon ? toServerGoalCategory(input.icon) : undefined,
+        representativeImageKey: input.representativeImageKey,
         targetAmount: input.targetAmount,
         monthlyAllocation: input.monthlyContribution,
         displayOrder: input.displayOrder,

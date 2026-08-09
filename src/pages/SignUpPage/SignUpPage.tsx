@@ -4,7 +4,10 @@ import { signUp } from '@/api/auth'
 import Button from '@/components/common/Button/Button'
 import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
 import TextField from '@/components/common/TextField/TextField'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './SignUpPage.module.css'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -16,6 +19,7 @@ function SignUpPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const { toast, showToast, closeToast } = useToastQueue()
 
   const normalizedEmail = email.trim().toLowerCase()
   const isEmailValid = EMAIL_PATTERN.test(normalizedEmail)
@@ -41,7 +45,10 @@ function SignUpPage() {
       })
       navigate(ROUTE_PATHS.terms)
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : '회원가입에 실패했습니다.')
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '회원가입에 실패했습니다.'),
+      })
     } finally {
       setIsLoading(false)
     }
@@ -53,6 +60,7 @@ function SignUpPage() {
 
   return (
     <section className={styles.page} aria-labelledby="signup-title">
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <img className={styles.coinDecoration} src="/assets/icons/login_coin.png" alt="" aria-hidden="true" />
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
 

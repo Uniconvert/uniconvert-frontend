@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import styles from './CalculatorPage.module.css'
 import { convertCurrencyAmount } from '@/utils/exchangeRate'
-import { getExchangeQuote, getExchangeQuoteHistory, type ExchangeQuoteDto } from '@/api/exchangeRates'
+import { useExchangeCalculatorData } from '@/hooks/useExchangeCalculatorData'
+import { isUsingMockExchangeApi } from '@/api/exchangeRates'
 import ModalShell from '@/components/common/ModalShell/ModalShell';
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot';
 
@@ -64,9 +65,6 @@ function CalculatorPage() {
   const toSelectRef = useRef<HTMLDivElement>(null)
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
-  const [quote, setQuote] = useState<ExchangeQuoteDto | null>(null)
-  const [quoteError, setQuoteError] = useState('')
-  const [historyData, setHistoryData] = useState(fallbackHistoryData)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,34 +81,6 @@ function CalculatorPage() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [])
-
-  useEffect(() => {
-    let isActive = true
-    getExchangeQuoteHistory(0, 10)
-      .then((items) => {
-        if (!isActive || items.length === 0) return
-        setHistoryData(items.map((item, index) => {
-          const from = item.fromCurrency?.toUpperCase() || 'USD'
-          const to = item.toCurrency?.toUpperCase() || 'KRW'
-          const amount = item.amount ?? 0
-          const converted = item.convertedAmount ?? 0
-          return {
-            id: item.id ?? index,
-            currencyCode: from.toLowerCase(),
-            code: from,
-            name: from,
-            text: `${amount.toLocaleString()} ${from}`,
-            result: `${converted.toLocaleString()} ${to}`,
-            time: item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
-            isActive: index === 0,
-          }
-        }))
-      })
-      .catch(() => {
-        // 서버 내역 조회가 실패해도 계산기는 계속 사용할 수 있습니다.
-      })
-    return () => { isActive = false }
   }, [])
 
   const handleSwap = () => {
@@ -154,35 +124,54 @@ function CalculatorPage() {
   }
 
   const numericFromAmount = Number(fromAmount.replace(/,/g, '')) || 0
-
-  useEffect(() => {
-    if (numericFromAmount <= 0) return
-    let isActive = true
-    const timer = window.setTimeout(() => {
-      getExchangeQuote(fromCurrency, toCurrency, numericFromAmount)
-        .then((response) => {
-          if (!isActive) return
-          setQuote(response)
-          setQuoteError('')
-        })
-        .catch(() => {
-          if (isActive) setQuoteError('실시간 환율을 불러오지 못해 기본 환율로 계산했어요.')
-        })
-    }, 350)
-    return () => {
-      isActive = false
-      window.clearTimeout(timer)
-    }
-  }, [fromCurrency, numericFromAmount, toCurrency])
+  const {
+    quote,
+    quoteError,
+    historyItems,
+    isHistoryLoading,
+    historyError,
+  } = useExchangeCalculatorData({
+    fromCurrency,
+    toCurrency,
+    amount: numericFromAmount,
+  })
+  const historyData = historyItems.length > 0
+    ? historyItems.map((item, index) => {
+        const from = item.fromCurrency?.toUpperCase() || 'USD'
+        const to = item.toCurrency?.toUpperCase() || 'KRW'
+        const historyAmount = item.amount ?? 0
+        const converted = item.convertedAmount ?? 0
+        return {
+          id: item.id ?? index,
+          currencyCode: from.toLowerCase(),
+          code: from,
+          name: from,
+          text: `${historyAmount.toLocaleString()} ${from}`,
+          result: `${converted.toLocaleString()} ${to}`,
+          time: item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
+          isActive: index === 0,
+        }
+      })
+    : isUsingMockExchangeApi
+      ? fallbackHistoryData
+      : []
 
   const isCurrentQuote = quote?.fromCurrency === fromCurrency
     && quote?.toCurrency === toCurrency
     && quote?.amount === numericFromAmount
-  const calculatedResult = isCurrentQuote
-    ? quote.convertedAmount ?? convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
-    : convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
+  const serverConvertedAmount = isCurrentQuote
+    && quote.available !== false
+    && typeof quote.convertedAmount === 'number'
+    ? quote.convertedAmount
+    : null
+  const hasAvailableQuote = serverConvertedAmount !== null
+  const calculatedResult = hasAvailableQuote
+    ? serverConvertedAmount
+    : isUsingMockExchangeApi
+      ? convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
+      : null
 
-  const toAmount = numericFromAmount === 0
+  const toAmount = numericFromAmount === 0 || calculatedResult === null
     ? ''
     : Number(calculatedResult.toFixed(2)).toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -335,7 +324,14 @@ function CalculatorPage() {
 
             <div className={styles.statusMessage}>
               <span className={styles.statusDot} />
-              <span>{quoteError || `${isCurrentQuote ? quote.rateDate ?? '최신' : '기본'} 환율이 적용되었습니다.`}</span>
+              <span>
+                {quoteError
+                  || (hasAvailableQuote
+                    ? `${quote?.rateDate ?? '최신'} 환율이 적용되었습니다.`
+                    : numericFromAmount > 0
+                      ? '환율 정보를 불러오는 중입니다.'
+                      : '금액을 입력하면 환율을 계산합니다.')}
+              </span>
             </div>
           </div>
         </div>
@@ -354,6 +350,15 @@ function CalculatorPage() {
           </div>
 
           <div className={styles.historyList}>
+            {isHistoryLoading && !isUsingMockExchangeApi && (
+              <p className={styles.emptyHistory}>계산 내역을 불러오는 중입니다.</p>
+            )}
+            {!isHistoryLoading && historyError && (
+              <p className={styles.emptyHistory} role="alert">{historyError}</p>
+            )}
+            {!isHistoryLoading && !historyError && historyData.length === 0 && (
+              <p className={styles.emptyHistory}>최근 계산 내역이 없습니다.</p>
+            )}
             {historyData.map((item, index) => (
               <div
                 key={item.id}
@@ -386,6 +391,15 @@ function CalculatorPage() {
         >
           <div className={styles.modalHistoryContainer}>
             <div className={styles.modalHistoryList}>
+              {isHistoryLoading && !isUsingMockExchangeApi && (
+                <p className={styles.emptyHistory}>계산 내역을 불러오는 중입니다.</p>
+              )}
+              {!isHistoryLoading && historyError && (
+                <p className={styles.emptyHistory} role="alert">{historyError}</p>
+              )}
+              {!isHistoryLoading && !historyError && historyData.length === 0 && (
+                <p className={styles.emptyHistory}>최근 계산 내역이 없습니다.</p>
+              )}
               {historyData.map((item) => (
                 <div key={`modal-item-${item.id}`} className={styles.modalHistoryItem}>
                   <div className={styles.modalHistoryInfo}>
@@ -410,7 +424,7 @@ function CalculatorPage() {
               ))}
             </div>
 
-            <div className={styles.pagination}>
+            {historyData.length > 0 && <div className={styles.pagination}>
               <button type="button" className={styles.pageNavBtn} aria-label="이전 페이지">
                 <span className={styles.chevronLeft}></span>
               </button>
@@ -420,7 +434,7 @@ function CalculatorPage() {
               <button type="button" className={styles.pageNavBtn} aria-label="다음 페이지">
                 <span className={styles.chevronRight}></span>
               </button>
-            </div>
+            </div>}
           </div>
         </ModalShell>
       )}

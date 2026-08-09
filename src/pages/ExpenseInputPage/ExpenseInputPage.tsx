@@ -1,19 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
-import { getCategories, getFallbackCategories } from '@/api/categories'
-import { createExpense, getExpenseHistory, importExpenses } from '@/api/expenses'
-import { getCurrentExchangeRate } from '@/api/exchangeRates'
+import { useCallback, useMemo, useState } from 'react'
+import { createExpense, importExpenses } from '@/api/expenses'
 import Button from '@/components/common/Button/Button'
 import CurrencyDropdown from '@/components/common/CurrencyDropdown/CurrencyDropdown'
 import type { CurrencyCode } from '@/components/common/CurrencyDropdown/currencyOptions'
 import FileUploadModal from '@/components/common/FileUploadModal/FileUploadModal'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
+import { useExpenseInputData } from '@/hooks/useExpenseInputData'
 import type { ExpenseDetail } from '@/types/expense'
+import { getApiErrorNotice } from '@/utils/apiError'
 import { formatCurrencyAmount } from '@/utils/currency'
-import { getExchangeRate } from '@/utils/exchangeRate'
 import styles from './ExpenseInputPage.module.css'
-
-const fallbackCategories = getFallbackCategories()
 
 function getTodayDateInputValue() {
   const now = new Date()
@@ -26,8 +23,6 @@ function ExpenseInputPage() {
   const [amount, setAmount] = useState('')
   const [spentAt, setSpentAt] = useState(getTodayDateInputValue)
   const [merchant, setMerchant] = useState('')
-  const [categories, setCategories] = useState(fallbackCategories)
-  const [categoryId, setCategoryId] = useState(fallbackCategories[0].id)
   const [memo, setMemo] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [uploadedFileName, setUploadedFileName] = useState('')
@@ -35,14 +30,24 @@ function ExpenseInputPage() {
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
   const { toast, showToast, closeToast } = useToastQueue()
-  const [budgetSummary, setBudgetSummary] = useState({
-    homeCurrency: 'KRW',
-    monthlyBudgetHome: 0,
-    monthlyExpenseHome: 0,
+  const showLoadWarning = useCallback((title: string) => {
+    showToast({ variant: 'error', title })
+  }, [showToast])
+  const {
+    categories,
+    categoryId,
+    setCategoryId,
+    budgetSummary,
+    setBudgetSummary,
+    rate,
+    refetchBudget,
+  } = useExpenseInputData({
+    yearMonth: spentAt.slice(0, 7),
+    currency,
+    onWarning: showLoadWarning,
   })
 
   const activeCurrency = currency
-  const [rate, setRate] = useState(() => getExchangeRate(currency, budgetSummary.homeCurrency))
   const numericAmount = Number(amount) || 0
   const convertedAmount = Math.floor(numericAmount * rate)
   const projectedExpenseHome = budgetSummary.monthlyExpenseHome + convertedAmount
@@ -57,66 +62,6 @@ function ExpenseInputPage() {
   const [calendarYear, calendarMonthNumber] = calendarMonth.split('-').map(Number)
   const firstWeekday = new Date(calendarYear, calendarMonthNumber - 1, 1).getDay()
   const daysInMonth = new Date(calendarYear, calendarMonthNumber, 0).getDate()
-
-  useEffect(() => {
-    let isActive = true
-
-    getCategories()
-      .then((response) => {
-        if (!isActive || response.length === 0) return
-        setCategories(response)
-        setCategoryId((current) => (
-          response.some((category) => category.id === current) ? current : response[0].id
-        ))
-      })
-      .catch(() => {
-        if (isActive) showToast({ variant: 'error', title: '카테고리를 불러오지 못해 기본 목록을 사용해요' })
-      })
-
-    return () => { isActive = false }
-  }, [showToast])
-
-  useEffect(() => {
-    let isActive = true
-
-    getExpenseHistory(spentAt.slice(0, 7), 'month')
-      .then((history) => {
-        if (!isActive) return
-        setBudgetSummary({
-          homeCurrency: history.homeCurrency,
-          monthlyBudgetHome: history.monthlyBudgetHome,
-          monthlyExpenseHome: history.monthlyExpenseHome,
-        })
-      })
-      .catch(() => {
-        if (!isActive) return
-        setBudgetSummary({ homeCurrency: 'KRW', monthlyBudgetHome: 0, monthlyExpenseHome: 0 })
-        showToast({ variant: 'error', title: '환율 정보를 불러오지 못했어요' })
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [spentAt, showToast])
-
-  useEffect(() => {
-    let isActive = true
-
-    getCurrentExchangeRate(currency, budgetSummary.homeCurrency)
-      .then((response) => {
-        if (isActive && typeof response.rate === 'number' && response.rate > 0) {
-          setRate(response.rate)
-        }
-      })
-      .catch(() => {
-        if (isActive) {
-          setRate(getExchangeRate(currency, budgetSummary.homeCurrency))
-          showToast({ variant: 'error', title: '실시간 환율을 불러오지 못해 기본 환율을 사용해요' })
-        }
-      })
-
-    return () => { isActive = false }
-  }, [budgetSummary.homeCurrency, currency, showToast])
 
   const moveCalendarMonth = (amount: number) => {
     const next = new Date(calendarYear, calendarMonthNumber - 1 + amount, 1)
@@ -160,8 +105,11 @@ function ExpenseInputPage() {
         monthlyExpenseHome: current.monthlyExpenseHome + savedExpense.convertedAmountHome,
       }))
       setAmount('')
-    } catch {
-      showToast({ variant: 'error', title: '지출을 저장하지 못했어요. 다시 시도해주세요' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '지출을 저장하지 못했습니다.'),
+      })
     } finally {
       setIsSaving(false)
     }
@@ -279,12 +227,7 @@ function ExpenseInputPage() {
           setUploadedFileName(file.name)
           setIsUploadOpen(false)
           showToast({ variant: 'success', title: `${result.savedCount ?? 0}건의 지출을 가져왔어요` })
-          const history = await getExpenseHistory(spentAt.slice(0, 7), 'month')
-          setBudgetSummary({
-            homeCurrency: history.homeCurrency,
-            monthlyBudgetHome: history.monthlyBudgetHome,
-            monthlyExpenseHome: history.monthlyExpenseHome,
-          })
+          await refetchBudget()
         }}
       />
     </section>
