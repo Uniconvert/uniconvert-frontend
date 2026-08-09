@@ -179,7 +179,7 @@
 }
 
 .imageChoices button img { display: block; width: 100%; height: 100%; border-radius: .7rem; object-fit: cover; }
-.imageChoices button:nth-child(5) img { padding: .35rem; object-fit: contain; }
+.imageChoices button:nth-child(6) img { padding: .35rem; object-fit: contain; }
 
 .selectedImageChoice {
   border-color: var(--color-primary) !important;

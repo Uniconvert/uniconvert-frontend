@@ -15,11 +15,11 @@ import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
 const representativeImages = [
   '/assets/images/pots/sapporo-trip.png',
-  '/assets/images/goals/education-campus.png',
-  '/assets/images/goals/shopping-mall.png',
-  '/assets/images/goals/travel-resort.png',
+  '/assets/images/pots/education-campus.png',
+  '/assets/images/pots/shopping-mall.png',
+  '/assets/images/pots/travel-resort.png',
+  '/assets/images/pots/clover.png',
   '/assets/illustrations/mascot-finance.png',
-  '/assets/images/pots/representative-image-add.png',
 ]
 
 function PotsPage() {
