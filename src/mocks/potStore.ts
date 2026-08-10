@@ -1,4 +1,9 @@
 import potsMock from '@/mocks/pots.json'
+import {
+  getDefaultPotRepresentativeImageKey,
+  getPotRepresentativeImageKeyBySrc,
+  getPotRepresentativeImageSrc,
+} from '@/constants/potRepresentativeImages'
 import { updateOnboardingSettings } from '@/auth/session'
 import { getStoredExpenses } from '@/mocks/expenseStore'
 import { getMockHomeCurrency, getMockMonthlyBudget, getMockStorageKey, isSeededMockUser } from '@/mocks/mockScenario'
@@ -47,6 +52,14 @@ function seedData(): PotsData {
     ...data,
     pots: data.pots.map((pot) => ({
       ...pot,
+      representativeImageKey: pot.representativeImageKey
+        ?? getPotRepresentativeImageKeyBySrc(pot.imageSrc)
+        ?? getDefaultPotRepresentativeImageKey(pot.icon),
+      imageSrc: getPotRepresentativeImageSrc(
+        pot.representativeImageKey
+          ?? getPotRepresentativeImageKeyBySrc(pot.imageSrc)
+          ?? getDefaultPotRepresentativeImageKey(pot.icon),
+      ),
       thisMonthAmount: pot.thisMonthAmount ?? pot.savedAmount,
       archived: pot.archived ?? false,
       displayOrder: pot.displayOrder ?? 0,
@@ -69,6 +82,14 @@ export function getStoredPots(): PotsData {
       ...parsed,
       pots: parsed.pots.map((pot) => ({
         ...pot,
+        representativeImageKey: pot.representativeImageKey
+          ?? getPotRepresentativeImageKeyBySrc(pot.imageSrc)
+          ?? getDefaultPotRepresentativeImageKey(pot.icon),
+        imageSrc: getPotRepresentativeImageSrc(
+          pot.representativeImageKey
+            ?? getPotRepresentativeImageKeyBySrc(pot.imageSrc)
+            ?? getDefaultPotRepresentativeImageKey(pot.icon),
+        ),
         thisMonthAmount: pot.thisMonthAmount ?? pot.savedAmount,
         archived: pot.archived ?? false,
         displayOrder: pot.displayOrder ?? 0,
@@ -130,6 +151,10 @@ export function updateStoredPot(potId: string, input: UpdatePotInput) {
     ...current,
     ...input,
     potId,
+    representativeImageKey: input.representativeImageKey ?? current.representativeImageKey,
+    imageSrc: getPotRepresentativeImageSrc(
+      input.representativeImageKey ?? current.representativeImageKey,
+    ),
     savedAmount: nextSavedAmount,
     thisMonthAmount: input.thisMonthAmount ?? current.thisMonthAmount,
     completedAt: nextSavedAmount >= nextTargetAmount

@@ -7,7 +7,6 @@ import {
 import type { ApiResponse, MockApiResponse } from '@/types/api'
 
 export const isUsingMockApi = import.meta.env.VITE_USE_MOCK_API !== 'false'
-const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 interface ApiRequestOptions extends RequestInit {
   /** 전체 Mock 모드에서도 특정 도메인만 실제 API로 전환할 때 사용합니다. */
@@ -68,6 +67,8 @@ async function readResponseBody(response: Response): Promise<unknown> {
 }
 
 function requireApiBaseUrl() {
+  const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
+
   if (!apiBaseUrl) {
     throw new Error('VITE_API_BASE_URL이 설정되지 않았습니다.')
   }

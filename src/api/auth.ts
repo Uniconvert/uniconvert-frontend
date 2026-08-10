@@ -29,6 +29,8 @@ function toLoginResult(user: MockAuthUser): LoginResult {
       email: user.email,
       nickname: user.nickname,
       profileImage: user.profileImage,
+      profileImageKey: user.profileImageKey,
+      primaryGoal: user.primaryGoal,
       isEmailVerified: user.isEmailVerified,
       isOnboardingCompleted: user.isOnboardingCompleted,
       mockDataMode: user.mockDataMode,

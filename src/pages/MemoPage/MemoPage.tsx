@@ -5,6 +5,7 @@ import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import type { ExpenseMemo } from '@/types/memo'
+import { getApiErrorNotice } from '@/utils/apiError'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
 import styles from './MemoPage.module.css'
 
@@ -90,7 +91,9 @@ function MemoPage() {
   useEffect(() => {
     getExpenseMemos()
       .then(setMemos)
-      .catch(() => setErrorMessage('메모를 불러오지 못했습니다.'))
+      .catch((error) => setErrorMessage(
+        getApiErrorNotice(error, '메모를 불러오지 못했습니다.').title,
+      ))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -127,8 +130,11 @@ function MemoPage() {
       setMemos((current) => current.filter((memo) => !expenseIds.includes(memo.expenseId)))
       setSelectedIds((current) => current.filter((id) => !expenseIds.includes(id)))
       setOpenMenuId(null)
-    } catch {
-      showToast({ variant: 'error', title: '메모 삭제에 실패했어요' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '메모 삭제에 실패했습니다.'),
+      })
     }
   }
 
@@ -257,8 +263,11 @@ function MemoPage() {
               setMemos((current) => current.map((item) => item.expenseId === updated.expenseId ? updated : item))
               setEditingMemo(null)
               showToast({ variant: 'success', title: '수정되었어요' })
-            } catch {
-              showToast({ variant: 'error', title: '수정하지 못했어요. 다시 시도해주세요' })
+            } catch (error) {
+              showToast({
+                variant: 'error',
+                ...getApiErrorNotice(error, '메모를 수정하지 못했습니다.'),
+              })
             }
           }}
         />

@@ -26,7 +26,7 @@ function BudgetAllocationSummary({ totalAssets, allocatedAmount, availableAmount
       <div className={`${styles.metric} ${styles.budgetMetric}`}>
         <span className={styles.walletIcon}><img src="/assets/icons/pots/pot-wallet.png" alt="" aria-hidden="true" /></span>
         <div>
-          <span className={styles.label}>총 보유 자산</span>
+          <span className={styles.label}>이번 달 예산</span>
           <strong>{formatCurrencyAmount(totalAssets, currency)}</strong>
         </div>
       </div>
@@ -38,7 +38,7 @@ function BudgetAllocationSummary({ totalAssets, allocatedAmount, availableAmount
       </div>
       <FlowArrow />
       <div className={styles.metric}>
-        <span className={styles.label}>사용 가능 금액</span>
+        <span className={styles.label}>총 보유 자산</span>
         <strong>{formatCurrencyAmount(availableAmount, currency)} <small>({availableRate}%)</small></strong>
         <span className={`${styles.track} ${styles.availableTrack}`} aria-hidden="true"><span style={{ width: `${availableRate}%` }} /></span>
       </div>

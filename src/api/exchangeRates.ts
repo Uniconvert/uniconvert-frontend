@@ -2,21 +2,23 @@ import { getExchangeRate } from '@/utils/exchangeRate'
 import { apiRequest, isUsingMockApi } from './client'
 
 export interface ExchangeRateDto {
+  available: boolean
   fromCurrency?: string
   toCurrency?: string
-  rate?: number
-  rateDate?: string
+  rate?: number | null
+  rateDate?: string | null
   changeRate?: number | null
   comparedDate?: string | null
 }
 
 export interface ExchangeQuoteDto {
+  available: boolean
   fromCurrency?: string
   toCurrency?: string
   amount?: number
-  appliedRate?: number
-  convertedAmount?: number
-  rateDate?: string
+  appliedRate?: number | null
+  convertedAmount?: number | null
+  rateDate?: string | null
 }
 
 export interface ExchangeQuoteHistoryDto {
@@ -49,6 +51,7 @@ export function getCurrentExchangeRate(from: string, to: string) {
 
   if (normalizedFrom === normalizedTo || isUsingMockExchangeApi) {
     return Promise.resolve<ExchangeRateDto>({
+      available: true,
       fromCurrency: normalizedFrom,
       toCurrency: normalizedTo,
       rate: mockRate,
@@ -59,7 +62,7 @@ export function getCurrentExchangeRate(from: string, to: string) {
   const params = new URLSearchParams({ from: normalizedFrom, to: normalizedTo })
   return apiRequest<ExchangeRateDto>(
     `/exchange-rates/current?${params.toString()}`,
-    { data: { fromCurrency: normalizedFrom, toCurrency: normalizedTo, rate: mockRate } },
+    { data: { available: true, fromCurrency: normalizedFrom, toCurrency: normalizedTo, rate: mockRate } },
     { useMock: false },
   )
 }
@@ -69,8 +72,9 @@ export function getExchangeQuote(from: string, to: string, amount: number, date?
   const normalizedTo = to.toUpperCase()
   const rate = normalizedFrom === normalizedTo ? 1 : getExchangeRate(normalizedFrom, normalizedTo)
 
-  if (isUsingMockExchangeApi) {
+  if (normalizedFrom === normalizedTo || isUsingMockExchangeApi) {
     return Promise.resolve<ExchangeQuoteDto>({
+      available: true,
       fromCurrency: normalizedFrom,
       toCurrency: normalizedTo,
       amount,
@@ -89,7 +93,7 @@ export function getExchangeQuote(from: string, to: string, amount: number, date?
 
   return apiRequest<ExchangeQuoteDto>(
     `/exchange-rates/quote?${params.toString()}`,
-    { data: { amount, appliedRate: rate, convertedAmount: amount * rate } },
+    { data: { available: true, amount, appliedRate: rate, convertedAmount: amount * rate } },
     { useMock: false },
   )
 }
