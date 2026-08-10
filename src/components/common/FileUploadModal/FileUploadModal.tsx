@@ -7,7 +7,7 @@ interface FileUploadModalProps {
   isOpen: boolean
   onClose: () => void
   onUpload?: (file: File) => void | Promise<void>
-  onError?: () => void
+  onError?: (error: unknown) => void
 }
 
 const MAX_FILE_SIZE = 30 * 1024 * 1024
@@ -20,6 +20,19 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
   const [isDragging, setIsDragging] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+
+  const resetFile = () => {
+    setSelectedFile(null)
+    setErrorMessage('')
+    setIsDragging(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleClose = () => {
+    if (isUploading) return
+    resetFile()
+    onClose()
+  }
 
   if (!isOpen) return null
 
@@ -47,9 +60,13 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
     setIsUploading(true)
     try {
       await onUpload?.(selectedFile)
-    } catch {
-      setErrorMessage('파일을 가져오지 못했습니다. 다시 시도해주세요.')
-      onError?.()
+      resetFile()
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : '파일을 가져오지 못했습니다. 다시 시도해주세요.'
+      setErrorMessage(message)
+      onError?.(error)
     } finally {
       setIsUploading(false)
     }
@@ -63,7 +80,7 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
       width="47.25rem"
       minHeight="39.75rem"
       bodyClassName={styles.modalBody}
-      onClose={onClose}
+      onClose={handleClose}
     >
       <div
           className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
@@ -93,8 +110,8 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
         {errorMessage && <p className={styles.error} role="alert">{errorMessage}</p>}
 
         <div className={styles.actions}>
-          <Button variant="outline" onClick={onClose}>취소</Button>
-          <Button onClick={handleUpload} isLoading={isUploading} disabled={isUploading}>업로드</Button>
+          <Button variant="outline" onClick={handleClose}>취소</Button>
+          <Button onClick={handleUpload} isLoading={isUploading} disabled={!selectedFile || isUploading}>업로드</Button>
         </div>
     </ModalShell>
   )

@@ -221,12 +221,19 @@ function ExpenseInputPage() {
       <FileUploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
-        onError={() => showToast({ variant: 'error', title: '가져오기에 실패했어요. 다시 시도해주세요' })}
+        onError={(error) => showToast({
+          variant: 'error',
+          ...getApiErrorNotice(error, '지출 내역을 가져오지 못했습니다.'),
+        })}
         onUpload={async (file) => {
           const result = await importExpenses(file)
           setUploadedFileName(file.name)
           setIsUploadOpen(false)
-          showToast({ variant: 'success', title: `${result.savedCount ?? 0}건의 지출을 가져왔어요` })
+          showToast({
+            variant: 'success',
+            title: `${result.savedCount ?? 0}건의 지출을 가져왔어요`,
+            description: `제외 ${result.excludedCount ?? 0}건 · 오류 ${result.errorCount ?? 0}건`,
+          })
           await refetchBudget()
         }}
       />
