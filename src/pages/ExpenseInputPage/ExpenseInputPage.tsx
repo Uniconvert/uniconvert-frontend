@@ -25,7 +25,6 @@ function ExpenseInputPage() {
   const [merchant, setMerchant] = useState('')
   const [memo, setMemo] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [uploadedFileName, setUploadedFileName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
@@ -126,8 +125,6 @@ function ExpenseInputPage() {
           </button>
         </div>
 
-        {uploadedFileName && <p className={styles.uploadStatus}>선택된 파일: {uploadedFileName}</p>}
-
         <div className={styles.twoColumns}>
           <div className={styles.field}>
             <span>통화</span>
@@ -227,7 +224,6 @@ function ExpenseInputPage() {
         })}
         onUpload={async (file) => {
           const result = await importExpenses(file)
-          setUploadedFileName(file.name)
           setIsUploadOpen(false)
           showToast({
             variant: 'success',

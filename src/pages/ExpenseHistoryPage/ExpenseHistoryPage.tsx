@@ -53,8 +53,18 @@ function ExpenseHistoryPage() {
   })
 
   const handleDeleteExpense = async (expenseId: string) => {
-    const deleted = await deleteSavedExpense(expenseId)
-    if (deleted) setSavedExpenses((current) => current.filter((expense) => expense.expenseId !== expenseId))
+    try {
+      const deleted = await deleteSavedExpense(expenseId)
+      if (!deleted) return
+      setSavedExpenses((current) => current.filter((expense) => expense.expenseId !== expenseId))
+      showToast({ variant: 'success', title: '지출을 삭제했어요' })
+      retry()
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '지출을 삭제하지 못했습니다.'),
+      })
+    }
   }
 
   const filteredSavedExpenses = savedExpenses.filter((expense) => expense.spentAt.startsWith(`${currentYear}-${selectedMonth.padStart(2, '0')}`))
@@ -343,7 +353,7 @@ function ExpenseHistoryPage() {
               </div>}
             </div>
           )}
-          headerActions={isUsingMockExpenseReadApi ? (
+          headerActions={(
             <button
               className={`${styles.manageButton} ${isManagingExpenses ? styles.manageButtonActive : ''}`}
               type="button"
@@ -357,7 +367,7 @@ function ExpenseHistoryPage() {
                 ? '완료 ×'
                 : <img src="/assets/icons/actions/action-edit-recent.png" alt="" aria-hidden="true" />}
             </button>
-          ) : undefined}
+          )}
           onClose={closeSavedExpenses}
         >
           <ul>
@@ -368,7 +378,7 @@ function ExpenseHistoryPage() {
               {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.map((expense) => (
                 <li
                   key={expense.expenseId}
-                  draggable={isManagingExpenses && editingExpenseId !== expense.expenseId}
+                  draggable={isUsingMockExpenseReadApi && isManagingExpenses && editingExpenseId !== expense.expenseId}
                   className={[
                     isManagingExpenses ? styles.managedExpense : '',
                     draggedExpenseId === expense.expenseId ? styles.dragging : '',
@@ -378,7 +388,7 @@ function ExpenseHistoryPage() {
                   onDrop={() => handleDrop(expense.expenseId)}
                   onDragEnd={() => setDraggedExpenseId(null)}
                 >
-                  {isManagingExpenses && <span className={styles.dragHandle} title="드래그하여 순서 변경" aria-hidden="true">⠿</span>}
+                  {isUsingMockExpenseReadApi && isManagingExpenses && <span className={styles.dragHandle} title="드래그하여 순서 변경" aria-hidden="true">⠿</span>}
                   <div className={styles.savedExpenseMain}>
                     <span className={styles.expenseIcon}><img src={getCategoryIconPath(expense.iconKey)} alt="" aria-hidden="true" /></span>
                     <span className={styles.savedExpenseMeta}>
@@ -407,7 +417,7 @@ function ExpenseHistoryPage() {
                       ) : (
                         <b>
                           {expense.merchantName}
-                          {isManagingExpenses && (
+                          {isUsingMockExpenseReadApi && isManagingExpenses && (
                             <button
                               className={styles.nameEditButton}
                               type="button"

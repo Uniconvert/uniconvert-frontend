@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { deleteExpenseMemos, getExpenseMemos, updateExpenseMemo } from '@/api/memos'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
@@ -9,7 +9,6 @@ import { getApiErrorNotice } from '@/utils/apiError'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
 import styles from './MemoPage.module.css'
 
-const PAGE_SIZE = 6
 type SortOrder = 'latest' | 'oldest'
 
 function formatSpentAt(spentAt: string) {
@@ -84,36 +83,40 @@ function MemoPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [editingMemo, setEditingMemo] = useState<ExpenseMemo | null>(null)
   const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [reloadKey, setReloadKey] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const { toast, showToast, closeToast } = useToastQueue()
 
   useEffect(() => {
-    getExpenseMemos()
-      .then(setMemos)
-      .catch((error) => setErrorMessage(
-        getApiErrorNotice(error, '메모를 불러오지 못했습니다.').title,
-      ))
-      .finally(() => setIsLoading(false))
-  }, [])
+    let isCancelled = false
 
-  const filteredMemos = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR')
-    return [...memos]
-      .filter((memo) => {
-        if (!normalizedQuery) return true
-        return [memo.memo, memo.categoryName, memo.merchantName]
-          .some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedQuery))
+    getExpenseMemos({ keyword: query, sort: sortOrder, page: page - 1 })
+      .then((result) => {
+        if (isCancelled) return
+        setMemos(result.items)
+        setTotalPages(result.totalPages)
+        setTotalElements(result.totalElements)
+        setSelectedIds([])
+        setErrorMessage('')
       })
-      .sort((a, b) => {
-        const comparison = a.spentAt.localeCompare(b.spentAt)
-        return sortOrder === 'latest' ? -comparison : comparison
+      .catch((error) => {
+        if (isCancelled) return
+        setErrorMessage(getApiErrorNotice(error, '메모를 불러오지 못했습니다.').title)
       })
-  }, [memos, query, sortOrder])
+      .finally(() => {
+        if (!isCancelled) setIsLoading(false)
+      })
 
-  const totalPages = Math.max(1, Math.ceil(filteredMemos.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
-  const visibleMemos = filteredMemos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+    return () => {
+      isCancelled = true
+    }
+  }, [page, query, reloadKey, sortOrder])
+
+  const currentPage = Math.min(page, Math.max(1, totalPages))
+  const visibleMemos = memos
 
   const toggleSelection = (expenseId: string) => {
     setSelectedIds((current) =>
@@ -127,9 +130,16 @@ function MemoPage() {
     if (expenseIds.length === 0) return
     try {
       await deleteExpenseMemos(expenseIds)
-      setMemos((current) => current.filter((memo) => !expenseIds.includes(memo.expenseId)))
+      const remainingItems = memos.filter((memo) => !expenseIds.includes(memo.expenseId))
+      setMemos(remainingItems)
+      setTotalElements((current) => Math.max(0, current - expenseIds.length))
       setSelectedIds((current) => current.filter((id) => !expenseIds.includes(id)))
       setOpenMenuId(null)
+      if (remainingItems.length === 0 && page > 1) {
+        setPage((current) => current - 1)
+      } else {
+        setReloadKey((current) => current + 1)
+      }
     } catch (error) {
       showToast({
         variant: 'error',
@@ -237,7 +247,7 @@ function MemoPage() {
         )}
       </section>
 
-      {filteredMemos.length > 0 && (
+      {totalElements > 0 && (
         <nav className={styles.pagination} aria-label="메모 페이지">
           <button type="button" aria-label="이전 페이지" disabled={currentPage === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>‹</button>
           {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
@@ -258,7 +268,7 @@ function MemoPage() {
           onClose={() => setEditingMemo(null)}
           onSave={async (memo) => {
             try {
-              const updated = await updateExpenseMemo(editingMemo.expenseId, memo)
+              const updated = await updateExpenseMemo(editingMemo, memo)
               if (!updated) throw new Error('Memo update failed')
               setMemos((current) => current.map((item) => item.expenseId === updated.expenseId ? updated : item))
               setEditingMemo(null)
