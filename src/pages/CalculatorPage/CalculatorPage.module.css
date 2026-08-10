@@ -295,6 +295,14 @@
   justify-content: space-around;
 }
 
+.emptyHistory {
+  width: 100%;
+  margin: 0;
+  padding: 2rem 1rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .historyItem {
   display: flex;
   align-items: center;

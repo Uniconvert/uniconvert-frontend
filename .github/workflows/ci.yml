@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   check:
-    name: Lint 및 Build
+    name: Lint, Test 및 Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -34,6 +34,9 @@ jobs:
 
       - name: ESLint 검사
         run: npm run lint
+
+      - name: 단위 테스트
+        run: npm run test
 
       - name: TypeScript 및 운영 빌드 검사
         run: npm run build

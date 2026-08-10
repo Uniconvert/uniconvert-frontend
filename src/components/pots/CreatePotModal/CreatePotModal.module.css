@@ -9,6 +9,7 @@
 .targetField { display: grid; gap: 1rem; }
 .targetField > strong { font-size: 1.15rem; }
 .targetField > p,
+.imageChoices > p,
 .iconChoices > p { margin-top: -.55rem; color: var(--color-text-muted); font-size: .875rem; }
 .rangeWrap { height: 3.5rem; position: relative; padding-top: 2.1rem; }
 .rangeWrap output { position: absolute; top: 0; padding: .35rem .75rem; color: white; background: var(--color-primary); border-radius: .45rem; font-size: .8rem; font-weight: var(--font-weight-bold); white-space: nowrap; transform: translateX(-50%); }
@@ -40,12 +41,20 @@
 }
 .targetField small { color: var(--color-text-muted); }
 .targetField small { display: flex; align-items: center; justify-content: space-between; }
+.imageChoices,
 .iconChoices { padding: 0; border: 0; }
+.imageChoices legend,
 .iconChoices legend { margin-bottom: 1rem; font-size: 1.15rem; font-weight: var(--font-weight-bold); }
+.imageChoices > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .75rem; margin-top: 1rem; }
+.imageChoices button { display: grid; aspect-ratio: .8; place-items: center; position: relative; padding: 0; overflow: hidden; background: white; border: 1px solid #ddd; border-radius: .6rem; }
+.imageChoices button img { width: 100%; height: 100%; object-fit: cover; }
+.imageChoices button:nth-child(6) img { padding: .35rem; object-fit: contain; }
+.imageChoices button span { display: grid; width: 1.5rem; height: 1.5rem; position: absolute; top: .35rem; right: .35rem; place-items: center; color: white; background: var(--color-primary); border-radius: 50%; }
+.imageChoices button.selectedImage { border-color: var(--color-primary); outline: 2px solid #dbeeff; }
 .iconChoices > div { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 1.2rem; margin-top: 1.65rem; }
 .iconChoices button { display: grid; aspect-ratio: 1; place-items: center; background: white; border: 1px solid #ddd; border-radius: .6rem; font-size: 1.5rem; }
 .iconChoices button img { width: 2rem; height: 2rem; object-fit: contain; transform-origin: center; }
 .iconChoices button.selectedIcon { background: #e1f0fc; border-color: var(--color-primary); }
 .actions { display: grid; grid-template-columns: .95fr 1.05fr; gap: 1.5rem; margin-top: -.25rem; }
 .actions > button:first-child { color: var(--color-text-primary); }
-@media (max-width: 32rem) { .modalBody { padding: 1.5rem; } .iconChoices > div { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 32rem) { .modalBody { padding: 1.5rem; } .imageChoices > div, .iconChoices > div { grid-template-columns: repeat(3, 1fr); } }

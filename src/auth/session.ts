@@ -14,7 +14,7 @@ export interface OnboardingSettings {
 }
 
 interface StoredMockUserState {
-  user?: Partial<Pick<AuthUser, 'nickname' | 'profileImage' | 'isEmailVerified' | 'isOnboardingCompleted'>>
+  user?: Partial<Pick<AuthUser, 'nickname' | 'profileImage' | 'profileImageKey' | 'primaryGoal' | 'isEmailVerified' | 'isOnboardingCompleted'>>
   onboarding?: OnboardingSettings
 }
 
@@ -41,10 +41,17 @@ const ONBOARDING_KEYS = [
 
 const MOCK_USER_STATE_KEY = 'uniconvert.mockUserState.v1'
 const FRESH_ONBOARDING_MOCK_EMAIL = 'onboarding@uniconvert.com'
+export const SESSION_USER_CHANGED_EVENT = 'uniconvert:session-user-changed'
 
 export interface SessionTokens {
   accessToken: string
   refreshToken: string
+}
+
+function notifySessionUserChanged() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(SESSION_USER_CHANGED_EVENT))
+  }
 }
 
 function readMockUserStates(): Record<string, StoredMockUserState> {
@@ -118,6 +125,7 @@ export function saveSessionUser(userToSave: AuthUser) {
   if (onboarding?.termsAgreements) sessionStorage.setItem('uniconvert.termsAgreements', JSON.stringify(onboarding.termsAgreements))
 
   sessionStorage.setItem(SESSION_KEYS.user, JSON.stringify(user))
+  notifySessionUserChanged()
   return user
 }
 
@@ -181,6 +189,7 @@ export function clearSession() {
   Object.values(SESSION_KEYS).forEach((key) => sessionStorage.removeItem(key))
   Object.values(LEGACY_SESSION_KEYS).forEach((key) => sessionStorage.removeItem(key))
   ONBOARDING_KEYS.forEach((key) => sessionStorage.removeItem(key))
+  notifySessionUserChanged()
 }
 
 function readStringArray(key: string) {
@@ -263,11 +272,14 @@ export function updateSessionUser(updates: Partial<AuthUser>): AuthUser | null {
         ...current.user,
         nickname: updatedUser.nickname,
         profileImage: updatedUser.profileImage,
+        profileImageKey: updatedUser.profileImageKey,
+        primaryGoal: updatedUser.primaryGoal,
         isEmailVerified: updatedUser.isEmailVerified,
         isOnboardingCompleted: updatedUser.isOnboardingCompleted,
       },
     })
   }
 
+  notifySessionUserChanged()
   return updatedUser
 }

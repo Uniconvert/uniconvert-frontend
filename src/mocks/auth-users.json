@@ -5,7 +5,9 @@
       "email": "test@uniconvert.com",
       "password": "test1234",
       "nickname": "hamster",
-      "profileImage": "/assets/profiles/hamster.png",
+      "profileImage": "/assets/profiles/profile-827.png",
+      "profileImageKey": "profile_827",
+      "primaryGoal": "travel",
       "isEmailVerified": true,
       "isOnboardingCompleted": true,
       "mockDataMode": "demo-seeded"

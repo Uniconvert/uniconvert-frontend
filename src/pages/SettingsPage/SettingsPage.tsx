@@ -1,25 +1,36 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getEmailReportPreview } from '@/api/emailReports'
 import { isUsingMockAuthApi } from '@/api/auth'
 import { sendMonthlyReport } from '@/api/reports'
-import { updateMyProfile } from '@/api/users'
-import { getSessionUser, updateSessionUser } from '@/auth/session'
+import { getMyUser, updateMyProfile } from '@/api/users'
+import { getSessionUser, saveSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import type { AuthUser } from '@/types/auth'
+import { useSessionUser } from '@/hooks/useSessionUser'
+import {
+  getProfileImageKeyBySrc,
+  getProfileImageSrc,
+  getRandomProfileImageOption,
+  PROFILE_GOAL_OPTIONS,
+} from '@/constants/profileOptions'
 import type { EmailReportData } from '@/types/emailReport'
+import { getApiErrorNotice } from '@/utils/apiError'
 import { getCategoryIconPath } from '@/utils/categoryIcon'
 import { formatCurrencyAmount } from '@/utils/currency'
 import styles from './SettingsPage.module.css'
 
 function SettingsPage() {
-  const imageInputRef = useRef<HTMLInputElement>(null)
   const [isEmailReportEnabled, setIsEmailReportEnabled] = useState(false)
-  const [sessionUser, setSessionUser] = useState<AuthUser | null>(getSessionUser)
+  const sessionUser = useSessionUser()
   const [savedNickname, setSavedNickname] = useState(() => getSessionUser()?.nickname ?? '')
   const [nickname, setNickname] = useState(() => getSessionUser()?.nickname ?? '')
-  const [profileImage, setProfileImage] = useState(() => getSessionUser()?.profileImage ?? '')
+  const [savedProfileImageKey, setSavedProfileImageKey] = useState(
+    () => getSessionUser()?.profileImageKey ?? getProfileImageKeyBySrc(getSessionUser()?.profileImage) ?? '',
+  )
+  const [profileImageKey, setProfileImageKey] = useState(() => savedProfileImageKey)
+  const [savedPrimaryGoal, setSavedPrimaryGoal] = useState(() => getSessionUser()?.primaryGoal ?? '')
+  const [primaryGoal, setPrimaryGoal] = useState(() => savedPrimaryGoal)
   const [emailReport, setEmailReport] = useState<EmailReportData | null>(null)
   const [reportError, setReportError] = useState('')
   const [reportCycle, setReportCycle] = useState('daily') // 'daily' | 'weekly' | 'monthly'
@@ -30,8 +41,28 @@ function SettingsPage() {
   const [timePage, setTimePage] = useState(0)
   const { toast, showToast, closeToast } = useToastQueue()
 
+  useEffect(() => {
+    let isActive = true
 
+    getMyUser({ useMock: isUsingMockAuthApi })
+      .then((user) => {
+        if (!isActive) return
+        saveSessionUser(user)
+        setSavedNickname(user.nickname)
+        setNickname(user.nickname)
+        setSavedProfileImageKey(user.profileImageKey ?? '')
+        setProfileImageKey(user.profileImageKey ?? '')
+        setSavedPrimaryGoal(user.primaryGoal ?? '')
+        setPrimaryGoal(user.primaryGoal ?? '')
+      })
+      .catch(() => {
+        // 로그인 시 저장한 세션 정보로 설정 화면을 계속 표시합니다.
+      })
 
+    return () => {
+      isActive = false
+    }
+  }, [])
   useEffect(() => {
     let isActive = true
 
@@ -54,18 +85,8 @@ function SettingsPage() {
     }
   }, [])
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.addEventListener('load', () => {
-      const nextProfileImage = String(reader.result ?? '')
-      setProfileImage(nextProfileImage)
-      setSessionUser(updateSessionUser({ profileImage: nextProfileImage }))
-      showToast({ variant: 'success', title: '수정되었어요' })
-    })
-    reader.readAsDataURL(file)
+  const handleShuffleProfileImage = () => {
+    setProfileImageKey((currentKey) => getRandomProfileImageOption(currentKey).key)
   }
 
   const handleSave = async () => {
@@ -75,19 +96,29 @@ function SettingsPage() {
     try {
       const updatedUser = await updateMyProfile({
         nickname: nextNickname,
+        profileImageKey: profileImageKey || undefined,
+        primaryGoal: primaryGoal || undefined,
       }, { useMock: isUsingMockAuthApi })
       setSavedNickname(updatedUser.nickname)
       setNickname(updatedUser.nickname)
-      // 이미지 업로드 API가 없어 선택한 이미지는 현재 브라우저에서만 미리보기로 유지합니다.
-      setSessionUser(updateSessionUser({ ...updatedUser, profileImage }))
+      setSavedProfileImageKey(updatedUser.profileImageKey ?? '')
+      setProfileImageKey(updatedUser.profileImageKey ?? '')
+      setSavedPrimaryGoal(updatedUser.primaryGoal ?? '')
+      setPrimaryGoal(updatedUser.primaryGoal ?? '')
+      updateSessionUser(updatedUser)
       showToast({ variant: 'success', title: '수정되었어요' })
-    } catch {
-      showToast({ variant: 'error', title: '수정에 실패했습니다' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '프로필 수정에 실패했습니다.'),
+      })
     }
   }
 
   const handleCancel = () => {
     setNickname(savedNickname)
+    setProfileImageKey(savedProfileImageKey)
+    setPrimaryGoal(savedPrimaryGoal)
   }
 
   const handleReportToggle = () => {
@@ -101,8 +132,11 @@ function SettingsPage() {
     try {
       await sendMonthlyReport()
       showToast({ variant: 'success', title: '이메일로 리포트를 보냈어요' })
-    } catch {
-      showToast({ variant: 'error', title: '이메일 리포트를 보내지 못했어요' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '이메일 리포트를 보내지 못했습니다.'),
+      })
     } finally {
       setIsSendingReport(false)
     }
@@ -166,7 +200,7 @@ function SettingsPage() {
                     }}
                   >
                     <span className={styles.timeButtonContent}>
-                      <img src="public\assets\icons\time-setting.png" alt="" aria-hidden="true" />
+                      <img src="/assets/icons/time-setting.png" alt="" aria-hidden="true" />
                       {reportTime}
                     </span>
                     <span className={styles.Chevrondown} aria-hidden="true" />
@@ -239,7 +273,7 @@ function SettingsPage() {
               </div>
 
               <p className={styles.optionDescription}>
-                <img src="public\assets\icons\info.png" alt="정보" aria-hidden="true" />선택한 시간에 지출 내역 리포트가 이메일로 발송됩니다.
+                <img src="/assets/icons/info.png" alt="" aria-hidden="true" />선택한 시간에 지출 내역 리포트가 이메일로 발송됩니다.
               </p>
             </div>
           )}
@@ -249,14 +283,13 @@ function SettingsPage() {
           <h2 id="profile-title">프로필</h2>
           <div className={styles.avatarWrap}>
             <div className={styles.profileAvatar}>
-              {profileImage
-                ? <img src={profileImage} alt="선택한 프로필" />
+              {getProfileImageSrc(profileImageKey)
+                ? <img src={getProfileImageSrc(profileImageKey)} alt="선택한 프로필" />
                 : <span aria-hidden="true">{nickname.trim().charAt(0).toUpperCase()}</span>}
             </div>
-            <button type="button" className={styles.changePhotoButton} aria-label="프로필 사진 변경" onClick={() => imageInputRef.current?.click()}>
+            <button type="button" className={styles.changePhotoButton} aria-label="프로필 이미지 무작위 변경" onClick={handleShuffleProfileImage}>
               <img src="/assets/icons/actions/exchange-button.png" alt="" aria-hidden="true" />
             </button>
-            <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} />
           </div>
 
           <div className={styles.profileFields}>
@@ -267,6 +300,15 @@ function SettingsPage() {
             <label>
               <span>이메일</span>
               <input value={sessionUser?.email ?? ''} placeholder="로그인된 이메일이 없습니다" readOnly aria-readonly="true" />
+            </label>
+            <label>
+              <span>관리 목표</span>
+              <select value={primaryGoal} onChange={(event) => setPrimaryGoal(event.target.value)}>
+                <option value="">선택 안 함</option>
+                {PROFILE_GOAL_OPTIONS.map((goal) => (
+                  <option key={goal.id} value={goal.id}>{goal.label}</option>
+                ))}
+              </select>
             </label>
           </div>
 

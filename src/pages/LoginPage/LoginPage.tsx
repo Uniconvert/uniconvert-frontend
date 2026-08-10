@@ -5,16 +5,19 @@ import AuthPanelShell from '@/components/auth/AuthPanelShell/AuthPanelShell'
 import Button from '@/components/common/Button/Button'
 import GoogleIdentityButton from '@/components/common/GoogleIdentityButton/GoogleIdentityButton'
 import TextField from '@/components/common/TextField/TextField'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './LoginPage.module.css'
 
 function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [statusMessage, setStatusMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const { toast, showToast, closeToast } = useToastQueue()
   const googleClientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim()
   const canSubmit = email.trim().length > 0 && password.length > 0
 
@@ -33,14 +36,15 @@ function LoginPage() {
     if (!canSubmit || isLoading) return
 
     setIsLoading(true)
-    setStatusMessage('')
-
     try {
       const sessionUser = await login({ email, password })
 
       navigateAfterLogin(sessionUser)
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : '로그인에 실패했습니다.')
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, '로그인에 실패했습니다.'),
+      })
     } finally {
       setIsLoading(false)
     }
@@ -50,17 +54,14 @@ function LoginPage() {
     if (isGoogleLoading) return
 
     setIsGoogleLoading(true)
-    setStatusMessage('')
-
     try {
       const sessionUser = await googleLogin(credential)
       navigateAfterLogin(sessionUser)
     } catch (error) {
-      setStatusMessage(
-        error instanceof Error
-          ? error.message
-          : 'Google 로그인에 실패했습니다.',
-      )
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, 'Google 로그인에 실패했습니다.'),
+      })
     } finally {
       setIsGoogleLoading(false)
     }
@@ -68,6 +69,7 @@ function LoginPage() {
 
   return (
     <section className={styles.page} aria-labelledby="login-title">
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <img
         className={styles.coinDecoration}
         src="/assets/icons/login_coin.png"
@@ -146,7 +148,7 @@ function LoginPage() {
             clientId={googleClientId}
             disabled={isLoading || isGoogleLoading}
             onCredential={handleGoogleCredential}
-            onError={setStatusMessage}
+            onError={(message) => showToast({ variant: 'error', title: message })}
           />
           <p className={styles.signUpPrompt}>
             아직 계정이 없으신가요?
@@ -154,12 +156,6 @@ function LoginPage() {
               회원가입하기
             </Link>
           </p>
-
-          {statusMessage && (
-            <p className={styles.status} role="status" aria-live="polite">
-              {statusMessage}
-            </p>
-          )}
         </form>
       </AuthPanelShell>
     </section>

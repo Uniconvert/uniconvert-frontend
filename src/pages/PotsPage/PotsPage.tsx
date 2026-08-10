@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { allocatePotAmount, archivePot, createPot, getPots, isUsingMockPotsApi, updatePot } from '@/api/pots'
+import { allocatePotAmount, archivePot, createPot, isUsingMockPotsApi, updatePot } from '@/api/pots'
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
@@ -8,23 +8,19 @@ import CreatePotModal from '@/components/pots/CreatePotModal/CreatePotModal'
 import BudgetAllocationSummary from '@/components/pots/BudgetAllocationSummary/BudgetAllocationSummary'
 import PotCard from '@/components/pots/PotCard/PotCard'
 import { findPotCategory, POT_CATEGORY_OPTIONS } from '@/constants/potCategoryOptions'
+import {
+  getPotRepresentativeImageSrc,
+  POT_REPRESENTATIVE_IMAGE_OPTIONS,
+} from '@/constants/potRepresentativeImages'
+import { usePotsData } from '@/hooks/usePotsData'
 import type { Pot, PotsData } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
+import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './PotsPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 
-const representativeImages = [
-  '/assets/images/pots/sapporo-trip.png',
-  '/assets/images/pots/education-campus.png',
-  '/assets/images/pots/shopping-mall.png',
-  '/assets/images/pots/travel-resort.png',
-  '/assets/images/pots/clover.png',
-  '/assets/illustrations/mascot-finance.png',
-]
-
 function PotsPage() {
-  const [data, setData] = useState<PotsData | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
+  const { data, setData, errorMessage, refetch: reloadPots } = usePotsData()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [activePot, setActivePot] = useState<Pot | null>(null)
@@ -32,27 +28,11 @@ function PotsPage() {
   const [amountValue, setAmountValue] = useState(0)
   const [editName, setEditName] = useState('')
   const [editTargetAmount, setEditTargetAmount] = useState(0)
-  const [editImageSrc, setEditImageSrc] = useState('')
+  const [editRepresentativeImageKey, setEditRepresentativeImageKey] = useState('')
   const [editIcon, setEditIcon] = useState('travel')
   const [deleteTarget, setDeleteTarget] = useState<Pot | null>(null)
   const previousAllocationRef = useRef<Pick<PotsData, 'totalAssets' | 'monthlyExpense' | 'allocatedAmount'> | null>(null)
   const { toast, showToast, closeToast } = useToastQueue()
-
-  useEffect(() => {
-    let isActive = true
-
-    getPots()
-      .then((response) => {
-        if (isActive) setData(response)
-      })
-      .catch(() => {
-        if (isActive) setErrorMessage('Pots 정보를 불러오지 못했습니다.')
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [])
 
   useEffect(() => {
     if (!data) return
@@ -86,15 +66,13 @@ function PotsPage() {
     ? Math.max(Math.min(activePot.targetAmount - activePot.savedAmount, data.availableAmount), 0)
     : 0
 
-  const reloadPots = async () => setData(await getPots())
-
   const openPanel = (pot: Pot, mode: 'add' | 'edit') => {
     setActivePot(pot)
     setPanelMode(mode)
     setAmountValue(0)
     setEditName(pot.name)
     setEditTargetAmount(pot.targetAmount)
-    setEditImageSrc(pot.imageSrc)
+    setEditRepresentativeImageKey(pot.representativeImageKey)
     setEditIcon(pot.icon)
   }
 
@@ -114,13 +92,21 @@ function PotsPage() {
         }
       }
       if (panelMode === 'edit') {
-        await updatePot(activePot.potId, { name: editName.trim(), targetAmount: editTargetAmount, imageSrc: editImageSrc, icon: editIcon })
+        await updatePot(activePot.potId, {
+          name: editName.trim(),
+          targetAmount: editTargetAmount,
+          representativeImageKey: editRepresentativeImageKey,
+          icon: editIcon,
+        })
         showToast({ variant: 'success', title: '수정되었어요' })
       }
       await reloadPots()
       closePanel()
-    } catch {
-      showToast({ variant: 'error', title: '수정하지 못했어요. 다시 시도해주세요' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, 'Pot을 수정하지 못했습니다.'),
+      })
     } finally { setIsSaving(false) }
   }
 
@@ -137,10 +123,13 @@ function PotsPage() {
       if (!archived) throw new Error('Pot archive failed')
       await reloadPots()
       setDeleteTarget(null)
-    } catch {
+    } catch (error) {
       showToast({
         variant: 'error',
-        title: isUsingMockPotsApi ? 'Pot을 삭제하지 못했어요' : 'Pot을 보관하지 못했어요',
+        ...getApiErrorNotice(
+          error,
+          isUsingMockPotsApi ? 'Pot을 삭제하지 못했습니다.' : 'Pot을 보관하지 못했습니다.',
+        ),
       })
     } finally {
       setIsSaving(false)
@@ -164,8 +153,11 @@ function PotsPage() {
         }
       })
       setIsCreateOpen(false)
-    } catch {
-      showToast({ variant: 'error', title: 'Pot을 만들지 못했어요. 다시 시도해주세요' })
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, 'Pot을 만들지 못했습니다.'),
+      })
     } finally {
       setIsSaving(false)
     }
@@ -256,18 +248,18 @@ function PotsPage() {
                 <legend>3. 대표 이미지</legend>
                 <p>Pots를 더 쉽게 구분할 수 있도록 이미지를 선택해 보세요.</p>
                 <div>
-                  {representativeImages.map((imageSrc, index) => {
-                    const isSelected = editImageSrc === imageSrc
+                  {POT_REPRESENTATIVE_IMAGE_OPTIONS.map((option, index) => {
+                    const isSelected = editRepresentativeImageKey === option.key
                     return (
                       <button
-                        key={imageSrc}
+                        key={option.key}
                         type="button"
                         className={`${styles.imageChoice} ${isSelected ? styles.selectedImageChoice : ''}`}
                         aria-label={`대표 이미지 ${index + 1}`}
                         aria-pressed={isSelected}
-                        onClick={() => setEditImageSrc(imageSrc)}
+                        onClick={() => setEditRepresentativeImageKey(option.key)}
                       >
-                        <img src={imageSrc} alt="" />
+                        <img src={getPotRepresentativeImageSrc(option.key)} alt="" />
                         {isSelected && <span className={styles.selectedBadge} aria-hidden="true">✓</span>}
                       </button>
                     )

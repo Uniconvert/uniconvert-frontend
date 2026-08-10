@@ -1,16 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { logout } from '@/api/auth'
-import { getBudget, isUsingMockBudgetApi, upsertBudget } from '@/api/budgets'
-import { getCurrentExchangeRate } from '@/api/exchangeRates'
-import { getMyUser } from '@/api/users'
-import { clearSession, getOnboardingSettings, getSessionUser } from '@/auth/session'
+import { upsertBudget } from '@/api/budgets'
+import { clearSession } from '@/auth/session'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import { getMockAssetSummary } from '@/mocks/dashboardStore'
+import { useDashboardAssetSummary } from '@/hooks/useDashboardAssetSummary'
+import { useSessionUser } from '@/hooks/useSessionUser'
 import { ROUTE_PATHS } from '@/routes/routePaths'
-import { formatConvertedCurrencyAmount } from '@/utils/exchangeRate'
 import styles from './DashboardLayout.module.css'
 
 type NavigationIconName =
@@ -86,10 +84,6 @@ const reportTabs = [
     matches: (pathname: string) => pathname === ROUTE_PATHS.reportMemos,
   },
 ]
-
-const currencySymbols: Record<string, string> = {
-  KRW: '₩', USD: '$', EUR: '€', JPY: '¥', CNY: '¥', GBP: '£',
-}
 
 function BudgetEditModal({
   initialBudget,
@@ -203,13 +197,19 @@ function DashboardLayout() {
   const now = new Date()
   const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
   const currentYearMonthApi = currentYearMonth.replace('.', '-')
-  const sessionUser = getSessionUser()
-  const [assetSummary, setAssetSummary] = useState(getMockAssetSummary)
+  const sessionUser = useSessionUser()
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [budgetVersion, setBudgetVersion] = useState(0)
   const { toast, showToast, closeToast } = useToastQueue()
+  const showBudgetLoadError = useCallback(() => {
+    showToast({ variant: 'error', title: '이번 달 예산을 불러오지 못했어요' })
+  }, [showToast])
+  const { assetSummary, setAssetSummary } = useDashboardAssetSummary({
+    yearMonth: currentYearMonthApi,
+    onError: showBudgetLoadError,
+  })
   const displayName = sessionUser?.nickname || '사용자'
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
@@ -222,39 +222,6 @@ function DashboardLayout() {
   const activeNavigationIndex = navigationItems.indexOf(activeItem)
   const navigationItemsBefore = navigationItems.slice(0, activeNavigationIndex)
   const navigationItemsAfter = navigationItems.slice(activeNavigationIndex + 1)
-
-  useEffect(() => {
-    if (isUsingMockBudgetApi) return
-
-    let isActive = true
-    Promise.all([
-      getBudget(currentYearMonthApi),
-      getMyUser({ useMock: false }),
-    ])
-      .then(async ([budget, user]) => {
-        const settings = getOnboardingSettings()
-        const homeCurrency = user.homeCurrencyCode || settings.baseCurrency || 'KRW'
-        const localCurrency = user.localCurrencyCode || settings.localCurrencies?.[0] || (homeCurrency === 'KRW' ? 'USD' : 'KRW')
-        const monthlyBudget = budget.monthlyLimitHome ?? 0
-        const exchange = await getCurrentExchangeRate(homeCurrency, localCurrency)
-        const localCurrencyAmount = monthlyBudget * (exchange.rate ?? 0)
-
-        if (!isActive) return
-        setAssetSummary({
-          homeCurrency,
-          currencySymbol: currencySymbols[homeCurrency] ?? homeCurrency,
-          totalAssetHome: monthlyBudget,
-          localCurrency,
-          localCurrencyAmount,
-          localCurrencyAmountLabel: formatConvertedCurrencyAmount(localCurrencyAmount, localCurrency),
-        })
-      })
-      .catch(() => {
-        if (isActive) showToast({ variant: 'error', title: '이번 달 예산을 불러오지 못했어요' })
-      })
-
-    return () => { isActive = false }
-  }, [currentYearMonthApi, showToast])
 
   const handleLogout = async () => {
     setIsLoggingOut(true)

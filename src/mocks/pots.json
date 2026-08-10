@@ -10,6 +10,7 @@
         "potId": "pot-001",
         "name": "삿포로 여행",
         "icon": "✈️",
+        "representativeImageKey": "pot_sapporo_trip",
         "imageSrc": "/assets/images/pots/sapporo-trip.png",
         "targetAmount": 800000,
         "savedAmount": 340000,

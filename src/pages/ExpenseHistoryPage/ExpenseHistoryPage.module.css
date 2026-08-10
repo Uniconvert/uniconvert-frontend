@@ -7,6 +7,47 @@
   gap: clamp(1.5rem, 3vw, 3rem); 
 }
 
+.feedbackPage {
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+}
+
+.feedbackCard {
+  display: grid;
+  width: min(38rem, 100%);
+  gap: 0.75rem;
+  justify-items: center;
+  padding: clamp(2rem, 5vw, 4rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.feedbackCard h1,
+.feedbackCard p {
+  margin: 0;
+}
+
+.feedbackCard h1 {
+  color: var(--color-primary);
+}
+
+.feedbackCard span {
+  color: var(--color-text-muted);
+}
+
+.feedbackCard button {
+  min-width: 8rem;
+  min-height: 2.75rem;
+  margin-top: 0.5rem;
+  color: #fff;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--color-primary);
+}
+
 .srOnly {
   width: 1px;
   height: 1px;
