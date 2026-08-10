@@ -32,7 +32,6 @@ export const router = createBrowserRouter([
       {
         Component: OnboardingRouteGuard,
         children: [
-          { path: ROUTE_PATHS.terms, lazy: lazyComponent(() => import('@/pages/TermsPage/TermsPage')) },
           { path: ROUTE_PATHS.onboardingBaseCurrency, lazy: lazyComponent(() => import('@/pages/onboarding/BaseCurrencyPage/BaseCurrencyPage')) },
           { path: ROUTE_PATHS.onboardingLocalCurrencies, lazy: lazyComponent(() => import('@/pages/onboarding/LocalCurrenciesPage/LocalCurrenciesPage')) },
           { path: ROUTE_PATHS.onboardingBudget, lazy: lazyComponent(() => import('@/pages/onboarding/BudgetSetupPage/BudgetSetupPage')) },

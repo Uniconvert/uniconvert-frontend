@@ -32,8 +32,7 @@ interface PotAllocationResponseDto {
   amount?: number
 }
 
-export const isUsingMockPotsApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_POTS_API !== 'true'
+export const isUsingMockPotsApi = isUsingMockApi
 
 function getCurrentYearMonth() {
   const now = new Date()

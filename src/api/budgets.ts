@@ -8,8 +8,7 @@ export interface BudgetDto {
   monthlyLimitHome?: number
 }
 
-export const isUsingMockBudgetApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_BUDGET_API !== 'true'
+export const isUsingMockBudgetApi = isUsingMockApi
 
 interface GetBudgetOptions {
   useMock?: boolean

@@ -30,8 +30,7 @@ interface OnboardingApiOptions {
   useMock?: boolean
 }
 
-export const isUsingMockOnboardingApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_ONBOARDING_API !== 'true'
+export const isUsingMockOnboardingApi = isUsingMockApi
 
 function createMockResponse(input?: OnboardingSaveInput): OnboardingResponseDto {
   const user = getSessionUser()

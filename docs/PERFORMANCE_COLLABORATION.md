@@ -325,8 +325,9 @@ test: 지출 계산과 API 분기 테스트 추가
 
 ```env
 # .env.example
-VITE_USE_MOCK_API=true
-VITE_API_BASE_URL=
+VITE_API_BASE_URL=https://api.uniconvert.dev
+VITE_GOOGLE_CLIENT_ID=
+VITE_GOOGLE_AUTH_PATH=/auth/social/google
 ```
 
 - 토큰, OAuth Secret, API Key는 커밋하지 않는다.

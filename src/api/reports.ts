@@ -21,8 +21,7 @@ interface ReportCategoriesDto {
   }>
 }
 
-export const isUsingMockReportApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_REPORT_API !== 'true'
+export const isUsingMockReportApi = isUsingMockApi
 
 function getRecentYearMonths(yearMonth: string, count: number) {
   const [year, month] = yearMonth.split('-').map(Number)
