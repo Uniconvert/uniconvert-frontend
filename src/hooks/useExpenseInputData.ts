@@ -9,6 +9,7 @@ interface BudgetSummary {
   homeCurrency: string
   monthlyBudgetHome: number
   monthlyExpenseHome: number
+  remainingBudgetHome: number
 }
 
 interface UseExpenseInputDataOptions {
@@ -22,6 +23,7 @@ const emptyBudgetSummary: BudgetSummary = {
   homeCurrency: 'KRW',
   monthlyBudgetHome: 0,
   monthlyExpenseHome: 0,
+  remainingBudgetHome: 0,
 }
 
 export function useExpenseInputData({
@@ -45,6 +47,7 @@ export function useExpenseInputData({
       homeCurrency: history.homeCurrency,
       monthlyBudgetHome: history.monthlyBudgetHome,
       monthlyExpenseHome: history.monthlyExpenseHome,
+      remainingBudgetHome: history.remainingBudgetHome,
     })
     return history
   }, [requestBudget])
@@ -79,6 +82,7 @@ export function useExpenseInputData({
           homeCurrency: history.homeCurrency,
           monthlyBudgetHome: history.monthlyBudgetHome,
           monthlyExpenseHome: history.monthlyExpenseHome,
+          remainingBudgetHome: history.remainingBudgetHome,
         })
       })
       .catch(() => {

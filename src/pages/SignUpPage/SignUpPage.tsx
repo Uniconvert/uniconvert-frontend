@@ -9,10 +9,12 @@ import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './SignUpPage.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function SignUpPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,7 +33,7 @@ function SignUpPage() {
     event.preventDefault()
 
     if (!canSubmit || isLoading) {
-      setStatusMessage('입력 내용을 다시 확인해 주세요.')
+      setStatusMessage(t('signup.checkInput'))
       return
     }
 
@@ -72,59 +74,58 @@ function SignUpPage() {
           <img className={styles.wordmark} src="/assets/brand/uniconvert-wordmark.png" alt="" aria-hidden="true" />
         </div>
 
-        <h1 id="signup-title">회원가입</h1>
-        <p className={styles.description}>계정에 사용할 이메일과 비밀번호를 입력해 주세요.</p>
+        <h1 id="signup-title">{t('signup.title')}</h1>
+        <p className={styles.description}>{t('signup.description')}</p>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.fields}>
             <TextField
-              label="이메일"
+              label={t('signup.email')}
               type="email"
               name="email"
               value={email}
-              placeholder="이메일"
+              placeholder={t('signup.email')}
               leadingIconSrc="/assets/icons/email.png"
               autoComplete="email"
               required
-              errorMessage={email.length > 0 && !isEmailValid ? '올바른 이메일 형식을 입력해 주세요.' : undefined}
+              errorMessage={email.length > 0 && !isEmailValid ? t('signup.invalidEmail') : undefined}
               onChange={(event) => { setEmail(event.target.value); setStatusMessage('') }}
             />
             <TextField
-              label="비밀번호"
+              label={t('signup.password')}
               type="password"
               name="password"
               value={password}
-              placeholder="8자 이상 입력"
+              placeholder={t('signup.passwordPlaceholder')}
               leadingIconSrc="/assets/icons/password.png"
               autoComplete="new-password"
               required
-              helperText="영문, 숫자 조합은 백엔드 정책 확정 후 적용됩니다."
-              errorMessage={password.length > 0 && !isPasswordValid ? '비밀번호는 8자 이상 100자 이하여야 합니다.' : undefined}
+              errorMessage={password.length > 0 && !isPasswordValid ? t('signup.invalidPassword') : undefined}
               onChange={(event) => { setPassword(event.target.value); setStatusMessage('') }}
             />
             <TextField
               className={styles.passwordConfirmField}
-              label="비밀번호 확인"
+              label={t('signup.passwordConfirm')}
               type="password"
               name="passwordConfirm"
               value={passwordConfirm}
-              placeholder="비밀번호 다시 입력"
+              placeholder={t('signup.passwordConfirmPlaceholder')}
               leadingIconSrc="/assets/icons/password.png"
               autoComplete="new-password"
               required
-              errorMessage={passwordConfirm.length > 0 && !isPasswordConfirmed ? '비밀번호가 일치하지 않습니다.' : undefined}
+              errorMessage={passwordConfirm.length > 0 && !isPasswordConfirmed ? t('signup.passwordMismatch') : undefined}
               onChange={(event) => { setPasswordConfirm(event.target.value); setStatusMessage('') }}
             />
           </div>
 
-          <Button type="submit" fullWidth disabled={!canSubmit || isLoading} isLoading={isLoading}>이메일로 회원가입</Button>
-          <div className={styles.divider}><span>또는</span></div>
-          <GoogleLoginButton fullWidth onClick={handleGoogleSignup}>Google 계정으로 회원가입</GoogleLoginButton>
+          <Button type="submit" fullWidth disabled={!canSubmit || isLoading} isLoading={isLoading}>{t('signup.submit')}</Button>
+          <div className={styles.divider}><span>{t('signup.or')}</span></div>
+          <GoogleLoginButton fullWidth onClick={handleGoogleSignup}>{t('signup.google')}</GoogleLoginButton>
 
           {statusMessage && <p className={styles.status} role="status" aria-live="polite">{statusMessage}</p>}
         </form>
 
-        <p className={styles.loginPrompt}>이미 계정이 있나요? <Link to={ROUTE_PATHS.login}>로그인</Link></p>
+        <p className={styles.loginPrompt}>{t('signup.haveAccount')} <Link to={ROUTE_PATHS.login}>{t('signup.login')}</Link></p>
       </div>
     </section>
   )

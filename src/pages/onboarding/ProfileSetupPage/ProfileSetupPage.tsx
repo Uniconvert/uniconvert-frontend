@@ -16,8 +16,10 @@ import {
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './ProfileSetupPage.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 function ProfileSetupPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [nickname, setNickname] = useState('')
   const [profileImageKey, setProfileImageKey] = useState(
@@ -117,7 +119,7 @@ function ProfileSetupPage() {
         ariaLabelledBy="profile-title"
         onSubmit={handleSubmit}
       >
-        <div className={styles.headingRow}><h1 id="profile-title">프로필을 설정해볼까요?</h1><p>더 나에게 맞는 서비스를 위해 정보를 입력해주세요</p></div>
+        <div className={styles.headingRow}><h1 id="profile-title">{t('onboarding.profileTitle')}</h1><p>{t('onboarding.profileDescription')}</p></div>
 
         <div className={styles.avatarArea}>
           <div className={styles.avatar}>
@@ -141,15 +143,15 @@ function ProfileSetupPage() {
         </div>
 
         <label className={styles.nicknameField}>
-          <span>닉네임</span>
+          <span>{t('onboarding.nickname')}</span>
           <span className={styles.nicknameInput}>
             <img src="/assets/icons/profile-user.png" alt="" aria-hidden="true" />
-            <input value={nickname} placeholder="닉네임을 입력하세요" onChange={(event) => { setNickname(event.target.value); setStatusMessage('') }} maxLength={20} required />
+            <input value={nickname} placeholder={t('onboarding.nicknamePlaceholder')} onChange={(event) => { setNickname(event.target.value); setStatusMessage('') }} maxLength={20} required />
           </span>
         </label>
 
         <fieldset className={styles.goals}>
-          <legend>내가 가장 관리하고 싶은 목표는 무엇인가요?</legend>
+          <legend>{t('onboarding.goalQuestion')}</legend>
           <div>{PROFILE_GOAL_OPTIONS.map((goal) => (
             <label key={goal.id} className={`${styles.goalOption} ${goals.includes(goal.id) ? styles.selectedGoal : ''}`}>
               <input
@@ -177,7 +179,7 @@ function ProfileSetupPage() {
           disabled={!nickname.trim() || goals.length === 0 || isSubmitting}
           isLoading={isSubmitting}
         >
-          생성하기
+          {t('onboarding.create')}
         </Button>
       </AuthPanelShell>
     </section>
