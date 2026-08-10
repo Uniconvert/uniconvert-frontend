@@ -1,10 +1,10 @@
 export const POT_REPRESENTATIVE_IMAGE_OPTIONS = [
-  { key: 'pot_sapporo_trip', src: '/assets/images/pots/sapporo-trip.png' },
-  { key: 'pot_education_campus', src: '/assets/images/pots/education-campus.png' },
-  { key: 'pot_shopping_mall', src: '/assets/images/pots/shopping-mall.png' },
-  { key: 'pot_travel_resort', src: '/assets/images/pots/travel-resort.png' },
-  { key: 'pot_clover', src: '/assets/images/pots/clover.png' },
-  { key: 'pot_mascot_finance', src: '/assets/illustrations/mascot-finance.png' },
+  { key: 'pot_sapporo_trip', src: '/assets/images/pots/sapporo-trip.png', width: 140, height: 178 },
+  { key: 'pot_education_campus', src: '/assets/images/pots/education-campus.png', width: 90, height: 114 },
+  { key: 'pot_shopping_mall', src: '/assets/images/pots/shopping-mall.png', width: 90, height: 114 },
+  { key: 'pot_travel_resort', src: '/assets/images/pots/travel-resort.png', width: 90, height: 114 },
+  { key: 'pot_clover', src: '/assets/images/pots/clover.png', width: 90, height: 114 },
+  { key: 'pot_mascot_finance', src: '/assets/illustrations/mascot-finance.png', width: 192, height: 230 },
 ] as const
 
 export type PotRepresentativeImageKey = (typeof POT_REPRESENTATIVE_IMAGE_OPTIONS)[number]['key']
@@ -21,7 +21,7 @@ export function findPotRepresentativeImage(key?: string | null) {
 }
 
 export function getPotRepresentativeImageSrc(key?: string | null) {
-  return findPotRepresentativeImage(key)?.src ?? ''
+  return findPotRepresentativeImage(key)?.src ?? POT_REPRESENTATIVE_IMAGE_OPTIONS[0].src
 }
 
 export function getPotRepresentativeImageKeyBySrc(src?: string | null) {

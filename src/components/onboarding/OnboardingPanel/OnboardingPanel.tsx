@@ -2,6 +2,7 @@ import type { FormEventHandler, ReactNode } from 'react'
 import AuthPanelShell from '@/components/auth/AuthPanelShell/AuthPanelShell'
 import Button from '@/components/common/Button/Button'
 import styles from './OnboardingPanel.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 interface OnboardingPanelProps {
   titleId: string
@@ -26,12 +27,13 @@ function OnboardingPanel({
   children,
   onSubmit,
   submitDisabled = false,
-  submitLabel = '다음',
+  submitLabel,
   totalSteps = 4,
   height = '59rem',
   compact = false,
   bottomAligned = false,
 }: OnboardingPanelProps) {
+  const { t } = useI18n()
   return (
     <AuthPanelShell
       width="47.5rem"
@@ -47,7 +49,7 @@ function OnboardingPanel({
     >
       <div
         className={styles.progress}
-        aria-label={`온보딩 ${totalSteps}단계 중 ${currentStep}단계`}
+        aria-label={t('onboarding.progress', { total: totalSteps, current: currentStep })}
       >
         {Array.from({ length: totalSteps }, (_, index) => (
           <span className={index < currentStep ? styles.active : ''} key={index} />
@@ -60,7 +62,7 @@ function OnboardingPanel({
       <div className={styles.content}>{children}</div>
 
       <Button className={styles.nextButton} type="submit" fullWidth disabled={submitDisabled}>
-        {submitLabel}
+        {submitLabel ?? t('onboarding.next')}
       </Button>
     </AuthPanelShell>
   )

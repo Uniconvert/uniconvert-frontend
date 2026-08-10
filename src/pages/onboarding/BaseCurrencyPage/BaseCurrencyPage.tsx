@@ -8,8 +8,10 @@ import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from '../CurrencySetupPage.module.css'
 import { getCurrencies } from '@/api/currencies'
 import { CURRENCY_OPTIONS } from '@/components/onboarding/CurrencySelection/currencyOptions'
+import { useI18n } from '@/i18n/I18nContext'
 
 function BaseCurrencyPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([...CURRENCY_OPTIONS])
   const [selectedCodes, setSelectedCodes] = useState<string[]>(() => {
@@ -44,8 +46,8 @@ function BaseCurrencyPage() {
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
       <OnboardingPanel
         titleId="base-currency-title"
-        title="기본 통화를 선택하세요"
-        description="예산을 관리할 기준 통화를 선택해주세요."
+        title={t('onboarding.baseTitle')}
+        description={t('onboarding.baseDescription')}
         currentStep={1}
         onSubmit={handleSubmit}
         submitDisabled={selectedCodes.length === 0}

@@ -4,6 +4,7 @@ import OnboardingPanel from '@/components/onboarding/OnboardingPanel/OnboardingP
 import { getOnboardingSettings, updateOnboardingSettings } from '@/auth/session'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './BudgetSetupPage.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 const currencyDetails: Record<string, { name: string; symbol: string; locale: string }> = {
   KRW: { name: '대한민국 원', symbol: '₩', locale: 'ko-KR' },
@@ -14,6 +15,7 @@ const currencyDetails: Record<string, { name: string; symbol: string; locale: st
 }
 
 function BudgetSetupPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const onboardingSettings = getOnboardingSettings()
   const [budget, setBudget] = useState(() => onboardingSettings.monthlyBudget ? String(onboardingSettings.monthlyBudget) : '')
@@ -36,16 +38,16 @@ function BudgetSetupPage() {
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
       <OnboardingPanel
         titleId="budget-title"
-        title="이번 달 예산을 설정하세요"
-        description="기본 통화를 기준으로 예산을 설정합니다."
+        title={t('onboarding.budgetTitle')}
+        description={t('onboarding.budgetDescription')}
         currentStep={3}
         onSubmit={handleSubmit}
         submitDisabled={!baseCurrency || Number(budget) <= 0}
-        submitLabel="시간대 설정"
+        submitLabel={t('onboarding.timezoneNext')}
         height="42.5rem"
         bottomAligned
       >
-        <label className={styles.budgetLabel} htmlFor="monthly-budget">월 예산</label>
+        <label className={styles.budgetLabel} htmlFor="monthly-budget">{t('onboarding.monthlyBudget')}</label>
         <p className={styles.notice}>예산을 초과하면 알려드릴게요</p>
         <div className={styles.amountField}>
           <span>{baseCurrency?.symbol ?? ''}</span>
@@ -53,7 +55,7 @@ function BudgetSetupPage() {
             id="monthly-budget"
             value={formattedBudget}
             inputMode="numeric"
-            placeholder="예산 금액을 입력하세요"
+            placeholder={t('onboarding.budgetPlaceholder')}
             onChange={(event) => setBudget(event.target.value.replace(/\D/g, ''))}
           />
         </div>

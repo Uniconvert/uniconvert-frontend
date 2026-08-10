@@ -9,6 +9,7 @@ import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { useDashboardAssetSummary } from '@/hooks/useDashboardAssetSummary'
 import { useSessionUser } from '@/hooks/useSessionUser'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './DashboardLayout.module.css'
 
 type NavigationIconName =
@@ -18,7 +19,7 @@ type NavigationIconName =
   | 'settings'
 
 interface NavigationItem {
-  label: string
+  labelKey: string
   to: string
   icon: NavigationIconName
   matches: (pathname: string) => boolean
@@ -26,25 +27,25 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   {
-    label: '홈',
+    labelKey: 'nav.home',
     to: ROUTE_PATHS.home,
     icon: 'home',
     matches: (pathname) => pathname.startsWith(ROUTE_PATHS.home),
   },
   {
-    label: '리포트',
+    labelKey: 'nav.report',
     to: ROUTE_PATHS.report,
     icon: 'report',
     matches: (pathname) => pathname.startsWith(ROUTE_PATHS.report),
   },
   {
-    label: '계산기',
+    labelKey: 'nav.calculator',
     to: ROUTE_PATHS.calculator,
     icon: 'calculator',
     matches: (pathname) => pathname === ROUTE_PATHS.calculator,
   },
   {
-    label: '설정',
+    labelKey: 'nav.settings',
     to: ROUTE_PATHS.settings,
     icon: 'settings',
     matches: (pathname) => pathname === ROUTE_PATHS.settings,
@@ -53,20 +54,20 @@ const navigationItems: NavigationItem[] = [
 
 const homeTabs = [
   {
-    label: '지출입력',
+    labelKey: 'nav.expenseInput',
     to: ROUTE_PATHS.home,
     matches: (pathname: string) =>
       pathname === ROUTE_PATHS.home || pathname === ROUTE_PATHS.expenseCreate,
   },
   {
-    label: '지출내역',
+    labelKey: 'nav.expenseHistory',
     to: ROUTE_PATHS.expenses,
     matches: (pathname: string) =>
       pathname.startsWith(ROUTE_PATHS.expenses) &&
       pathname !== ROUTE_PATHS.expenseCreate,
   },
   {
-    label: 'Pots',
+    labelKey: 'nav.pots',
     to: ROUTE_PATHS.pots,
     matches: (pathname: string) => pathname === ROUTE_PATHS.pots,
   },
@@ -74,12 +75,12 @@ const homeTabs = [
 
 const reportTabs = [
   {
-    label: '리포트',
+    labelKey: 'nav.report',
     to: ROUTE_PATHS.report,
     matches: (pathname: string) => pathname === ROUTE_PATHS.report,
   },
   {
-    label: '메모',
+    labelKey: 'nav.memo',
     to: ROUTE_PATHS.reportMemos,
     matches: (pathname: string) => pathname === ROUTE_PATHS.reportMemos,
   },
@@ -98,6 +99,7 @@ function BudgetEditModal({
   onClose: () => void
   onSave: (budget: number) => void
 }) {
+  const { locale, t } = useI18n()
   const [budget, setBudget] = useState(() => Math.min(initialBudget, maximumBudget))
   const progress = maximumBudget > 0 ? (budget / maximumBudget) * 100 : 0
   const rangeStep = currencySymbol === '₩' ? 10000 : 1
@@ -109,23 +111,23 @@ function BudgetEditModal({
 
   return (
     <ModalShell
-      title="예산 수정"
+      title={t('dashboard.budgetEdit')}
       titleId="budget-modal-title"
-      closeLabel="예산 수정 닫기"
+      closeLabel={t('dashboard.budgetEditClose')}
       width="44rem"
       bodyClassName={styles.budgetModalBody}
       onClose={onClose}
     >
       <form onSubmit={(event) => { event.preventDefault(); onSave(budget) }}>
           <div className={styles.budgetModalCopy}>
-            <h3>월 예산 금액</h3>
-            <p>한 달 동안 사용할 총 예산 금액을 설정해주세요.</p>
+            <h3>{t('dashboard.monthlyBudgetAmount')}</h3>
+            <p>{t('dashboard.budgetDescription')}</p>
           </div>
 
           <label className={styles.budgetInput}>
-            <span className={styles.srOnly}>월 예산 금액</span>
+            <span className={styles.srOnly}>{t('dashboard.monthlyBudgetAmount')}</span>
             <span aria-hidden="true">{currencySymbol}</span>
-            <input inputMode="numeric" value={budget.toLocaleString('ko-KR')} onChange={(event) => updateBudget(event.target.value)} />
+            <input inputMode="numeric" value={budget.toLocaleString(locale)} onChange={(event) => updateBudget(event.target.value)} />
           </label>
 
           <div
@@ -133,7 +135,7 @@ function BudgetEditModal({
             style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
           >
             <output style={{ left: `${progress}%`, transform: `translateX(-${progress}%)` }}>
-              {currencySymbol} {budget.toLocaleString('ko-KR')}
+              {currencySymbol} {budget.toLocaleString(locale)}
             </output>
             <input
               type="range"
@@ -141,15 +143,15 @@ function BudgetEditModal({
               max={maximumBudget}
               step={rangeStep}
               value={budget}
-              aria-label="월 예산 금액 슬라이더"
+              aria-label={t('dashboard.budgetSlider')}
               onChange={(event) => setBudget(Number(event.target.value))}
             />
-            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString('ko-KR')}</span></div>
+            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString(locale)}</span></div>
           </div>
 
           <div className={styles.budgetModalActions}>
-            <button type="button" onClick={onClose}>취소</button>
-            <button type="submit" disabled={budget <= 0}>저장하기</button>
+            <button type="button" onClick={onClose}>{t('common.cancel')}</button>
+            <button type="submit" disabled={budget <= 0}>{t('common.save')}</button>
           </div>
       </form>
     </ModalShell>
@@ -192,6 +194,7 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
 }
 
 function DashboardLayout() {
+  const { locale, t } = useI18n()
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const now = new Date()
@@ -204,13 +207,13 @@ function DashboardLayout() {
   const [budgetVersion, setBudgetVersion] = useState(0)
   const { toast, showToast, closeToast } = useToastQueue()
   const showBudgetLoadError = useCallback(() => {
-    showToast({ variant: 'error', title: '이번 달 예산을 불러오지 못했어요' })
-  }, [showToast])
+    showToast({ variant: 'error', title: t('dashboard.budgetLoadError') })
+  }, [showToast, t])
   const { assetSummary, setAssetSummary } = useDashboardAssetSummary({
     yearMonth: currentYearMonthApi,
     onError: showBudgetLoadError,
   })
-  const displayName = sessionUser?.nickname || '사용자'
+  const displayName = sessionUser?.nickname || t('common.user')
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
   const pageTabs =
@@ -250,7 +253,7 @@ function DashboardLayout() {
       <span className={styles.navigationIcon}>
         <NavigationIcon name={item.icon} />
       </span>
-      <span>{item.label}</span>
+      <span>{t(item.labelKey)}</span>
     </Link>
   )
 
@@ -278,7 +281,7 @@ function DashboardLayout() {
           <img className={styles.airport} src="/assets/illustrations/airport.png" alt="" />
         </div>
 
-        <div className={styles.userChip} aria-label={`현재 사용자 ${displayName}`}>
+        <div className={styles.userChip} aria-label={t('dashboard.currentUser', { name: displayName })}>
           <span className={styles.avatar} aria-hidden="true">
             {sessionUser?.profileImage
               ? <img src={sessionUser.profileImage} alt="" />
@@ -290,7 +293,7 @@ function DashboardLayout() {
       </header>
 
       <aside className={styles.sidebar}>
-        <nav className={styles.navigation} aria-label="주요 메뉴">
+        <nav className={styles.navigation} aria-label={t('dashboard.mainMenu')}>
           <div className={styles.upperNavigation}>
             <div className={styles.sidebarCap} aria-hidden="true" />
             {navigationItemsBefore.map((item) =>
@@ -310,7 +313,7 @@ function DashboardLayout() {
                 className={styles.assetSummary}
                 aria-labelledby="asset-summary-title"
               >
-                <button className={styles.assetEditButton} type="button" aria-label="이번 달 예산 편집" onClick={() => setIsBudgetModalOpen(true)}>
+                <button className={styles.assetEditButton} type="button" aria-label={t('dashboard.editMonthlyBudget')} onClick={() => setIsBudgetModalOpen(true)}>
                   <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
                 </button>
                 <div className={styles.assetRing} aria-hidden="true">
@@ -320,9 +323,9 @@ function DashboardLayout() {
                     <small>{currentYearMonth}</small>
                   </span>
                 </div>
-                <h2 id="asset-summary-title">이번 달 예산</h2>
+                <h2 id="asset-summary-title">{t('dashboard.monthlyBudget')}</h2>
                 <p className={styles.assetTotal}>
-                  {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString('ko-KR')}
+                  {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString(locale)}
                 </p>
                 <p className={styles.assetUsd}>({assetSummary.localCurrencyAmountLabel})</p>
               </section>
@@ -338,7 +341,7 @@ function DashboardLayout() {
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9" />
                 </svg>
-                로그아웃
+                {t('nav.logout')}
               </Link>
             </div>
           </div>
@@ -347,19 +350,19 @@ function DashboardLayout() {
 
       <nav
         className={styles.pageTabs}
-        aria-label={activeItem.label === '홈' ? '홈 화면 메뉴' : '현재 화면'}
+        aria-label={activeItem.icon === 'home' ? t('dashboard.homeMenu') : t('dashboard.currentScreen')}
       >
         {pageTabs.map((tab) => {
           const isActive = tab.matches(pathname)
 
           return (
             <Link
-              key={tab.label}
+              key={tab.labelKey}
               to={tab.to}
               className={isActive ? styles.activePageTab : undefined}
               aria-current={isActive ? 'page' : undefined}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </Link>
           )
         })}
@@ -386,9 +389,9 @@ function DashboardLayout() {
               }))
               setBudgetVersion((version) => version + 1)
               setIsBudgetModalOpen(false)
-              showToast({ variant: 'success', title: '수정되었어요' })
+              showToast({ variant: 'success', title: t('dashboard.updated') })
             } catch {
-              showToast({ variant: 'error', title: '예산을 수정하지 못했어요' })
+              showToast({ variant: 'error', title: t('dashboard.budgetUpdateError') })
             }
           }}
         />
@@ -396,30 +399,30 @@ function DashboardLayout() {
 
       {isLogoutModalOpen && (
         <ModalShell
-          title="로그아웃하시겠어요?"
+          title={t('dashboard.logoutTitle')}
           titleId="logout-modal-title"
-          closeLabel="로그아웃 확인 팝업 닫기"
+          closeLabel={t('dashboard.logoutClose')}
           width="31rem"
           bodyClassName={styles.logoutModalBody}
           onClose={() => {
             if (!isLoggingOut) setIsLogoutModalOpen(false)
           }}
         >
-          <p>현재 계정에서 로그아웃합니다.</p>
+          <p>{t('dashboard.logoutDescription')}</p>
           <div className={styles.logoutModalActions}>
             <button
               type="button"
               disabled={isLoggingOut}
               onClick={() => setIsLogoutModalOpen(false)}
             >
-              취소
+              {t('common.cancel')}
             </button>
             <button
               type="button"
               disabled={isLoggingOut}
               onClick={() => void handleLogout()}
             >
-              {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+              {isLoggingOut ? t('dashboard.loggingOut') : t('nav.logout')}
             </button>
           </div>
         </ModalShell>

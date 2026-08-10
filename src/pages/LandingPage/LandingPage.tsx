@@ -1,44 +1,28 @@
 import { Link } from 'react-router'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import styles from './LandingPage.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 const features = [
   {
-    title: '오늘의 환율',
-    description: (
-      <>
-        당일 환율을 반영해
-        <br />
-        언제나 정확한 금액을 제공합니다
-      </>
-    ),
+    titleKey: 'landing.rateTitle',
+    descriptionKey: 'landing.rateDescription',
     image: '/assets/icons/landing_transition.png',
   },
   {
-    title: '외화 관리',
-    description: (
-      <>
-        외화를 원화 기준으로
-        <br />
-        쉽고 직관적으로 관리하세요
-      </>
-    ),
+    titleKey: 'landing.moneyTitle',
+    descriptionKey: 'landing.moneyDescription',
     image: '/assets/icons/landing_bill.png',
   },
   {
-    title: '예산 분석',
-    description: (
-      <>
-        남은 예산과 소비를
-        <br />
-        한눈에 확인할 수 있습니다
-      </>
-    ),
+    titleKey: 'landing.budgetTitle',
+    descriptionKey: 'landing.budgetDescription',
     image: '/assets/icons/landing_graph.png',
   },
 ]
 
 function LandingPage() {
+  const { t } = useI18n()
   return (
     <main className={styles.page}>
       <section className={styles.hero} aria-labelledby="landing-title">
@@ -60,17 +44,17 @@ function LandingPage() {
 
           <div className={styles.authActions}>
             <Link className={styles.loginLink} to={ROUTE_PATHS.login}>
-              로그인
+              {t('landing.login')}
             </Link>
             <Link className={styles.signUpLink} to={ROUTE_PATHS.signUp}>
-              회원가입
+              {t('landing.signup')}
             </Link>
           </div>
         </header>
 
         <div className={styles.heroContent}>
           <h1 id="landing-title" className={styles.title}>
-            낯선 나라에서도, 내 돈 감각은 그대로
+            {t('landing.title')}
             <img
               className={styles.titleArrow}
               src="/assets/icons/landing_arrow.png"
@@ -79,12 +63,12 @@ function LandingPage() {
             />
           </h1>
           <p className={styles.subtitle}>
-            매일 <strong>변화하는 환율</strong> 속에서도
+            {t('landing.subtitleBefore')}
             <br />
-            내가 <strong>사용할 예산</strong>을 언제나 명확하게
+            {t('landing.subtitleAfter')}
           </p>
           <Link className={styles.startLink} to={ROUTE_PATHS.login}>
-            시작하기
+            {t('landing.start')}
           </Link>
         </div>
 
@@ -110,15 +94,15 @@ function LandingPage() {
 
       <section className={styles.features} aria-labelledby="features-title">
         <h2 id="features-title" className={styles.featuresTitle}>
-          우리 서비스 아래와 같은 기능을 제공합니다
+          {t('landing.featuresTitle')}
         </h2>
 
         <div className={styles.featureGrid}>
           {features.map((feature) => (
-            <article className={styles.featureCard} key={feature.title}>
+            <article className={styles.featureCard} key={feature.titleKey}>
               <img src={feature.image} alt="" aria-hidden="true" />
-              <h3>{feature.title}</h3>
-              <p>{feature.description}</p>
+              <h3>{t(feature.titleKey)}</h3>
+              <p>{t(feature.descriptionKey).split('\n').map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}</p>
             </article>
           ))}
         </div>

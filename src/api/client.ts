@@ -5,6 +5,7 @@ import {
   saveSessionTokens,
 } from '@/auth/session'
 import type { ApiResponse, MockApiResponse } from '@/types/api'
+import { getApiLanguage } from '@/i18n/language'
 
 /** 실행 중인 앱은 항상 실제 API를 사용합니다. */
 export const isUsingMockApi = false
@@ -33,15 +34,6 @@ export class ApiError extends Error {
     this.status = status
     this.code = code
   }
-}
-
-function resolveBrowserLanguage() {
-  if (typeof navigator === 'undefined') return 'ko-KR'
-
-  const language = (navigator.languages?.[0] || navigator.language || '').toLowerCase()
-  if (language.startsWith('ko')) return 'ko-KR'
-  if (language.startsWith('zh')) return 'zh-CN'
-  return 'en-US'
 }
 
 function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
@@ -79,7 +71,7 @@ function requireApiBaseUrl() {
 function buildHeaders(init: RequestInit, accessToken?: string | null) {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
-  headers.set('X-Browser-Language', resolveBrowserLanguage())
+  headers.set('X-Browser-Language', getApiLanguage())
 
   if (accessToken && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${accessToken}`)

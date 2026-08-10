@@ -15,14 +15,16 @@ import { getCategoryIconPath } from '@/utils/categoryIcon'
 import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './ExpenseHistoryPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
+import { useI18n } from '@/i18n/I18nContext'
 
 const recentRangeOptions = [
-  { value: 'day', label: '일' },
-  { value: 'week', label: '주' },
-  { value: 'month', label: '월' },
+  { value: 'day', labelKey: 'expenseHistory.day' },
+  { value: 'week', labelKey: 'expenseHistory.week' },
+  { value: 'month', labelKey: 'expenseHistory.month' },
 ]
 
 function ExpenseHistoryPage() {
+  const { t } = useI18n()
   const currentYear = getCurrentYearMonth().slice(0, 4)
   const selectedMonth = String(Number(getCurrentYearMonth().slice(5)))
   const [recentRange, setRecentRange] = useState('day')
@@ -132,10 +134,10 @@ function ExpenseHistoryPage() {
     return (
       <section className={`${styles.page} ${styles.feedbackPage}`} aria-labelledby="expense-history-title">
         <div className={styles.feedbackCard} role="alert">
-          <h1 id="expense-history-title">지출 내역</h1>
+          <h1 id="expense-history-title">{t('expenseHistory.title')}</h1>
           <p>{errorMessage}</p>
-          <span>서버 연결 상태를 확인한 뒤 다시 시도해 주세요.</span>
-          <button type="button" onClick={retry}>다시 시도</button>
+          <span>{t('expenseHistory.retryDescription')}</span>
+          <button type="button" onClick={retry}>{t('common.retry')}</button>
         </div>
       </section>
     )
@@ -144,8 +146,8 @@ function ExpenseHistoryPage() {
     return (
       <section className={`${styles.page} ${styles.feedbackPage}`} aria-busy="true">
         <div className={styles.feedbackCard}>
-          <h1>지출 내역</h1>
-          <p aria-live="polite">지출 내역을 불러오는 중입니다.</p>
+          <h1>{t('expenseHistory.title')}</h1>
+          <p aria-live="polite">{t('expenseHistory.loading')}</p>
         </div>
       </section>
     )
@@ -174,25 +176,25 @@ function ExpenseHistoryPage() {
   return (
     <section className={styles.page} aria-labelledby="expense-history-title">
       {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
-      <h1 id="expense-history-title" className={styles.srOnly}>지출 내역</h1>
+      <h1 id="expense-history-title" className={styles.srOnly}>{t('expenseHistory.title')}</h1>
 
       <div className={styles.leftColumn}>
-        <section className={styles.assetCard} aria-labelledby="monthly-budget-title">
+        <section className={styles.assetCard} aria-labelledby="total-assets-title">
           <img className={styles.assetRing} src="/assets/illustrations/asset-ring.png" alt="" aria-hidden="true" />
           <div className={styles.assetCenter}>
-            <h2 id="monthly-budget-title">이번 달 예산</h2>
-            <strong>{formatCurrencyAmount(data.monthlyBudgetHome, data.homeCurrency)}</strong>
+            <h2 id="total-assets-title">{t('expenseHistory.totalAssets')}</h2>
+            <strong>{formatCurrencyAmount(data.remainingBudgetHome, data.homeCurrency)}</strong>
             <span>{data.yearMonth.replace('-', '.')}</span>
           </div>
           <div className={styles.budgetSummary}>
             <div className={styles.budgetHeader}>
-              <span>이번 달 예산 대비</span>
+              <span>{t('expenseHistory.budgetUsage')}</span>
               <strong>{data.budgetUsagePercent}%</strong>
             </div>
             <div className={styles.progressTrack}><span style={{ width: `${Math.min(data.budgetUsagePercent, 100)}%` }} /></div>
             <div className={styles.remainingBudget}>
-              <span>남은 예산</span>
-              <strong>{formatCurrencyAmount(data.remainingBudgetHome, data.homeCurrency)}</strong>
+              <span>{t('expenseHistory.monthlyBudget')}</span>
+              <strong>{formatCurrencyAmount(data.monthlyBudgetHome, data.homeCurrency)}</strong>
             </div>
           </div>
         </section>
@@ -200,22 +202,22 @@ function ExpenseHistoryPage() {
         <section className={styles.recentCard} aria-labelledby="recent-expenses-title">
           <header className={styles.cardHeader}>
             <div>
-              <h2 id="recent-expenses-title">카테고리별 지출</h2>
-              <span>{recentExpenses.length}개 카테고리</span>
+              <h2 id="recent-expenses-title">{t('expenseHistory.byCategory')}</h2>
+              <span>{t('expenseHistory.categoryCount', { count: recentExpenses.length })}</span>
             </div>
             <div className={styles.rangePicker}>
               <button
                 type="button"
-                aria-label="카테고리별 지출 조회 기간"
+                aria-label={t('expenseHistory.period')}
                 aria-haspopup="listbox"
                 aria-expanded={isRecentRangeOpen}
                 onClick={() => setIsRecentRangeOpen((open) => !open)}
               >
-                <span>{recentRangeOptions.find((option) => option.value === recentRange)?.label}</span>
+                <span>{t(recentRangeOptions.find((option) => option.value === recentRange)?.labelKey ?? 'expenseHistory.day')}</span>
                 <span className={styles.pickerChevron} aria-hidden="true" />
               </button>
               {isRecentRangeOpen && (
-                <div className={styles.rangeMenu} role="listbox" aria-label="카테고리별 지출 조회 기간 목록">
+                <div className={styles.rangeMenu} role="listbox" aria-label={t('expenseHistory.period')}>
                   {recentRangeOptions.map((option) => (
                     <button
                       key={option.value}
@@ -227,7 +229,7 @@ function ExpenseHistoryPage() {
                         setIsRecentRangeOpen(false)
                       }}
                     >
-                      {option.label}
+                      {t(option.labelKey)}
                     </button>
                   ))}
                 </div>
