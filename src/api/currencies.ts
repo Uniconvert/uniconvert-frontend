@@ -9,8 +9,7 @@ interface CurrencyResponseDto {
   symbol?: string | null
 }
 
-export const isUsingMockCurrencyApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_CURRENCY_API !== 'true'
+export const isUsingMockCurrencyApi = isUsingMockApi
 
 export async function getCurrencies(): Promise<CurrencyOption[]> {
   if (isUsingMockCurrencyApi) return [...CURRENCY_OPTIONS]

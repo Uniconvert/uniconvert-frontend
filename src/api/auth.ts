@@ -17,8 +17,7 @@ import type {
 import { apiRequest, isUsingMockApi } from './client'
 import { getMyUser } from './users'
 
-export const isUsingMockAuthApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_AUTH_API !== 'true'
+export const isUsingMockAuthApi = isUsingMockApi
 
 function toLoginResult(user: MockAuthUser): LoginResult {
   return {

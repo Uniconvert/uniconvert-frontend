@@ -20,9 +20,7 @@ import type {
 import { getBudget } from './budgets'
 import { apiRequest, isUsingMockApi } from './client'
 
-/** 전체 Mock 모드를 유지하면서 지출 도메인만 실제 API로 전환할 수 있습니다. */
-export const isUsingMockExpenseApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_EXPENSE_API !== 'true'
+export const isUsingMockExpenseApi = isUsingMockApi
 
 /** 기존 화면 코드와의 호환을 위한 별칭입니다. */
 export const isUsingMockExpenseReadApi = isUsingMockExpenseApi

@@ -26,8 +26,7 @@ const FALLBACK_CATEGORIES: ExpenseCategoryOption[] = [
   { id: 'other', serverId: 7, label: '기타', iconKey: 'other', iconSrc: getCategoryIconPath('other') },
 ]
 
-export const isUsingMockCategoryApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_CATEGORY_API !== 'true'
+export const isUsingMockCategoryApi = isUsingMockApi
 
 export function getFallbackCategories() {
   return FALLBACK_CATEGORIES

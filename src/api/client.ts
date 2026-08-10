@@ -6,10 +6,11 @@ import {
 } from '@/auth/session'
 import type { ApiResponse, MockApiResponse } from '@/types/api'
 
-export const isUsingMockApi = import.meta.env.VITE_USE_MOCK_API !== 'false'
+/** 실행 중인 앱은 항상 실제 API를 사용합니다. */
+export const isUsingMockApi = false
 
 interface ApiRequestOptions extends RequestInit {
-  /** 전체 Mock 모드에서도 특정 도메인만 실제 API로 전환할 때 사용합니다. */
+  /** 단위 테스트에서만 Mock 응답을 명시적으로 사용할 때 전달합니다. */
   useMock?: boolean
   /** 로그인·토큰 재발급처럼 Authorization 헤더가 필요하지 않은 요청입니다. */
   skipAuth?: boolean

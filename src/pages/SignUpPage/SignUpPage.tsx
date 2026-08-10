@@ -43,7 +43,7 @@ function SignUpPage() {
         email: normalizedEmail,
         password,
       })
-      navigate(ROUTE_PATHS.terms)
+      navigate(ROUTE_PATHS.onboardingBaseCurrency)
     } catch (error) {
       showToast({
         variant: 'error',

@@ -6,11 +6,6 @@ export interface OnboardingSettings {
   monthlyBudget?: number
   timeZone?: string
   profileGoals?: string[]
-  termsAgreements?: {
-    terms: boolean
-    privacy: boolean
-    marketing: boolean
-  }
 }
 
 interface StoredMockUserState {
@@ -36,7 +31,6 @@ const ONBOARDING_KEYS = [
   'uniconvert.monthlyBudget',
   'uniconvert.timeZone',
   'uniconvert.profileGoals',
-  'uniconvert.termsAgreements',
 ] as const
 
 const MOCK_USER_STATE_KEY = 'uniconvert.mockUserState.v1'
@@ -122,7 +116,6 @@ export function saveSessionUser(userToSave: AuthUser) {
   if (onboarding?.monthlyBudget) sessionStorage.setItem('uniconvert.monthlyBudget', String(onboarding.monthlyBudget))
   if (onboarding?.timeZone) sessionStorage.setItem('uniconvert.timeZone', onboarding.timeZone)
   if (onboarding?.profileGoals) sessionStorage.setItem('uniconvert.profileGoals', JSON.stringify(onboarding.profileGoals))
-  if (onboarding?.termsAgreements) sessionStorage.setItem('uniconvert.termsAgreements', JSON.stringify(onboarding.termsAgreements))
 
   sessionStorage.setItem(SESSION_KEYS.user, JSON.stringify(user))
   notifySessionUserChanged()
@@ -135,7 +128,7 @@ export function saveSessionTokens(tokens: SessionTokens) {
   sessionStorage.setItem(SESSION_KEYS.refreshToken, tokens.refreshToken)
 }
 
-/** 회원가입 API가 연결되기 전 약관부터 시작하는 Mock 사용자를 만듭니다. */
+/** 회원가입 API가 연결되기 전 온보딩부터 시작하는 Mock 사용자를 만듭니다. */
 export function ensureMockOnboardingSession() {
   const currentUser = getSessionUser()
   if (currentUser) return currentUser
