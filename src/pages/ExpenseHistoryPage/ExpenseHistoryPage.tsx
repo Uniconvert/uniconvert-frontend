@@ -140,24 +140,20 @@ function ExpenseHistoryPage() {
 
     const formattedTodaySpent = formatCurrencyAmount(todaySpentTotal, data.homeCurrency)
     
-    let dynamicTodayMsg: React.ReactNode = ""
-    if (todaySpentTotal >= 50000) {
-      dynamicTodayMsg = (
-        <>
-          오늘{' '}
-          <span style={{ color: '#6AADEA' }}>{formattedTodaySpent}</span>
-          {' '}썼어요. 꽤 알차게 쓴 하루네요!
-        </>
-      )
-    } else {
-      dynamicTodayMsg = (
-        <>
-          오늘{' '}
-          <span style={{ color: '#6AADEA' }}>{formattedTodaySpent}</span>
-          {' '}썼어요. 지출이 아주 알뜰한 하루네요!
-        </>
-      )
-    }
+    // 조건에 따라 바로 메시지 객체 생성
+    const dynamicTodayMsg = todaySpentTotal >= 50000 ? (
+      <>
+        오늘{' '}
+        <span style={{ color: '#6AADEA' }}>{formattedTodaySpent}</span>
+        {' '}썼어요. 꽤 알차게 쓴 하루네요!
+      </>
+    ) : (
+      <>
+        오늘{' '}
+        <span style={{ color: '#6AADEA' }}>{formattedTodaySpent}</span>
+        {' '}썼어요. 지출이 아주 알뜰한 하루네요!
+      </>
+    )
 
     let dynamicTopCategoryMsg: React.ReactNode = "이번달 지출 내역을 확인해보세요!"
     if (data.categories && data.categories.length > 0) {

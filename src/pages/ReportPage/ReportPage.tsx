@@ -241,8 +241,16 @@ function ReportPage() {
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
 
-  // 모달 안의 지출 내역 API 연동을 위한 상태
-  const [dailyTxList, setDailyTxList] = useState<any[]>([])
+  // 모달 안의 지출 내역 API 연동을 위한 상태 (배열 타입으로 지정)
+  const [dailyTxList, setDailyTxList] = useState<Array<{
+    id?: string
+    expenseId?: string
+    spentAt?: string
+    iconKey?: string
+    categoryName?: string
+    merchantName?: string
+    convertedAmountHome: number
+  }>>([])
   const [isLoadingTx, setIsLoadingTx] = useState(false)
 
   const dateReportMonth = selectedDate ? selectedDate.slice(0, 7) : currentYM
@@ -275,27 +283,28 @@ function ReportPage() {
 
   // 이메일 모달이 열릴 때 선택된 날짜의 지출 목록(GET /expenses) 조회
   useEffect(() => {
-  if (isEmailModalOpen && targetDate) {
-    // 동기적 setState 호출로 인한 린트 에러 방지
-    queueMicrotask(() => {
-      setIsLoadingTx(true)
-    })
+    if (isEmailModalOpen && targetDate) {
+      queueMicrotask(() => {
+        setIsLoadingTx(true)
+      })
 
-    getExpensePage({
-      startAt: `${targetDate}T00:00:00`,
-      endAt: `${targetDate}T23:59:59`,
-    })
-    .then((_res) => {
-      // 데이터 처리 로직...
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-    .finally(() => {
-      setIsLoadingTx(false)
-    })
-  }
-}, [isEmailModalOpen, targetDate])
+      getExpensePage({
+        startAt: `${targetDate}T00:00:00`,
+        endAt: `${targetDate}T23:59:59`,
+      })
+        .then((res: any) => {
+          // DTO 구조에서 리스트 배열 추출 (res.content 또는 res.items 등, 백엔드 구조에 맞춰 수정)
+          setDailyTxList(res?.content ?? res ?? [])
+        })
+        .catch((err) => {
+          console.error(err)
+          setDailyTxList([])
+        })
+        .finally(() => {
+          setIsLoadingTx(false)
+        })
+    }
+  }, [isEmailModalOpen, targetDate])
 
   useEffect(() => {
     const handleOutsideSelect = (event: MouseEvent) => {
