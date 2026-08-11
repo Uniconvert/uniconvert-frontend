@@ -416,7 +416,9 @@
 
 /* 1920 × 950처럼 가로는 넓지만 세로가 짧은 화면에서는 사이드바가
    별도의 스크롤 영역이 되지 않도록 세로 리듬만 압축합니다. */
-@media (min-width: 64.0625rem) and (max-height: 60rem) {
+/* Keep the compact sidebar layout on short desktop viewports so the budget
+   summary never covers the settings and logout navigation items. */
+@media (min-width: 64.0625rem) and (max-height: 64rem) {
   .sidebarCap {
     min-height: 4.5rem;
   }
