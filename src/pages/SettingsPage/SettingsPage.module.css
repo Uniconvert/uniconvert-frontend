@@ -454,6 +454,48 @@
   font-weight: 500;
 }
 
+.optionContainer {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;        
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.optionDescription {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #ABABAB;
+  margin-top: 1rem;
+}
+
+.optionDescription img {
+  width: 0.9rem;
+  height: 0.9rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 0.15rem; 
+}
+
+.optionActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  margin-left: 3rem;
+}
+
+.optionActions Button {
+  min-width: 5.75rem;
+  min-height: clamp(1.875rem, 5vh, 2.5rem);
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
 .version {
   margin-top: auto;
   padding-top: 2rem;
@@ -545,17 +587,19 @@
 }
 
 .reportCategoryIcon {
+  width: 2.5rem;   
+  height: 2.5rem;  
+  border: 1px solid #F0F0F0;
+  border-radius: 0.5rem;
+  background: white;
+  flex-shrink: 0;
   display: grid;
-  width: clamp(2rem, 4vh, 2.875rem);
-  height: clamp(2rem, 4vh, 2.875rem);
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  place-items: center; 
 }
 
 .reportCategoryIcon img {
-  width: clamp(1.25rem, 2.5vh, 1.75rem);
-  height: clamp(1.25rem, 2.5vh, 1.75rem);
+  max-width: 80%;   
+  max-height: 80%; 
   object-fit: contain;
 }
 

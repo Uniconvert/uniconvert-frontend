@@ -1,57 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './CalculatorPage.module.css'
-import { convertCurrencyAmount } from '@/utils/exchangeRate'
-import { useExchangeCalculatorData } from '@/hooks/useExchangeCalculatorData'
-import { isUsingMockExchangeApi } from '@/api/exchangeRates'
-import ModalShell from '@/components/common/ModalShell/ModalShell';
-import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot';
+import ModalShell from '@/components/common/ModalShell/ModalShell'
+import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
+import {
+  getCurrentExchangeRate,
+  getExchangeQuote,
+  getExchangeQuoteHistory
+} from '@/api/exchangeRates'
+import type { ExchangeQuoteHistoryDto } from '@/api/exchangeRates'
 
-// 지원하는 통화 목록
 const currencies = ['USD', 'EUR', 'JPY', 'KRW', 'CNY']
 
-interface HistoryItem {
-  id: number
-  currencyCode: string
-  code: string
-  name: string
-  text: string
-  result: string
-  time: string
-  isActive: boolean
+const currencyNames: Record<string, string> = {
+  USD: '미국 달러',
+  EUR: '유로',
+  JPY: '일본 엔',
+  KRW: '대한민국 원',
+  CNY: '중국 위안',
 }
-
-const fallbackHistoryData: HistoryItem[] = [
-  {
-    id: 1,
-    currencyCode: 'usd',
-    code: 'USD',
-    name: '미국 달러',
-    text: '1,000 USD',
-    result: '1,350,000 KRW',
-    time: '방금전',
-    isActive: true
-  },
-  {
-    id: 2,
-    currencyCode: 'eur',
-    code: 'EUR',
-    name: '유로',
-    text: '500 EUR',
-    result: '750,000 KRW',
-    time: '방금전',
-    isActive: false
-  },
-  {
-    id: 3,
-    currencyCode: 'jpy',
-    code: 'JPY',
-    name: '일본 엔',
-    text: '10,000 JPY',
-    result: '90,000 KRW',
-    time: '방금전',
-    isActive: false
-  },
-]
 
 function CalculatorPage() {
   const [fromCurrency, setFromCurrency] = useState('USD')
@@ -60,61 +26,128 @@ function CalculatorPage() {
 
   const [toCurrency, setToCurrency] = useState('KRW')
   const [isToOpen, setIsToOpen] = useState(false)
+  const [toAmount, setToAmount] = useState('')
 
+  const [debouncedAmount, setDebouncedAmount] = useState(0)
+  const [rateInfo, setRateInfo] = useState<{ date: string; rate: number } | null>(null)
+  const [changeRate, setChangeRate] = useState<number | null>(null)
+
+  const [historyList, setHistoryList] = useState<ExchangeQuoteHistoryDto[]>([])
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+
+  const isSwapRef = useRef(false)
   const fromSelectRef = useRef<HTMLDivElement>(null)
   const toSelectRef = useRef<HTMLDivElement>(null)
 
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (fromSelectRef.current && !fromSelectRef.current.contains(event.target as Node)) {
-        setIsFromOpen(false)
-      }
-      if (toSelectRef.current && !toSelectRef.current.contains(event.target as Node)) {
-        setIsToOpen(false)
-      }
+      if (fromSelectRef.current && !fromSelectRef.current.contains(event.target as Node)) setIsFromOpen(false)
+      if (toSelectRef.current && !toSelectRef.current.contains(event.target as Node)) setIsToOpen(false)
     }
-
     document.addEventListener('mousedown', handleClickOutside)
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
+    return () => { document.removeEventListener('mousedown', handleClickOutside) }
   }, [])
 
-  const handleSwap = () => {
-    setFromCurrency(toCurrency)
-    setToCurrency(fromCurrency)
+  const fetchHistory = useCallback(() => {
+    getExchangeQuoteHistory(0, 20)
+      .then((data) => setHistoryList(data || []))
+      .catch((err) => console.error('Failed to fetch history:', err))
+  }, [])
 
-    const numericFromAmount = Number(fromAmount.replace(/,/g, '')) || 0
-    if (numericFromAmount > 0) {
-      const calculatedResult = convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
+  useEffect(() => {
+    fetchHistory()
+  }, [fetchHistory])
 
-      const swappedAmount = Number(calculatedResult.toFixed(2)).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+  useEffect(() => {
+    let isActive = true
+    getCurrentExchangeRate(fromCurrency, toCurrency)
+      .then((res) => {
+        if (isActive && res.changeRate !== undefined) {
+          if (!isSwapRef.current) {
+            setChangeRate(res.changeRate)
+          } else {
+            isSwapRef.current = false
+          }
+        }
       })
-      setFromAmount(swappedAmount)
+      .catch(() => {
+        if (isActive && !isSwapRef.current) {
+          setChangeRate(null)
+        } else {
+          isSwapRef.current = false
+        }
+      })
+    return () => { isActive = false }
+  }, [fromCurrency, toCurrency])
+
+  useEffect(() => {
+    const numericAmount = Number(fromAmount.replace(/,/g, '')) || 0
+    const timer = setTimeout(() => {
+      setDebouncedAmount(numericAmount)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [fromAmount, fromCurrency, toCurrency])
+
+  useEffect(() => {
+    if (debouncedAmount <= 0) {
+      setToAmount('')
+      setRateInfo(null)
+      return
+    }
+
+    let isActive = true
+    const sendAmount = fromCurrency === 'KRW' ? Math.round(debouncedAmount) : debouncedAmount
+
+    getExchangeQuote(fromCurrency, toCurrency, sendAmount)
+      .then((res) => {
+        if (isActive) {
+          const converted = res.convertedAmount ?? 0
+          setToAmount(converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+
+          if (res.rateDate && res.appliedRate) {
+            setRateInfo({ date: res.rateDate, rate: res.appliedRate })
+          }
+
+          fetchHistory()
+        }
+      })
+      .catch(() => { 
+        if (isActive) setToAmount('오류 발생') 
+      })
+
+    return () => { 
+      isActive = false 
+    }
+  }, [debouncedAmount, fromCurrency, toCurrency, fetchHistory])
+
+  const handleSwap = () => {
+    isSwapRef.current = true
+
+    const prevFrom = fromCurrency
+    const prevTo = toCurrency
+    setFromCurrency(prevTo)
+    setToCurrency(prevFrom)
+
+    if (toAmount && toAmount !== '오류 발생') {
+      const cleanToAmount = toAmount.replace(/,/g, '')
+      const parts = cleanToAmount.split('.')
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      const decimalPart = parts.length > 1 ? '.' + parts[1] : ''
+
+      setFromAmount(integerPart + decimalPart)
+    } else {
+      setFromAmount('')
     }
   }
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let rawValue = e.target.value.replace(/[^0-9.]/g, '')
-
     const parts = rawValue.split('.')
-    if (parts.length > 2) {
-      rawValue = parts[0] + '.' + parts.slice(1).join('')
-    }
-
-    if (!rawValue) {
-      setFromAmount('')
-      return
-    }
+    if (parts.length > 2) rawValue = parts[0] + '.' + parts.slice(1).join('')
+    if (!rawValue) { setFromAmount(''); return }
 
     const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     const decimalPart = parts.length > 1 ? '.' + parts[1] : ''
-
     setFromAmount(integerPart + decimalPart)
   }
 
@@ -123,60 +156,54 @@ function CalculatorPage() {
     setFromAmount((currentNum + addValue).toLocaleString())
   }
 
-  const numericFromAmount = Number(fromAmount.replace(/,/g, '')) || 0
-  const {
-    quote,
-    quoteError,
-    historyItems,
-    isHistoryLoading,
-    historyError,
-  } = useExchangeCalculatorData({
-    fromCurrency,
-    toCurrency,
-    amount: numericFromAmount,
-  })
-  const historyData = historyItems.length > 0
-    ? historyItems.map((item, index) => {
-        const from = item.fromCurrency?.toUpperCase() || 'USD'
-        const to = item.toCurrency?.toUpperCase() || 'KRW'
-        const historyAmount = item.amount ?? 0
-        const converted = item.convertedAmount ?? 0
-        return {
-          id: item.id ?? index,
-          currencyCode: from.toLowerCase(),
-          code: from,
-          name: from,
-          text: `${historyAmount.toLocaleString()} ${from}`,
-          result: `${converted.toLocaleString()} ${to}`,
-          time: item.createdAt ? new Date(item.createdAt).toLocaleString() : '',
-          isActive: index === 0,
-        }
-      })
-    : isUsingMockExchangeApi
-      ? fallbackHistoryData
-      : []
+  
+  const mascotMessages = useMemo(() => {
+    let dynamicMsg: React.ReactNode = "오늘 환율이 적용된 계산기를 사용해보세요!"
+    
+    if (changeRate !== null && changeRate !== undefined) {
+      if (changeRate === 0) {
+        dynamicMsg = "오늘 환율은 전일과 동일해요."
+      } else {
+        const absRate = Math.abs(changeRate)
+        const action = changeRate > 0 ? '증가' : '감소'
+        // 0보다 크면 #6AADEA(파란색 계열), 작으면 #E16D6D(빨간색 계열)
+        const color = changeRate > 0 ? '#6AADEA' : '#E16D6D'
 
-  const isCurrentQuote = quote?.fromCurrency === fromCurrency
-    && quote?.toCurrency === toCurrency
-    && quote?.amount === numericFromAmount
-  const serverConvertedAmount = isCurrentQuote
-    && quote.available !== false
-    && typeof quote.convertedAmount === 'number'
-    ? quote.convertedAmount
-    : null
-  const hasAvailableQuote = serverConvertedAmount !== null
-  const calculatedResult = hasAvailableQuote
-    ? serverConvertedAmount
-    : isUsingMockExchangeApi
-      ? convertCurrencyAmount(numericFromAmount, fromCurrency, toCurrency)
-      : null
+        dynamicMsg = (
+          <>
+            오늘 환율이{' '}
+            <span style={{ color, fontWeight: 'semibold' }}>
+              {absRate}% {action}
+            </span>
+            했어요 지출에 참고하세요
+          </>
+        )
+      }
+    }
 
-  const toAmount = numericFromAmount === 0 || calculatedResult === null
-    ? ''
-    : Number(calculatedResult.toFixed(2)).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })
+    return [
+      dynamicMsg,
+      "오늘 환율로 얼마인지 바로 계산해봐요!",
+      "현지 통화로 보는 가격이 어려울 때, 여기서 바로 확인해요!"
+    ]
+  }, [changeRate])
+
+  const formatHistoryTime = (isoString?: string) => {
+    if (!isoString) return ''
+
+    const normalizedString = isoString.endsWith('Z') || isoString.includes('+')
+      ? isoString
+      : isoString + 'Z'
+
+    const d = new Date(normalizedString)
+
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const hours = String(d.getHours()).padStart(2, '0')
+    const mins = String(d.getMinutes()).padStart(2, '0')
+
+    return `${month}.${day} ${hours}:${mins}`
+  }
 
   return (
     <section className={styles.page}>
@@ -191,18 +218,12 @@ function CalculatorPage() {
           {/* From 카드 */}
           <div className={styles.calcCard}>
             <h2 className={styles.cardTitle}>From</h2>
-
-            {/* From 통화 선택 드롭다운 */}
             <div className={styles.customSelect} ref={fromSelectRef}>
               <button
                 className={styles.currencySelectWrap}
                 type="button"
-                aria-label="보낼 통화 선택"
                 aria-expanded={isFromOpen}
-                onClick={() => {
-                  setIsFromOpen((open) => !open)
-                  setIsToOpen(false)
-                }}
+                onClick={() => { setIsFromOpen((o) => !o); setIsToOpen(false) }}
               >
                 <div className={styles.flagWrap}>
                   <img src={`/assets/icons/currencies/currency-${fromCurrency.toLowerCase()}.png`} alt="" aria-hidden="true" />
@@ -210,19 +231,15 @@ function CalculatorPage() {
                 </div>
                 <span className={styles.chevronDown} aria-hidden="true" />
               </button>
-
               {isFromOpen && (
-                <div className={styles.currencyMenu} role="listbox" aria-label="통화 목록">
+                <div className={styles.currencyMenu} role="listbox">
                   {currencies.map((option) => (
                     <button
                       key={`from-${option}`}
                       type="button"
                       role="option"
                       aria-selected={fromCurrency === option}
-                      onClick={() => {
-                        setFromCurrency(option)
-                        setIsFromOpen(false)
-                      }}
+                      onClick={() => { setFromCurrency(option); setIsFromOpen(false) }}
                     >
                       <img src={`/assets/icons/currencies/currency-${option.toLowerCase()}.png`} alt="" aria-hidden="true" />
                       <span>{option}</span>
@@ -232,7 +249,6 @@ function CalculatorPage() {
               )}
             </div>
 
-            {/* From 금액 입력 */}
             <div className={styles.inputGroup}>
               <span className={styles.inputLabel}>금액 입력</span>
               <div className={styles.amountBox}>
@@ -240,13 +256,11 @@ function CalculatorPage() {
                   type="text"
                   value={fromAmount}
                   onChange={handleAmountChange}
-                  placeholder="0"
                   style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 500, background: 'transparent' }}
                 />
               </div>
             </div>
 
-            {/* 퀵 버튼 그룹 */}
             <div className={styles.quickButtons}>
               <button type="button" className={styles.quickBtn} onClick={() => handleAddAmount(100)}>+ 100</button>
               <button type="button" className={styles.quickBtn} onClick={() => handleAddAmount(500)}>+ 500</button>
@@ -255,31 +269,19 @@ function CalculatorPage() {
             </div>
           </div>
 
-          {/* 중앙 교체(Swap) 버튼 */}
           <button type="button" aria-label="환전 방향 바꾸기" onClick={handleSwap} className={styles.swapBtn}>
-            <img
-              src="/assets/icons/actions/exchange-button.png"
-              alt=""
-              aria-hidden="true"
-              className={styles.swapIcon}
-            />
+            <img src="/assets/icons/actions/exchange-button.png" alt="" aria-hidden="true" className={styles.swapIcon} />
           </button>
 
           {/* To 카드 */}
           <div className={styles.calcCard}>
             <h2 className={styles.cardTitle}>To</h2>
-
-            {/* To 통화 선택 드롭다운 */}
             <div className={styles.customSelect} ref={toSelectRef}>
               <button
                 className={styles.currencySelectWrap}
                 type="button"
-                aria-label="받을 통화 선택"
                 aria-expanded={isToOpen}
-                onClick={() => {
-                  setIsToOpen((open) => !open)
-                  setIsFromOpen(false)
-                }}
+                onClick={() => { setIsToOpen((o) => !o); setIsFromOpen(false) }}
               >
                 <div className={styles.flagWrap}>
                   <img src={`/assets/icons/currencies/currency-${toCurrency.toLowerCase()}.png`} alt="" aria-hidden="true" />
@@ -287,19 +289,15 @@ function CalculatorPage() {
                 </div>
                 <span className={styles.chevronDown} aria-hidden="true" />
               </button>
-
               {isToOpen && (
-                <div className={styles.currencyMenu} role="listbox" aria-label="통화 목록">
+                <div className={styles.currencyMenu} role="listbox">
                   {currencies.map((option) => (
                     <button
                       key={`to-${option}`}
                       type="button"
                       role="option"
                       aria-selected={toCurrency === option}
-                      onClick={() => {
-                        setToCurrency(option)
-                        setIsToOpen(false)
-                      }}
+                      onClick={() => { setToCurrency(option); setIsToOpen(false) }}
                     >
                       <img src={`/assets/icons/currencies/currency-${option.toLowerCase()}.png`} alt="" aria-hidden="true" />
                       <span>{option}</span>
@@ -309,7 +307,6 @@ function CalculatorPage() {
               )}
             </div>
 
-            {/* To 계산 결과 금액 */}
             <div className={styles.inputGroup}>
               <span className={styles.inputLabel}>계산 결과</span>
               <div className={styles.amountBox}>
@@ -322,62 +319,44 @@ function CalculatorPage() {
               </div>
             </div>
 
-            <div className={styles.statusMessage}>
+            <div className={styles.statusMessage} style={{ visibility: rateInfo ? 'visible' : 'hidden' }}>
               <span className={styles.statusDot} />
-              <span>
-                {quoteError
-                  || (hasAvailableQuote
-                    ? `${quote?.rateDate ?? '최신'} 환율이 적용되었습니다.`
-                    : numericFromAmount > 0
-                      ? '환율 정보를 불러오는 중입니다.'
-                      : '금액을 입력하면 환율을 계산합니다.')}
-              </span>
+              <span>{rateInfo?.date.replace(/-/g, '.')} 환율이 적용되었습니다.</span>
             </div>
           </div>
         </div>
 
-        {/* 2. 최근 계산 내역 영역 */}
         <div className={styles.historyArea}>
           <div className={styles.historyHeader}>
             <h2>최근 계산 내역</h2>
-            <button
-              type="button"
-              className={styles.viewAllBtn}
-              onClick={() => setIsHistoryModalOpen(true)}
-            >
+            <button type="button" className={styles.viewAllBtn} onClick={() => setIsHistoryModalOpen(true)}>
               전체 보기 <span className={styles.chevronRight}></span>
             </button>
           </div>
 
           <div className={styles.historyList}>
-            {isHistoryLoading && !isUsingMockExchangeApi && (
-              <p className={styles.emptyHistory}>계산 내역을 불러오는 중입니다.</p>
-            )}
-            {!isHistoryLoading && historyError && (
-              <p className={styles.emptyHistory} role="alert">{historyError}</p>
-            )}
-            {!isHistoryLoading && !historyError && historyData.length === 0 && (
-              <p className={styles.emptyHistory}>최근 계산 내역이 없습니다.</p>
-            )}
-            {historyData.map((item, index) => (
-              <div
-                key={item.id}
-                className={`${styles.historyItem} ${index === 0 ? styles.active : ''}`}
-              >
-                <div className={styles.historyInfo}>
-                  <img
-                    src={`/assets/icons/currencies/currency-${item.currencyCode}.png`}
-                    alt=""
-                    aria-hidden="true"
-                    style={{ width: '2.5rem', height: '1.5rem', objectFit: 'contain' }}
-                  />
-                  <div className={styles.historyText}>
-                    {item.text} <span>→ {item.result}</span> 
+            {historyList.length === 0 ? (
+              <p style={{ color: '#90b6d9', padding: '24px', textAlign: 'center' }}>최근 계산 내역이 없습니다.</p>
+            ) : (
+              historyList.slice(0, 3).map((item, index) => (
+                <div key={item.id ?? index} className={`${styles.historyItem} ${index === 0 ? styles.active : ''}`}>
+                  <div className={styles.historyInfo}>
+                    <img
+                      src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`}
+                      alt=""
+                      aria-hidden="true"
+                      style={{ width: '2.5rem', height: '1.5rem', objectFit: 'contain' }}
+                      onError={(e) => { e.currentTarget.src = '/assets/icons/currencies/currency-default.png' }}
+                    />
+                    <div className={styles.historyText}>
+                      {(item.amount ?? 0).toLocaleString()} {item.fromCurrency}
+                      <span>→ {(item.convertedAmount ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} {item.toCurrency}</span>
+                    </div>
                   </div>
+                  <span className={styles.historyTime}>{formatHistoryTime(item.createdAt)}</span>
                 </div>
-                <span className={styles.historyTime}>{item.time}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -391,61 +370,57 @@ function CalculatorPage() {
         >
           <div className={styles.modalHistoryContainer}>
             <div className={styles.modalHistoryList}>
-              {isHistoryLoading && !isUsingMockExchangeApi && (
-                <p className={styles.emptyHistory}>계산 내역을 불러오는 중입니다.</p>
-              )}
-              {!isHistoryLoading && historyError && (
-                <p className={styles.emptyHistory} role="alert">{historyError}</p>
-              )}
-              {!isHistoryLoading && !historyError && historyData.length === 0 && (
-                <p className={styles.emptyHistory}>최근 계산 내역이 없습니다.</p>
-              )}
-              {historyData.map((item) => (
-                <div key={`modal-item-${item.id}`} className={styles.modalHistoryItem}>
-                  <div className={styles.modalHistoryInfo}>
-                    <img
-                      src={`/assets/icons/currencies/currency-${item.currencyCode}.png`}
-                      alt=""
-                      aria-hidden="true"
-                      style={{ width: '3rem', height: '1.8rem', objectFit: 'contain' }}
-                    />
-                    <div className={styles.currencyTextGroup}>
-                      <span className={styles.currencyCodeText}>{item.code}</span>
-                      <span className={styles.currencySubText}>{item.name}</span>
+              {historyList.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#90b6d9', padding: '24px' }}>내역이 없습니다.</p>
+              ) : (
+                historyList.map((item, index) => (
+                  <div key={`modal-item-${item.id ?? index}`} className={styles.modalHistoryItem}>
+                    <div className={styles.modalHistoryInfo}>
+                      <img
+                        src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`}
+                        alt=""
+                        aria-hidden="true"
+                        style={{ width: '3rem', height: '1.8rem', objectFit: 'contain' }}
+                        onError={(e) => { e.currentTarget.src = '/assets/icons/currencies/currency-default.png' }}
+                      />
+                      <div className={styles.currencyTextGroup}>
+                        <span className={styles.currencyCodeText}>{item.fromCurrency}</span>
+                        <span className={styles.currencySubText}>{item.fromCurrency ? currencyNames[item.fromCurrency] : ''}</span>
+                      </div>
+                      <div className={styles.modalHistoryCalcText}>
+                        {(item.amount ?? 0).toLocaleString()} {item.fromCurrency}
+                        <span>→</span>
+                        <span className={styles.resultText}>
+                          {(item.convertedAmount ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} {item.toCurrency}
+                        </span>
+                      </div>
                     </div>
-                    <div className={styles.modalHistoryCalcText}>
-                      {item.text}
-                      <span>→</span>
-                      <span className={styles.resultText}>{item.result}</span>
-                    </div>
+                    <span className={styles.modalHistoryTime}>{formatHistoryTime(item.createdAt)}</span>
                   </div>
-                  <span className={styles.modalHistoryTime}>{item.time}</span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
-            {historyData.length > 0 && <div className={styles.pagination}>
-              <button type="button" className={styles.pageNavBtn} aria-label="이전 페이지">
-                <span className={styles.chevronLeft}></span>
-              </button>
-
-              <button type="button" className={styles.pageNumberBtn}>1</button>
-
-              <button type="button" className={styles.pageNavBtn} aria-label="다음 페이지">
-                <span className={styles.chevronRight}></span>
-              </button>
-            </div>}
+            {historyList.length > 0 && (
+              <div className={styles.pagination}>
+                <button type="button" className={styles.pageNavBtn} aria-label="이전 페이지"><span className={styles.chevronLeft}></span></button>
+                <button type="button" className={styles.pageNumberBtn}>1</button>
+                <button type="button" className={styles.pageNavBtn} aria-label="다음 페이지"><span className={styles.chevronRight}></span></button>
+              </div>
+            )}
           </div>
         </ModalShell>
       )}
 
-      <div className={styles.mascotArea} aria-hidden="true">
+      {/* [수정 포인트] 단일 message 대신 messages 배열을 전달 */}
+      <div className={styles.mascotArea}>
         <FloatingMascot
-          message="환율을 바로 적용하는 계산기를 사용해보세요!"
+          messages={mascotMessages}
           imageSrc="/assets/illustrations/mascot-check.png"
         />
       </div>
     </section>
   )
 }
+
 export default CalculatorPage

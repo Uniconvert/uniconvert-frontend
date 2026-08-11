@@ -374,25 +374,28 @@
 }
 
 .emailModalBackdrop {
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* top 잘림 방지를 위해 flex-start로 변경 */
   position: fixed;
   inset: 0;
   z-index: 9999;
   background: rgb(205 231 250 / 78%);
   backdrop-filter: blur(5px);
-  padding: 1rem;
-  overflow: hidden;
+  padding: 6rem 1rem 3rem 1rem; /* 일러스트(-5rem) 공간 고려하여 상단 padding 6rem 확보 */
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .emailModalWrapper {
   position: relative;
   width: 100%;
   max-width: 32.5rem; 
-  margin: auto; 
+  margin: 0 auto; 
   background: linear-gradient(to top, #6AADEA 0%, #ffffff 100%);
   padding: 4rem 1.5rem 1.5rem 1.5rem; 
   border-radius: 2rem;
+  box-sizing: border-box;
 }
 
 .emailIllustration {
@@ -562,6 +565,7 @@
   flex: 1;
 }
 .chartBar {
+  position: relative;
   width: clamp(2rem, 2.5vw, 2.5rem);
   background: #A8C1D6;
   border-radius: 0.4rem 0.4rem 0 0;
@@ -576,16 +580,16 @@
 
 .chartTooltip {
   position: absolute;
-  bottom: calc(100% + 0.5rem);
+  bottom: calc(100% + 4px);
   left: 50%;
   width: max-content;
   transform: translateX(-50%);
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.25rem;
   border: 0.5px solid #6AADEA;
   border-radius: 0.25rem;
   background: #fff;
   color: var(--color-primary, #62a9e8);
-  font-size: 0.7rem; 
+  font-size: 0.6rem; 
   font-weight: 500;
   white-space: nowrap;
   z-index: 10;

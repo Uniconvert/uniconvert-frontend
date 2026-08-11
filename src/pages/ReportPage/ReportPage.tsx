@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { sendMonthlyReport } from '@/api/reports'
+import { getExpensePage } from '@/api/expenses'
 
 import styles from './ReportPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
@@ -8,10 +9,10 @@ import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { createPortal } from 'react-dom'
 import { convertCurrencyAmount } from '@/utils/exchangeRate'
-import todayExpensesMock from '@/mocks/todays-expenses.json'
 import { getOnboardingSettings } from '@/auth/session'
 import { getApiErrorNotice } from '@/utils/apiError'
 import { useMonthlyReportData } from '@/hooks/useMonthlyReportData'
+import { getCategoryIconPath } from '@/utils/categoryIcon'
 
 interface Expense {
   label: string
@@ -239,6 +240,11 @@ function ReportPage() {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
+
+  // 모달 안의 지출 내역 API 연동을 위한 상태
+  const [dailyTxList, setDailyTxList] = useState<any[]>([])
+  const [isLoadingTx, setIsLoadingTx] = useState(false)
+
   const dateReportMonth = selectedDate ? selectedDate.slice(0, 7) : currentYM
   const {
     report,
@@ -246,11 +252,6 @@ function ReportPage() {
     errorMessage,
     retry,
   } = useMonthlyReportData({ reportYearMonth: dateReportMonth, budgetYearMonth: currentYM })
-
-  const [summaryMock] = useState({
-    changeRate: 5.0,
-    comparedDate: '2026-07-25',
-  })
 
   useEffect(() => {
     if (!isEmailModalOpen) return
@@ -270,6 +271,48 @@ function ReportPage() {
     }
   }, [isEmailModalOpen])
 
+  const targetDate = selectedDate || todayStr
+
+  // 이메일 모달이 열릴 때 선택된 날짜의 지출 목록(GET /expenses) 조회
+  useEffect(() => {
+    if (isEmailModalOpen && targetDate) {
+      setIsLoadingTx(true)
+      getExpensePage({
+        startAt: `${targetDate}T00:00:00`,
+        endAt: `${targetDate}T23:59:59`,
+        page: 0,
+      })
+        .then((res) => {
+          setDailyTxList(res.content || [])
+        })
+        .catch(() => {
+          showToast({ variant: 'error', title: '지출 내역을 불러오지 못했습니다.' })
+        })
+        .finally(() => {
+          setIsLoadingTx(false)
+        })
+    }
+  }, [isEmailModalOpen, targetDate, showToast])
+
+  useEffect(() => {
+    const handleOutsideSelect = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (
+        !target.closest(`.${styles.selectorBtn}`) &&
+        !target.closest(`.${styles.selectorChevron}`) &&
+        !target.closest(`.${styles.calendar}`) &&
+        !target.closest(`.${styles.monthMenu}`)
+      ) {
+        setOpenDropdown(null)
+      }
+    }
+
+    document.addEventListener('click', handleOutsideSelect)
+    return () => {
+      document.removeEventListener('click', handleOutsideSelect)
+    }
+  }, [])
+
   const handleSendEmailReport = async () => {
     if (isSendingEmail) return
     setIsSendingEmail(true)
@@ -286,55 +329,86 @@ function ReportPage() {
     }
   }
 
-  const getMascotMessage = (rate: number | null) => {
-    if (rate === null) return null
-    const absRate = Math.abs(rate)
-    const action = rate > 0 ? '증가' : '감소'
-    const color = rate > 0 ? '#ff4d4f' : '#1890ff'
+  const dateList = useMemo(() => {
+    const endDateTime = new Date(targetDate)
+    const list: string[] = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(endDateTime)
+      d.setDate(endDateTime.getDate() - i)
+      list.push(d.toISOString().slice(0, 10))
+    }
+    return list
+  }, [targetDate])
 
-    return (
+  const timeData = useMemo(() => {
+    if (!report?.dailyExpenses) return []
+    return dateList.map((dateStr) => {
+      const found = report.dailyExpenses.find((expense) => expense.date === dateStr)
+      return {
+        label: String(Number(dateStr.slice(8))),
+        amount: found ? found.amountHome : 0,
+        dateStr,
+      }
+    })
+  }, [report, dateList])
+
+  const weeklyMaxDateFormatted = useMemo(() => {
+    if (timeData.length === 0) return ''
+    const maxTimeItem = timeData.reduce((max, item) => (item.amount > max.amount ? item : max), timeData[0])
+    return maxTimeItem ? `${Number(maxTimeItem.dateStr.slice(5, 7))}.${Number(maxTimeItem.dateStr.slice(8, 10))}` : ''
+  }, [timeData])
+
+  const calculatedChangeRate = useMemo(() => {
+    if (!report?.dailyExpenses) return 0
+    const yesterdayStr = (() => {
+      const d = new Date()
+      d.setDate(d.getDate() - 1)
+      return d.toISOString().slice(0, 10)
+    })()
+
+    const todayExpenseAmount = report.dailyExpenses.find((e) => e.date === todayStr)?.amountHome ?? 0
+    const yesterdayExpenseAmount = report.dailyExpenses.find((e) => e.date === yesterdayStr)?.amountHome ?? 0
+
+    if (yesterdayExpenseAmount === 0) {
+      return todayExpenseAmount > 0 ? 100 : 0
+    }
+    const diff = todayExpenseAmount - yesterdayExpenseAmount
+    return Number(((diff / yesterdayExpenseAmount) * 100).toFixed(1))
+  }, [report, todayStr])
+
+  const mascotMessages = useMemo(() => {
+    const rate = calculatedChangeRate
+    const absRate = Math.abs(rate)
+    const isIncrease = rate > 0
+    const actionText = isIncrease ? '증가' : '감소'
+    const color = isIncrease ? '#6AADEA' : '#E16D6D'
+
+    const dailyChangeMsg = (
       <span>
         오늘 지출이 어제보다{' '}
-        <span style={{ color: color, fontWeight: 'bold' }}>
-          {absRate}% {action}
+        <span style={{ color: color, fontWeight: 'semibold' }}>
+          {absRate}% {actionText}
         </span>
-        <span>했어요</span>
+        했어요!
       </span>
     )
-  }
 
-  const monthList: string[] = []
-  const [currentY, currentM] = currentYM.split('-').map(Number)
-  let tempY = 2026
-  let tempM = 1
+    const weeklyMaxMsg = weeklyMaxDateFormatted ? (
+      <span>
+        지난 7일 중{' '}
+        <span style={{ color: '#6AADEA', fontWeight: 'semibold' }}>
+          {weeklyMaxDateFormatted}
+        </span>
+        에 돈을 가장 많이 썼어요!
+      </span>
+    ) : (
+      "이번 주 지출 흐름을 확인해보세요!"
+    )
 
-  while (tempY < currentY || (tempY === currentY && tempM <= currentM)) {
-    monthList.push(`${tempY}-${String(tempM).padStart(2, '0')}`)
-    tempM++
-    if (tempM > 12) {
-      tempM = 1
-      tempY++
-    }
-  }
-  monthList.reverse()
+    const staticMsg = "월별 지출 흐름, 이렇게 보니까 한눈에 들어오죠?"
 
-  useEffect(() => {
-    const handleOutsideSelect = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (
-        !target.closest(`.${styles.selectorBtn}`) &&
-        !target.closest(`.${styles.calendar}`) &&
-        !target.closest(`.${styles.monthMenu}`)
-      ) {
-        setOpenDropdown(null)
-      }
-    }
-
-    document.addEventListener('click', handleOutsideSelect)
-    return () => {
-      document.removeEventListener('click', handleOutsideSelect)
-    }
-  }, [])
+    return [dailyChangeMsg, weeklyMaxMsg, staticMsg]
+  }, [calculatedChangeRate, weeklyMaxDateFormatted])
 
   if (errorMessage) {
     return (
@@ -367,30 +441,10 @@ function ReportPage() {
     )
   }
 
-  const targetDate = selectedDate || todayStr
-
   const targetExpenseData = report.dailyExpenses.find(
     (expense) => expense.date === targetDate
   )
   const targetAmount = targetExpenseData ? targetExpenseData.amountHome : 0
-
-  const endDateTime = new Date(targetDate)
-  const dateList: string[] = []
-
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(endDateTime)
-    d.setDate(endDateTime.getDate() - i)
-    dateList.push(d.toISOString().slice(0, 10))
-  }
-
-  const timeData = dateList.map((dateStr) => {
-    const found = report.dailyExpenses.find((expense) => expense.date === dateStr)
-    return {
-      label: String(Number(dateStr.slice(8))),
-      amount: found ? found.amountHome : 0,
-      dateStr,
-    }
-  })
 
   const currentSelectedMonth = selectedMonth || currentYM
   const [selYear, selMonthNum] = currentSelectedMonth.split('-').map(Number)
@@ -431,6 +485,21 @@ function ReportPage() {
 
   const localSymbol = currencySymbols[userLocalCurrency] || userLocalCurrency
   const homeSymbol = currencySymbols[userHomeCurrency] || userHomeCurrency
+
+  const monthList: string[] = []
+  let tempY = 2026
+  let tempM = 1
+  const [currentY, currentM] = currentYM.split('-').map(Number)
+
+  while (tempY < currentY || (tempY === currentY && tempM <= currentM)) {
+    monthList.push(`${tempY}-${String(tempM).padStart(2, '0')}`)
+    tempM++
+    if (tempM > 12) {
+      tempM = 1
+      tempY++
+    }
+  }
+  monthList.reverse()
 
   return (
     <section className={styles.page} ref={containerRef}>
@@ -487,7 +556,12 @@ function ReportPage() {
         <div
           className={styles.emailModalBackdrop}
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setIsEmailModalOpen(false)
+            if (e.target === e.currentTarget) {
+              const isScrollbarClick = e.clientX >= e.currentTarget.clientWidth
+              if (!isScrollbarClick) {
+                setIsEmailModalOpen(false)
+              }
+            }
           }}
         >
           <div className={styles.emailModalWrapper}>
@@ -524,9 +598,9 @@ function ReportPage() {
                   <div className={styles.summaryBox}>
                     <span>남은 예산</span>
                     <strong>
-                      {homeSymbol} {Number(data?.monthlyBudgetHome ?? 0).toLocaleString('ko-KR')}
+                      {homeSymbol} {Number(data?.remainingBudgetHome ?? 0).toLocaleString('ko-KR')}
                     </strong>
-                    <small>(USD {Number(convertCurrencyAmount(data?.monthlyBudgetHome ?? 0, userHomeCurrency, 'USD')).toFixed(2)})</small>
+                    <small>(USD {Number(convertCurrencyAmount(data?.remainingBudgetHome ?? 0, userHomeCurrency, 'USD')).toFixed(2)})</small>
                   </div>
                 </div>
               </section>
@@ -534,27 +608,37 @@ function ReportPage() {
               <section className={styles.emailListSection}>
                 <h3>오늘 지출 내역</h3>
                 <ul className={styles.emailTxList}>
-                  {todayExpensesMock.data
-                    .filter((tx) => tx.date === targetDate)
-                    .map((tx) => {
-                      const amountNumber = Number(tx.krw.replace(/[^0-9]/g, ''))
+                  {isLoadingTx ? (
+                    <li style={{ padding: '1rem', color: '#999', textAlign: 'center' }}>
+                      내역을 불러오는 중입니다...
+                    </li>
+                  ) : dailyTxList.length === 0 ? (
+                    <li style={{ padding: '1rem', color: '#999', textAlign: 'center' }}>
+                      오늘 기록된 지출이 없어요.
+                    </li>
+                  ) : (
+                    dailyTxList.map((tx) => {
+                      const timeStr = tx.spentAt && tx.spentAt.includes('T')
+                        ? tx.spentAt.split('T')[1].slice(0, 5)
+                        : ''
 
                       return (
-                        <li key={tx.id}>
+                        <li key={tx.id ?? tx.expenseId}>
                           <div className={styles.txIcon}>
-                            <img src={tx.iconUrl} alt={tx.category} width="18" height="18" />
+                            <img src={getCategoryIconPath(tx.iconKey)} alt={tx.categoryName} width="18" height="18" />
                           </div>
                           <div className={styles.txInfo}>
-                            <strong>{tx.title}</strong>
-                            <span>{tx.category} • {tx.time}</span>
+                            <strong>{tx.merchantName}</strong>
+                            <span>{tx.categoryName} {timeStr ? `• ${timeStr}` : ''}</span>
                           </div>
                           <div className={styles.txAmount}>
-                            <strong>{localSymbol} {amountNumber.toLocaleString('ko-KR')}</strong>
-                            <span>USD {Number(convertCurrencyAmount(amountNumber, 'KRW', 'USD')).toFixed(2)}</span>
+                            <strong>{localSymbol} {tx.convertedAmountHome.toLocaleString('ko-KR')}</strong>
+                            <span>USD {Number(convertCurrencyAmount(tx.convertedAmountHome, userHomeCurrency, 'USD')).toFixed(2)}</span>
                           </div>
                         </li>
                       )
-                    })}
+                    })
+                  )}
                 </ul>
               </section>
 
@@ -602,12 +686,10 @@ function ReportPage() {
         document.body
       )}
 
-      {summaryMock.changeRate !== null && (
-        <FloatingMascot
-          message={getMascotMessage(summaryMock.changeRate)}
-          imageSrc="/assets/illustrations/mascot-check.png"
-        />
-      )}
+      <FloatingMascot
+        messages={mascotMessages}
+        imageSrc="/assets/illustrations/mascot-check.png"
+      />
     </section>
   )
 }

@@ -12,7 +12,6 @@ import {
   getProfileImageKeyBySrc,
   getProfileImageSrc,
   getRandomProfileImageOption,
-  PROFILE_GOAL_OPTIONS,
 } from '@/constants/profileOptions'
 import type { EmailReportData } from '@/types/emailReport'
 import { getApiErrorNotice } from '@/utils/apiError'
@@ -272,9 +271,14 @@ function SettingsPage() {
                 </div>
               </div>
 
-              <p className={styles.optionDescription}>
-                <img src="/assets/icons/info.png" alt="" aria-hidden="true" />선택한 시간에 지출 내역 리포트가 이메일로 발송됩니다.
-              </p>
+              <div className={styles.optionDescription}>
+                <img src="/assets/icons/info.png" alt="" aria-hidden="true" />
+                <span>선택한 시간에 지출 내역 리포트가 이메일로 발송되며, <br />
+                "매주"는 무조건 매주 월요일에, <br />"매월"은 무조건 매월 1일에 발송됩니다.</span>
+                <div className={styles.optionActions}>
+                  <Button onClick={handleSave} disabled={!nickname.trim()}>저장</Button>
+                </div>
+              </div>
             </div>
           )}
         </section>
@@ -300,15 +304,6 @@ function SettingsPage() {
             <label>
               <span>이메일</span>
               <input value={sessionUser?.email ?? ''} placeholder="로그인된 이메일이 없습니다" readOnly aria-readonly="true" />
-            </label>
-            <label>
-              <span>관리 목표</span>
-              <select value={primaryGoal} onChange={(event) => setPrimaryGoal(event.target.value)}>
-                <option value="">선택 안 함</option>
-                {PROFILE_GOAL_OPTIONS.map((goal) => (
-                  <option key={goal.id} value={goal.id}>{goal.label}</option>
-                ))}
-              </select>
             </label>
           </div>
 
