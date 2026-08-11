@@ -35,3 +35,41 @@
   .progressDetails { grid-column: 1 / -1; }
   .actions { flex-wrap: wrap; }
 }
+
+@media (max-width: 63.75rem) {
+  .content {
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .tripThumbnailFrame {
+    width: 7.5rem;
+    height: 9.5rem;
+  }
+
+  .goalDetails h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .goalDetails strong,
+  .progressHeading strong {
+    font-size: 1.1rem;
+  }
+
+  .progressDetails {
+    grid-column: 1 / -1;
+  }
+
+  .actions {
+    min-height: auto;
+    gap: .5rem;
+    padding: .75rem 1rem;
+  }
+
+  .actions .addButton {
+    padding: .5rem .75rem;
+    font-size: .85rem;
+  }
+}

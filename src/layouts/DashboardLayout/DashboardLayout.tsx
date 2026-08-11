@@ -214,6 +214,10 @@ function DashboardLayout() {
     onError: showBudgetLoadError,
   })
   const displayName = sessionUser?.nickname || t('common.user')
+  // The shared sidebar summary only has the budget response. Page-specific
+  // expense screens provide their own live usage/remaining values.
+  const mobileBudgetUsagePercent = 0
+  const isExpenseHistoryPage = pathname === ROUTE_PATHS.expenses
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
   const pageTabs =
@@ -291,6 +295,44 @@ function DashboardLayout() {
           <span className={styles.notificationDot} aria-hidden="true" />
         </div>
       </header>
+
+      <section
+        className={styles.mobileAssetSummary}
+        aria-labelledby="mobile-asset-summary-title"
+      >
+        <button className={styles.assetEditButton} type="button" aria-label={t('dashboard.editMonthlyBudget')} onClick={() => setIsBudgetModalOpen(true)}>
+          <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
+        </button>
+        <div className={styles.mobileAssetOverview}>
+          <div className={styles.assetRing} aria-hidden="true">
+            <img className={styles.assetRingGraphic} src="/assets/illustrations/asset-ring.png" alt="" />
+            <span className={styles.assetRingContent}>
+              <img className={styles.assetRingWallet} src="/assets/icons/pots/pot-wallet.png" alt="" />
+              <small>{currentYearMonth}</small>
+            </span>
+          </div>
+          <div className={styles.mobileAssetCopy}>
+            <h2 id="mobile-asset-summary-title">{t('dashboard.monthlyBudget')}</h2>
+            <p className={styles.assetTotal}>
+              {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString(locale)}
+            </p>
+            <p className={styles.assetUsd}>({assetSummary.localCurrencyAmountLabel})</p>
+          </div>
+        </div>
+        <div className={`${styles.mobileBudgetSummary} ${isExpenseHistoryPage ? '' : styles.mobileBudgetSummaryHidden}`}>
+          <div className={styles.mobileBudgetHeader}>
+            <span>{t('dashboard.monthlyBudget')}</span>
+            <strong>{mobileBudgetUsagePercent}%</strong>
+          </div>
+          <div className={styles.mobileBudgetTrack}>
+            <span style={{ width: `${mobileBudgetUsagePercent}%` }} />
+          </div>
+          <div className={styles.mobileBudgetRemaining}>
+            <span>{t('expenseInput.remainingBudget')}</span>
+            <strong>{assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString(locale)}</strong>
+          </div>
+        </div>
+      </section>
 
       <aside className={styles.sidebar}>
         <nav className={styles.navigation} aria-label={t('dashboard.mainMenu')}>

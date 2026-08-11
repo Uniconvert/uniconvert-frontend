@@ -467,7 +467,7 @@
 
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 63.75rem) {
   .leftColumn {
     display: flex;
   }
@@ -481,6 +481,112 @@
     height: auto;
     aspect-ratio: 1;
     margin: 0 auto;
+  }
+}
+
+/* Mobile layout follows the compact single-column dashboard wireframe. */
+@media (max-width: 63.75rem) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .leftColumn,
+  .rightColumn {
+    display: contents;
+  }
+
+  .assetCard {
+    /* The shared mobile summary in DashboardLayout replaces the desktop-only card. */
+    display: none;
+  }
+
+  .budgetHeader {
+    font-size: .875rem;
+  }
+
+  .budgetHeader strong {
+    font-size: .95rem;
+  }
+
+  .progressTrack {
+    height: .625rem;
+    margin-top: .5rem;
+  }
+
+  .remainingBudget {
+    margin-top: .75rem;
+    font-size: .875rem;
+  }
+
+  .monthlyCard,
+  .recentCard,
+  .savedCard {
+    width: 100%;
+  }
+
+  .monthlyCard { order: 2; }
+  .recentCard { order: 3; }
+  .savedCard { order: 4; }
+
+  .monthlyCard {
+    padding: 1rem;
+  }
+
+  .monthlyBody {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .donutWrap {
+    width: min(17rem, 100%);
+    height: auto;
+    aspect-ratio: 1;
+    margin: 0 auto;
+  }
+
+  .categorySummary li {
+    min-height: 2.75rem;
+    grid-template-columns: minmax(0, 1fr) 3rem auto;
+    gap: .5rem;
+    font-size: .875rem;
+  }
+
+  .categoryName {
+    gap: .5rem;
+    font-size: .95rem;
+  }
+
+  .categorySummary strong {
+    font-size: .95rem;
+  }
+
+  .recentCard,
+  .savedCard {
+    padding: 1rem;
+  }
+
+  .cardHeader h2,
+  .monthlyHeader h2,
+  .savedCard h2 {
+    font-size: 1rem;
+  }
+
+  .recentExpenseRow {
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    gap: .625rem;
+  }
+
+  .expenseIcon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .recentExpenseRow > span:nth-child(2),
+  .recentList strong {
+    font-size: .875rem;
   }
 }
 

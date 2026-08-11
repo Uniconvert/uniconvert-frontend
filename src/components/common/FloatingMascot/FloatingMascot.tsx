@@ -60,7 +60,7 @@ export default function FloatingMascot({
     <div 
       className={styles.floatingMascotRail} 
       onClick={handleClick} 
-      style={{ cursor: 'pointer', display: 'inline-block', userSelect: 'none' }}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
     >
       <div className={styles.floatingMascot}>
         <Mascot
