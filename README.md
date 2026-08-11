@@ -30,7 +30,7 @@
 | 기능 | 설명 | 현재 상태 |
 | --- | --- | --- |
 | 회원가입·로그인 | 이메일 기반 가입·로그인 및 Google 로그인 UI | Mock 완료, 실제 API 코드 구현·서버 검증 중 |
-| 온보딩 | 약관, 기준 통화, 현지 통화, 월 예산, 시간대, 프로필 설정 | UI·Mock 완료, 실제 API 코드 구현·서버 검증 대기 |
+| 온보딩 | 기준 통화, 현지 통화, 월 예산, 시간대, 프로필 설정 | UI·Mock 완료, 실제 API 코드 구현·서버 검증 대기 |
 | 지출 입력 | 통화, 금액, 날짜, 상점, 카테고리, 메모 입력 | 생성 API 코드 구현, 서버 환율 데이터 복구 후 최종 검증 필요 |
 | 지출 내역 | 월 지출, 남은 예산, 카테고리 통계, 기간별 합계 확인 | 조회 API 연동 및 빈 데이터 응답 검증 완료 |
 | Pots | 목적별 Pot 생성, 수정, 보관 및 금액 배정 | API 코드 구현, 서버 정책·응답 검증 대기 |
@@ -87,33 +87,25 @@
 | Context API | 사용 안 함 | 별도 전역 Context 없음 |
 | TanStack Query | 사용 안 함 | 서버 상태 캐싱·무효화 미적용 |
 | `sessionStorage` | 사용 | 로그인 사용자, 토큰, 온보딩 임시 상태 |
-| `localStorage` | 사용 | 사용자별 Mock 지출, Pots, 프로필 및 설정 |
+| `localStorage` | 일부 사용 | 화면 설정 등 브라우저에 유지해야 하는 값 |
 
-Mock 모드에서는 페이지별 로컬 상태와 브라우저 저장소를 중심으로 관리합니다. 실제 API 모드에서는 공통 Fetch 클라이언트를 사용하며, 연동 범위가 확대되면 서버 데이터 캐싱과 Mutation 관리를 위해 TanStack Query 도입을 검토할 수 있습니다.
+서버 데이터는 공통 Fetch 클라이언트를 통해 실제 API에서 조회·변경합니다. 연동 범위가 확대되면 서버 데이터 캐싱과 Mutation 관리를 위해 TanStack Query 도입을 검토할 수 있습니다.
 
-### Mock Data 및 API 연동
+### API 연동 및 테스트 데이터
 
-- 기본 실행 모드는 Mock API입니다.
-- `src/mocks`의 JSON은 데모 데이터와 최초 데이터로 사용합니다.
-- 화면에서 추가·수정·삭제한 Mock 데이터는 사용자 ID별 `localStorage`에 저장합니다.
+- 개발 및 배포 앱은 모두 실제 API만 사용합니다.
+- API 요청이 실패해도 Mock 데이터로 자동 전환하지 않으며, 실제 오류를 화면에 표시합니다.
+- `src/mocks`의 JSON과 저장소 유틸리티는 테스트용 fixture로만 유지합니다.
 - 공통 API 클라이언트는 Access Token을 `Authorization: Bearer` 헤더에 자동 적용합니다.
-- 환경변수로 Mock API와 실제 API를 전환할 수 있습니다.
+- 환경변수에는 배포 환경마다 달라지는 공개 설정만 둡니다.
 
 ```env
-VITE_USE_MOCK_API=true
 VITE_API_BASE_URL=https://api.uniconvert.dev
-
-# 전체 Mock 상태에서도 검증할 도메인만 실제 API로 전환할 수 있습니다.
-VITE_USE_REAL_AUTH_API=false
-VITE_USE_REAL_ONBOARDING_API=false
-VITE_USE_REAL_EXPENSE_API=false
-VITE_USE_REAL_POTS_API=false
-VITE_USE_REAL_REPORT_API=false
+VITE_GOOGLE_CLIENT_ID=
+VITE_GOOGLE_AUTH_PATH=/auth/social/google
 ```
 
-기본값은 안전한 Mock 모드입니다. `VITE_USE_MOCK_API=false`로 전체 API를 전환하거나, 전역 Mock을 유지한 채 `VITE_USE_REAL_*_API=true`로 도메인별 연결을 검증할 수 있습니다. 전체 환경변수와 설명은 [`.env.example`](./.env.example)을 참고합니다. 현재 지출 생성은 백엔드 환율 데이터 복구 후 통합 검증이 필요합니다.
-
-배포 환경에서도 같은 이름의 GitHub Actions Variables를 사용하므로, 코드 변경 없이 기능별로 실제 API 전환 범위를 관리할 수 있습니다.
+API/Mock 전환 환경변수는 사용하지 않습니다. 전체 환경변수와 설명은 [`.env.example`](./.env.example)을 참고합니다.
 
 ### 주요 Mock 파일
 
@@ -173,7 +165,6 @@ public/
 | Landing | `/` | 오레오 | 서비스 소개 |
 | Login | `/login` | 오레오 | 로그인 |
 | SignUp | `/signup` | 오레오 | 이메일·Google 회원가입 |
-| Terms | `/signup/terms` | 오레오 | 약관 동의 |
 | VerifyEmail | `/verify-email` | 오레오 | 이메일 인증 안내 |
 | BaseCurrency | `/onboarding/base-currency` | 오레오 | 기준 통화 선택 |
 | LocalCurrencies | `/onboarding/local-currencies` | 오레오 | 현지 통화 선택 |
@@ -195,7 +186,6 @@ public/
 랜딩
 → 로그인 또는 회원가입
 → 이메일 인증
-→ 약관 동의
 → 기준 통화 선택
 → 현지 통화 선택
 → 월 예산 설정

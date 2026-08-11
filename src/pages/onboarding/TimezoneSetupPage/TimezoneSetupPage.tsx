@@ -5,6 +5,7 @@ import { updateOnboardingSettings } from '@/auth/session'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { getBrowserTimeZone } from '@/utils/timezone'
 import styles from './TimezoneSetupPage.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 type TimezoneInfo = {
   location: string
@@ -29,6 +30,7 @@ function getGmtOffset(timeZone: string) {
 }
 
 function TimezoneSetupPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [timeZone] = useState(getBrowserTimeZone)
   const timezoneInfo = timezoneLabels[timeZone] ?? { location: timeZone.replaceAll('_', ' ') }
@@ -47,15 +49,15 @@ function TimezoneSetupPage() {
       <img className={styles.exchangeDecoration} src="/assets/icons/login_exchange.png" alt="" aria-hidden="true" />
       <OnboardingPanel
         titleId="timezone-title"
-        title="시간대를 설정해주세요"
-        description="정확한 시간 설정으로 나의 자산을 더 확실하게 관리할 수 있어요."
+        title={t('onboarding.timezoneTitle')}
+        description={t('onboarding.timezoneDescription')}
         currentStep={4}
         onSubmit={handleSubmit}
-        submitLabel="프로필 생성하기"
+        submitLabel={t('onboarding.profileNext')}
         height="39.25rem"
         bottomAligned
       >
-        <h2>현재 위치 기준 시간대</h2>
+        <h2>{t('onboarding.timezoneCurrent')}</h2>
         <div className={styles.timezoneCard}>
           <div><strong>({gmtOffset}) {timezoneInfo.location}</strong><span>{timeZone}</span></div>
         </div>

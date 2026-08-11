@@ -39,8 +39,7 @@ interface ExchangeQuoteHistoryPageDto {
   last?: boolean
 }
 
-export const isUsingMockExchangeApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_EXCHANGE_API !== 'true'
+export const isUsingMockExchangeApi = isUsingMockApi
 
 export function getCurrentExchangeRate(from: string, to: string) {
   const normalizedFrom = from.toUpperCase()

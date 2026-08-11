@@ -1,6 +1,8 @@
 .card { overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
 .content { display: grid; min-height: 14rem; grid-template-columns: 8.75rem minmax(12rem, .85fr) minmax(18rem, 1.7fr); align-items: center; gap: 2.625rem; padding: 1.75rem 1.5rem; }
-.tripThumbnail { width: 8.75rem; height: 11.25rem; object-fit: cover; border-radius: .75rem; }
+.tripThumbnailFrame { display: grid; width: 8.75rem; height: 11.125rem; place-items: center; overflow: hidden; background: #f3f8fd; border-radius: .75rem; }
+.tripThumbnail { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.nativeResolutionImage { width: auto; height: auto; max-width: 90px; max-height: 114px; object-fit: contain; }
 .goalDetails h2 { display: flex; width: fit-content; align-items: center; gap: .5rem; margin-bottom: 2.25rem; font-size: 1.5rem; }
 .goalDetails h2 span { display: inline-flex; flex: 0 0 auto; align-items: center; }
 .goalDetails h2 span img { width: 1.75rem; height: 1.75rem; object-fit: contain; }
@@ -25,12 +27,12 @@
 .actions .deleteButton { color: #ff5d5d; }
 @media (max-width: 90rem) {
   .content { grid-template-columns: 7rem minmax(9rem, .8fr) minmax(13rem, 1.4fr); gap: 1.5rem; }
-  .tripThumbnail { width: 7rem; height: 9rem; }
+  .tripThumbnailFrame { width: 7rem; height: 9rem; }
   .goalDetails h2 { margin-bottom: 1.5rem; font-size: 1.25rem; }
 }
 @media (max-width: 48rem) {
   .content { grid-template-columns: 5.5rem 1fr; gap: 1.25rem; }
-  .tripThumbnail { width: 5.5rem; height: 7rem; }
+  .tripThumbnailFrame { width: 5.5rem; height: 7rem; }
   .progressDetails { grid-column: 1 / -1; }
   .actions { flex-wrap: wrap; }
 }

@@ -36,13 +36,6 @@
   object-fit: contain;
 }
 
-.uploadStatus {
-  margin-top: 0.5rem;
-  color: var(--color-primary);
-  text-align: right;
-  font-size: 0.875rem;
-}
-
 .twoColumns {
   display: grid;
   grid-template-columns: 1fr 1fr;

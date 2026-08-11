@@ -20,9 +20,7 @@ import type {
 import { getBudget } from './budgets'
 import { apiRequest, isUsingMockApi } from './client'
 
-/** 전체 Mock 모드를 유지하면서 지출 도메인만 실제 API로 전환할 수 있습니다. */
-export const isUsingMockExpenseApi =
-  isUsingMockApi && import.meta.env.VITE_USE_REAL_EXPENSE_API !== 'true'
+export const isUsingMockExpenseApi = isUsingMockApi
 
 /** 기존 화면 코드와의 호환을 위한 별칭입니다. */
 export const isUsingMockExpenseReadApi = isUsingMockExpenseApi
@@ -631,11 +629,22 @@ export function updateSavedExpenseName(expense: SavedExpense, merchantName: stri
   return Promise.reject(new Error('지출 수정은 상세 데이터와 함께 별도 연동해야 합니다.'))
 }
 
-export function deleteSavedExpense(expenseId: string) {
+export async function deleteSavedExpense(expenseId: string) {
   if (isUsingMockApi) {
     const next = getStoredSavedExpenses().filter((expense) => expense.expenseId !== expenseId)
     saveStoredSavedExpenses(next)
-    return Promise.resolve(true)
+    return true
   }
-  return Promise.reject(new Error('지출 삭제는 이번 조회 연동 범위에 포함되지 않습니다.'))
+
+  const id = Number(expenseId)
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error('올바르지 않은 지출 ID입니다.')
+  }
+
+  await apiRequest<void>(
+    `/expenses/${id}`,
+    { data: undefined },
+    { method: 'DELETE', useMock: false },
+  )
+  return true
 }

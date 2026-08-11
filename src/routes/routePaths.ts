@@ -2,7 +2,6 @@ export const ROUTE_PATHS = {
   landing: '/',
   login: '/login',
   signUp: '/signup',
-  terms: '/signup/terms',
   verifyEmail: '/verify-email',
   onboardingBaseCurrency: '/onboarding/base-currency',
   onboardingLocalCurrencies: '/onboarding/local-currencies',

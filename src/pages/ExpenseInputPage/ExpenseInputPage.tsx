@@ -25,7 +25,6 @@ function ExpenseInputPage() {
   const [merchant, setMerchant] = useState('')
   const [memo, setMemo] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [uploadedFileName, setUploadedFileName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
@@ -50,11 +49,17 @@ function ExpenseInputPage() {
   const activeCurrency = currency
   const numericAmount = Number(amount) || 0
   const convertedAmount = Math.floor(numericAmount * rate)
-  const projectedExpenseHome = budgetSummary.monthlyExpenseHome + convertedAmount
+  const projectedRemainingBudgetHome = Math.max(
+    budgetSummary.remainingBudgetHome - convertedAmount,
+    0,
+  )
   const budgetUsagePercent = budgetSummary.monthlyBudgetHome > 0
-    ? Math.min((projectedExpenseHome / budgetSummary.monthlyBudgetHome) * 100, 100)
+    ? Math.min(
+      ((budgetSummary.monthlyBudgetHome - projectedRemainingBudgetHome)
+        / budgetSummary.monthlyBudgetHome) * 100,
+      100,
+    )
     : 0
-  const remainingBudgetHome = Math.max(budgetSummary.monthlyBudgetHome - projectedExpenseHome, 0)
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === categoryId) ?? categories[0],
     [categories, categoryId],
@@ -97,12 +102,19 @@ function ExpenseInputPage() {
         title: '지출이 성공적으로 저장되었어요!',
         description: `${selectedCategory.label} · ${merchant.trim() || '상점 미입력'} · ${currencySymbol}${formattedAmount}`,
       })
-      if (budgetSummary.monthlyBudgetHome > 0 && projectedExpenseHome > budgetSummary.monthlyBudgetHome) {
+      if (
+        budgetSummary.monthlyBudgetHome > 0
+        && convertedAmount > budgetSummary.remainingBudgetHome
+      ) {
         showToast({ variant: 'info', title: '이번 달 예산을 초과했어요' })
       }
       setBudgetSummary((current) => ({
         ...current,
         monthlyExpenseHome: current.monthlyExpenseHome + savedExpense.convertedAmountHome,
+        remainingBudgetHome: Math.max(
+          current.remainingBudgetHome - savedExpense.convertedAmountHome,
+          0,
+        ),
       }))
       setAmount('')
     } catch (error) {
@@ -125,8 +137,6 @@ function ExpenseInputPage() {
             <img src="/assets/icons/actions/action-upload.png" alt="" aria-hidden="true" />
           </button>
         </div>
-
-        {uploadedFileName && <p className={styles.uploadStatus}>선택된 파일: {uploadedFileName}</p>}
 
         <div className={styles.twoColumns}>
           <div className={styles.field}>
@@ -213,7 +223,7 @@ function ExpenseInputPage() {
           <div className={styles.progressTrack}><span style={{ width: `${budgetUsagePercent}%` }} /></div>
           <div className={styles.remaining}>
             <span>남은 예산</span>
-            <strong>{formatCurrencyAmount(remainingBudgetHome, budgetSummary.homeCurrency)}</strong>
+            <strong>{formatCurrencyAmount(projectedRemainingBudgetHome, budgetSummary.homeCurrency)}</strong>
           </div>
         </section>
       </aside>
@@ -227,7 +237,6 @@ function ExpenseInputPage() {
         })}
         onUpload={async (file) => {
           const result = await importExpenses(file)
-          setUploadedFileName(file.name)
           setIsUploadOpen(false)
           showToast({
             variant: 'success',

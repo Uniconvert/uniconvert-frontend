@@ -10,8 +10,10 @@ import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { ROUTE_PATHS } from '@/routes/routePaths'
 import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './LoginPage.module.css'
+import { useI18n } from '@/i18n/I18nContext'
 
 function LoginPage() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -85,7 +87,7 @@ function LoginPage() {
 
       <AuthPanelShell width="42.25rem" minHeight="48.875rem" className={styles.card}>
         <h1 id="login-title" className={styles.visuallyHidden}>
-          Uniconvert 로그인
+          Uniconvert {t('login.title')}
         </h1>
 
         <div className={styles.brand} role="img" aria-label="Uniconvert">
@@ -104,17 +106,17 @@ function LoginPage() {
           />
         </div>
         <p className={styles.tagline}>
-          해외 지출을 추적하고, 전환하고, 현명하게 관리하세요
+          {t('login.tagline')}
         </p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.fields}>
             <TextField
-              label="이메일"
+              label={t('signup.email')}
               type="email"
               name="email"
               value={email}
-              placeholder="이메일"
+              placeholder={t('signup.email')}
               leadingIconSrc="/assets/icons/email.png"
               autoComplete="email"
               visuallyHideLabel
@@ -122,11 +124,11 @@ function LoginPage() {
               onChange={(event) => setEmail(event.target.value)}
             />
             <TextField
-              label="비밀번호"
+              label={t('signup.password')}
               type="password"
               name="password"
               value={password}
-              placeholder="비밀번호"
+              placeholder={t('signup.password')}
               leadingIconSrc="/assets/icons/password.png"
               autoComplete="current-password"
               visuallyHideLabel
@@ -142,7 +144,7 @@ function LoginPage() {
             disabled={!canSubmit}
             isLoading={isLoading}
           >
-            로그인
+            {t('login.submit')}
           </Button>
           <GoogleIdentityButton
             clientId={googleClientId}
@@ -151,9 +153,9 @@ function LoginPage() {
             onError={(message) => showToast({ variant: 'error', title: message })}
           />
           <p className={styles.signUpPrompt}>
-            아직 계정이 없으신가요?
+            {t('login.noAccount')}
             <Link className={styles.signUpLink} to={ROUTE_PATHS.signUp}>
-              회원가입하기
+              {t('login.signup')}
             </Link>
           </p>
         </form>

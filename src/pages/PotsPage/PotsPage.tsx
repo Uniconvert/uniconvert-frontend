@@ -18,8 +18,10 @@ import { formatCurrencyAmount } from '@/utils/currency'
 import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './PotsPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
+import { useI18n } from '@/i18n/I18nContext'
 
 function PotsPage() {
+  const { t } = useI18n()
   const { data, setData, errorMessage, refetch: reloadPots } = usePotsData()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -55,7 +57,7 @@ function PotsPage() {
   }, [data, showToast])
 
   if (errorMessage) return <p role="alert">{errorMessage}</p>
-  if (!data) return <p aria-live="polite">Pots 정보를 불러오는 중입니다.</p>
+  if (!data) return <p aria-live="polite">{t('pots.loading')}</p>
 
   const completedPot = data.pots.find((pot) => pot.savedAmount >= pot.targetAmount)
   const editTargetRate = data.monthlyBudget > 0
@@ -165,11 +167,11 @@ function PotsPage() {
 
   return (
     <section className={styles.page} aria-labelledby="pots-title">
-      <h1 id="pots-title">나의 Pots</h1>
+      <h1 id="pots-title">{t('pots.title')}</h1>
       {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
 
       <div className={styles.dashboardGrid}>
-        <div className={styles.mainColumn}>
+        <div className={`${styles.mainColumn} ${data.pots.length === 0 ? styles.emptyMainColumn : ''}`}>
           <BudgetAllocationSummary
             totalAssets={data.totalAssets}
             allocatedAmount={data.allocatedAmount}
@@ -177,19 +179,19 @@ function PotsPage() {
             currency={data.homeCurrency}
           />
           {data.pots.map((pot) => <PotCard key={pot.potId} pot={pot} currency={data.homeCurrency} onAddAmount={() => openPanel(pot, 'add')} onEdit={() => openPanel(pot, 'edit')} onDelete={() => handleDeletePot(pot)} />)}
-          {data.pots.length === 0 && <p>아직 만든 Pot이 없습니다.</p>}
+          {data.pots.length === 0 && <p className={styles.emptyState}>{t('pots.empty')}</p>}
           <button className={styles.createButton} type="button" onClick={() => setIsCreateOpen(true)}>
             <span aria-hidden="true">＋</span>
-            새로운 Pot 만들기
+            {t('pots.create')}
           </button>
         </div>
 
-        <aside className={styles.sideColumn} aria-label="Pots 보조 정보">
+        <aside className={styles.sideColumn} aria-label={t('pots.assistiveInfo')}>
           <div className={styles.walletIllustration} aria-hidden="true">
             <img src="/assets/illustrations/wallet.png" alt="" />
           </div>
           <FloatingMascot
-              message={completedPot ? '목표를 달성했어요 축하드려요!' : '오늘도 목표를 향해 한 걸음!'}
+              message={completedPot ? t('pots.mascot.completed') : t('pots.mascot.default')}
               imageSrc={completedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
           />
         </aside>
@@ -207,7 +209,7 @@ function PotsPage() {
 
       {activePot && panelMode && (
         <ModalShell
-          title={panelMode === 'add' ? '금액 추가' : 'Pots 수정하기'}
+          title={panelMode === 'add' ? t('pots.addAmount') : t('pots.edit')}
           titleId="pot-action-title"
           closeLabel={panelMode === 'add' ? '금액 추가 닫기' : 'Pots 수정 닫기'}
           width={panelMode === 'edit' ? '44rem' : '43rem'}
@@ -218,15 +220,15 @@ function PotsPage() {
           {panelMode === 'edit' ? (
             <div className={styles.editFields}>
               <label className={styles.modalField}>
-                <span>1. Pots 이름</span>
+                <span>{t('pots.editName')}</span>
                 <span className={styles.editNameRow}>
                   <img src={(findPotCategory(editIcon) ?? POT_CATEGORY_OPTIONS[0]).iconSrc} alt="" aria-hidden="true" />
                   <input value={editName} maxLength={30} onChange={(event) => setEditName(event.target.value)} />
                 </span>
               </label>
               <section className={styles.editTargetSection}>
-                <strong>2. 목표 금액</strong>
-                <p>이 Pots에 모으고 싶은 목표 금액을 설정해주세요.</p>
+                <strong>{t('pots.editTarget')}</strong>
+                <p>{t('pots.targetDescription')}</p>
                 <label className={styles.rangeField}>
                   <div className={styles.rangeWrap}>
                     <output style={{ left: `${editTooltipRate}%` }}>{formatCurrencyAmount(editTargetAmount, data.homeCurrency)}</output>
@@ -245,8 +247,8 @@ function PotsPage() {
                 </label>
               </section>
               <fieldset className={styles.imageChoices}>
-                <legend>3. 대표 이미지</legend>
-                <p>Pots를 더 쉽게 구분할 수 있도록 이미지를 선택해 보세요.</p>
+                <legend>{t('pots.representativeImage')}</legend>
+                <p>{t('pots.imageDescription')}</p>
                 <div>
                   {POT_REPRESENTATIVE_IMAGE_OPTIONS.map((option, index) => {
                     const isSelected = editRepresentativeImageKey === option.key
@@ -267,8 +269,8 @@ function PotsPage() {
                 </div>
               </fieldset>
               <fieldset className={styles.categoryChoices}>
-                <legend>4. 대표 카테고리</legend>
-                <p>Pots를 더 쉽게 구분할 수 있도록 이모티콘을 선택해 보세요.</p>
+                <legend>{t('pots.category')}</legend>
+                <p>{t('pots.categoryDescription')}</p>
                 <div>{POT_CATEGORY_OPTIONS.map((option) => <button key={option.id} type="button" aria-label={option.label} className={findPotCategory(editIcon)?.id === option.id ? styles.selectedChoice : ''} onClick={() => setEditIcon(option.id)}><img src={option.iconSrc} alt="" aria-hidden="true" style={{ transform: `scale(${option.displayScale})` }} /></button>)}</div>
               </fieldset>
             </div>
@@ -290,7 +292,7 @@ function PotsPage() {
               </label>
             </>
           )}
-          <div className={styles.modalActions}><button type="button" onClick={closePanel}>취소</button><button type="button" onClick={handlePanelSave} disabled={isSaving || (panelMode === 'edit' ? !editName.trim() || editTargetAmount <= 0 : amountValue <= 0 || amountValue > maximumAdditionalAmount)}>{isSaving ? '저장 중...' : '저장하기'}</button></div>
+          <div className={styles.modalActions}><button type="button" onClick={closePanel}>{t('common.cancel')}</button><button type="button" onClick={handlePanelSave} disabled={isSaving || (panelMode === 'edit' ? !editName.trim() || editTargetAmount <= 0 : amountValue <= 0 || amountValue > maximumAdditionalAmount)}>{isSaving ? t('common.saving') : t('common.save')}</button></div>
         </ModalShell>
       )}
 

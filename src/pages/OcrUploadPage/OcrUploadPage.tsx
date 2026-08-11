@@ -33,7 +33,7 @@ function OcrUploadPage() {
         onUpload={async (file) => {
           const result = await importExpenses(file)
           setStatusMessage(
-            `${file.name}: 저장 ${result.savedCount ?? 0}건 · 제외 ${result.excludedCount ?? 0}건 · 오류 ${result.errorCount ?? 0}건`,
+            `저장 ${result.savedCount ?? 0}건 · 제외 ${result.excludedCount ?? 0}건 · 오류 ${result.errorCount ?? 0}건`,
           )
           setIsModalOpen(false)
           showToast({
