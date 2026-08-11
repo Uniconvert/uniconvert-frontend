@@ -1,5 +1,6 @@
 import styles from './CurrencySelection.module.css'
 import { CURRENCY_OPTIONS } from './currencyOptions'
+import { useI18n } from '@/i18n/I18nContext'
 
 export interface CurrencyOption {
   code: string
@@ -20,6 +21,7 @@ function CurrencySelection({
   selectionMode,
   onChange,
 }: CurrencySelectionProps) {
+  const { t } = useI18n()
   const handleSelect = (code: string) => {
     if (selectionMode === 'single') {
       onChange([code])
@@ -50,7 +52,7 @@ function CurrencySelection({
             <span className={styles.symbol} aria-hidden="true">{currency.symbol}</span>
             <span className={styles.label}>
               <strong>{currency.code}</strong>
-              <span>{currency.name}</span>
+              <span>{t(`currency.${currency.code}`) === `currency.${currency.code}` ? currency.name : t(`currency.${currency.code}`)}</span>
             </span>
             <span className={styles.check} aria-hidden="true" />
           </button>

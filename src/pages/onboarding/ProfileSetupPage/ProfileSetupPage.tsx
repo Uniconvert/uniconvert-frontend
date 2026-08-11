@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { isUsingMockOnboardingApi, saveOnboarding } from '@/api/onboarding'
+import { saveOnboarding } from '@/api/onboarding'
 import { updateMyProfile } from '@/api/users'
 import AuthPanelShell from '@/components/auth/AuthPanelShell/AuthPanelShell'
 import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import { ensureMockOnboardingSession, getOnboardingSettings, updateOnboardingSettings, updateSessionUser } from '@/auth/session'
+import { getOnboardingSettings, updateOnboardingSettings, updateSessionUser } from '@/auth/session'
 import {
   findProfileImageOption,
   getProfileImageSrc,
@@ -59,15 +59,8 @@ function ProfileSetupPage() {
     setStatusMessage('')
 
     try {
-      if (isUsingMockOnboardingApi) {
-        ensureMockOnboardingSession()
-      } else {
-        // 닉네임은 온보딩 완료 요청과 분리된 사용자 API로 저장합니다.
-        await updateMyProfile(
-          { nickname: normalizedNickname },
-          { useMock: false },
-        )
-      }
+      // 닉네임은 온보딩 완료 요청과 분리된 사용자 API로 저장합니다.
+      await updateMyProfile({ nickname: normalizedNickname })
 
       const onboarding = await saveOnboarding(
         {
@@ -78,7 +71,6 @@ function ProfileSetupPage() {
           profileImageKey,
           primaryGoal: goals[0],
         },
-        { useMock: isUsingMockOnboardingApi },
       )
 
       if (!onboarding.onboardingCompleted) {
@@ -114,7 +106,7 @@ function ProfileSetupPage() {
       <AuthPanelShell
         as="form"
         width="47.5rem"
-        height="58.375rem"
+        height="clamp(42rem, 76svh, 48rem)"
         className={styles.card}
         ariaLabelledBy="profile-title"
         onSubmit={handleSubmit}
@@ -161,7 +153,7 @@ function ProfileSetupPage() {
                 onChange={() => selectGoal(goal.id)}
               />
               <img className={styles.goalIcon} src={goal.iconSrc} alt="" aria-hidden="true" />
-              <span>{goal.label}</span>
+              <span>{t(`profileGoal.${goal.id}`)}</span>
               <b aria-hidden="true">✓</b>
             </label>
           ))}</div>

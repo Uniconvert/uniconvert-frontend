@@ -1,5 +1,4 @@
-import { apiRequest, isUsingMockApi } from '@/api/client'
-import { getStoredExpenses, updateStoredExpense } from '@/mocks/expenseStore'
+import { apiRequest } from '@/api/client'
 import type { ExpenseResponseDto } from '@/types/expense'
 import type {
   ExpenseMemo,
@@ -8,19 +7,6 @@ import type {
   ExpenseMemoPageDto,
   ExpenseMemoQuery,
 } from '@/types/memo'
-
-const MEMO_PAGE_SIZE = 6
-
-function toExpenseMemo(expense: ReturnType<typeof getStoredExpenses>[number]): ExpenseMemo {
-  return {
-    expenseId: expense.expenseId,
-    categoryName: expense.categoryName,
-    iconKey: expense.iconKey,
-    merchantName: expense.merchantName,
-    memo: expense.memo,
-    spentAt: expense.spentAt,
-  }
-}
 
 function toExpenseMemoFromDto(memo: ExpenseMemoDto): ExpenseMemo {
   const categoryName = memo.categoryName?.trim() || '기타'
@@ -54,32 +40,9 @@ function buildMemoParams(query: ExpenseMemoQuery) {
 }
 
 export function getExpenseMemos(query: ExpenseMemoQuery = {}): Promise<ExpenseMemoPage> {
-  if (isUsingMockApi) {
-    const keyword = query.keyword?.trim().toLocaleLowerCase('ko-KR') || ''
-    const page = query.page ?? 0
-    const memos = getStoredExpenses()
-      .filter((expense) => expense.memo.trim().length > 0)
-      .map(toExpenseMemo)
-      .filter((memo) => !keyword || [memo.memo, memo.categoryName, memo.merchantName]
-        .some((value) => value.toLocaleLowerCase('ko-KR').includes(keyword)))
-      .sort((a, b) => {
-        const comparison = a.spentAt.localeCompare(b.spentAt)
-        return query.sort === 'oldest' ? comparison : -comparison
-      })
-
-    return Promise.resolve({
-      items: memos.slice(page * MEMO_PAGE_SIZE, (page + 1) * MEMO_PAGE_SIZE),
-      totalElements: memos.length,
-      totalPages: Math.ceil(memos.length / MEMO_PAGE_SIZE),
-      page,
-    })
-  }
-
   const params = buildMemoParams(query)
   return apiRequest<ExpenseMemoPageDto>(
     `/expenses/memos?${params.toString()}`,
-    { data: { content: [], totalElements: 0, totalPages: 0, number: query.page ?? 0 } },
-    { useMock: false },
   ).then((response) => ({
     items: (response.content ?? []).map(toExpenseMemoFromDto),
     totalElements: response.totalElements ?? 0,
@@ -91,16 +54,9 @@ export function getExpenseMemos(query: ExpenseMemoQuery = {}): Promise<ExpenseMe
 export async function updateExpenseMemo(expense: ExpenseMemo, memo: string) {
   const normalizedMemo = memo.trim()
 
-  if (isUsingMockApi) {
-    const updated = updateStoredExpense(expense.expenseId, { memo: normalizedMemo })
-    return Promise.resolve(updated ? toExpenseMemo(updated) : null)
-  }
-
   const expenseId = requireExpenseId(expense.expenseId)
   const detail = await apiRequest<ExpenseResponseDto>(
     `/expenses/${expenseId}`,
-    { data: {} },
-    { useMock: false },
   )
 
   if (
@@ -114,7 +70,6 @@ export async function updateExpenseMemo(expense: ExpenseMemo, memo: string) {
 
   const updated = await apiRequest<ExpenseResponseDto>(
     `/expenses/${expenseId}`,
-    { data: detail },
     {
       method: 'PATCH',
       body: JSON.stringify({
@@ -126,7 +81,6 @@ export async function updateExpenseMemo(expense: ExpenseMemo, memo: string) {
         memo: normalizedMemo,
         potId: detail.potId ?? undefined,
       }),
-      useMock: false,
     },
   )
 
@@ -134,19 +88,12 @@ export async function updateExpenseMemo(expense: ExpenseMemo, memo: string) {
 }
 
 export async function deleteExpenseMemos(expenseIds: string[]) {
-  if (isUsingMockApi) {
-    expenseIds.forEach((expenseId) => updateStoredExpense(expenseId, { memo: '' }))
-    return true
-  }
-
   const ids = expenseIds.map(requireExpenseId)
   await apiRequest<void>(
     '/expenses/memos',
-    { data: undefined },
     {
       method: 'DELETE',
       body: JSON.stringify({ expenseIds: ids }),
-      useMock: false,
     },
   )
   return true

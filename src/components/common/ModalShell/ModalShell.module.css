@@ -62,6 +62,7 @@
 .heading h2 {
   margin: 0;
   font-size: 1.35rem;
+  font-weight: 600;
 }
 
 .headerActions {

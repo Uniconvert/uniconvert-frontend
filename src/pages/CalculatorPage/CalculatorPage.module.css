@@ -96,6 +96,17 @@
   margin-bottom: 0;
 }
 
+.amountBox input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
 .currencySelectWrap img {
   width: 2.5rem;
   height: 1.5rem;
@@ -379,7 +390,7 @@
 }
 
 .currencyCodeText {
-  font-size: 1.1rem;
+  font-size: calc(1.225rem + 2px);
   font-weight: 600;
   color: #222;
 }
@@ -390,7 +401,7 @@
 }
 
 .modalHistoryCalcText {
-  font-size: 1.1rem;
+  font-size: calc(1.225rem + 2px);
   color: #333;
   margin-left: 5rem;
   display: flex;
@@ -409,8 +420,18 @@
 }
 
 .modalHistoryTime {
-  font-size: 0.95rem;
+  font-size: calc(1.075rem + 2px);
   color: #999;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+}
+
+:global(#history-modal-title) {
+  font-weight: 600;
 }
 
 /* 하단 페이지네이션 스타일 */

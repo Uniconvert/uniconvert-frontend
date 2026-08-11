@@ -4,7 +4,6 @@ import {
   getExpenseHistory,
   getExpensesForMonth,
   getRecentExpenses,
-  isUsingMockExpenseReadApi,
 } from '@/api/expenses'
 import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { getApiErrorNotice } from '@/utils/apiError'
@@ -75,7 +74,7 @@ export function useExpenseHistoryData({
   }, [reloadVersion])
 
   useEffect(() => {
-    if (!isRecentModalOpen || isUsingMockExpenseReadApi) return
+    if (!isRecentModalOpen) return
 
     let isActive = true
 
@@ -114,7 +113,6 @@ export function useExpenseHistoryData({
 
   const isModalExpensesLoading = Boolean(
     isRecentModalOpen &&
-    !isUsingMockExpenseReadApi &&
     modalResult.yearMonth !== recentModalYearMonth,
   )
   const modalExpenses = modalResult.yearMonth === recentModalYearMonth

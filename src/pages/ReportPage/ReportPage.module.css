@@ -9,14 +9,15 @@
 
 .pageHeader h1 {
   margin: 0 0 0.75rem;
-  font-size: 1.75rem;
+  font-size: calc(1.688rem - 1px);
   color: var(--color-primary, #66a9e4);
+  font-weight: 500 !important;
 }
 
 .pageHeader p {
   margin: 0;
   color: var(--color-text-muted, #9a9a9a);
-  font-size: 1.05rem;
+  font-size: calc(1rem + 1px);
   margin-bottom: 1rem;
 }
 
@@ -30,19 +31,31 @@
 }
 
 .emailreportBtn {
+  flex: 0 0 11rem;
+  width: 11rem;
+  min-width: 11rem;
   font-size: 1.2rem;
-  padding: 0.4rem 1.2rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 0.5rem;
-  height: auto ;
-  min-height: 2rem ;
+  height: auto;
+  min-height: 2rem;
   line-height: 1.2;
   font-weight: normal;
-  white-space: nowrap;
-  margin-left: calc(1rem + 26.5vw);
+  margin-left: auto;
   margin-top: -1em;
 }
 
+.headerWrapper p {
+  font-size: calc(1rem + 1px);
+}
+
+.emailReportLabel {
+  overflow: visible;
+  white-space: nowrap;
+}
+
 .chevronright {
+  flex: 0 0 auto;
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
@@ -50,6 +63,7 @@
   border-right: 1px solid #FFF;
   transform: rotate(45deg) translateY(-0.1rem);
 }
+
 
 .reportContent {
   display: flex;
@@ -365,11 +379,12 @@
   align-self: end;
   padding-top: 0.75rem;
   font-size: 1rem;
+  font-weight: 500;
 }
 
 .barColumn .currentLabel {
   color: var(--color-primary, #62a9e8);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 1.25rem !important; 
 }
 

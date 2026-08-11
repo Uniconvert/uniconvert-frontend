@@ -4,15 +4,11 @@ import {
   getRefreshToken,
   saveSessionTokens,
 } from '@/auth/session'
-import type { ApiResponse, MockApiResponse } from '@/types/api'
+import type { ApiResponse } from '@/types/api'
 import { getApiLanguage } from '@/i18n/language'
 
 /** 실행 중인 앱은 항상 실제 API를 사용합니다. */
-export const isUsingMockApi = false
-
 interface ApiRequestOptions extends RequestInit {
-  /** 단위 테스트에서만 Mock 응답을 명시적으로 사용할 때 전달합니다. */
-  useMock?: boolean
   /** 로그인·토큰 재발급처럼 Authorization 헤더가 필요하지 않은 요청입니다. */
   skipAuth?: boolean
   /** 401 응답에 대한 자동 토큰 재발급 여부입니다. */
@@ -138,17 +134,13 @@ function getReissuedAccessToken() {
 
 export async function apiRequest<T>(
   path: string,
-  mockResponse: MockApiResponse<T>,
   options: ApiRequestOptions = {},
 ): Promise<T> {
   const {
-    useMock = isUsingMockApi,
     skipAuth = false,
     retryOnUnauthorized = true,
     ...init
   } = options
-
-  if (useMock) return mockResponse.data
 
   let response = await fetchApi(path, init, skipAuth ? null : getAccessToken())
 

@@ -1,14 +1,17 @@
 .root {
   display: flex;
   width: 100%;
-  min-height: 2.75rem;
+  min-height: 3.75rem;
   align-items: center;
   justify-content: center;
 }
 
 .buttonHost {
   width: 100%;
-  min-height: 2.75rem;
+  height: 3.75rem;
+  min-height: 3.75rem;
+  display: flex;
+  align-items: center;
   overflow: hidden;
   box-sizing: border-box;
   border: 1px solid #c8c8c8;
@@ -20,7 +23,75 @@
 .buttonHost iframe {
   width: 100% !important;
   max-width: none !important;
+  display: block;
   border-radius: inherit !important;
+}
+
+.buttonHost > div {
+  height: 100% !important;
+  min-height: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* GIS creates an additional wrapper around the clickable surface. Keep that
+   surface as wide and centered as the surrounding login button. */
+.buttonHost > div > div {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonHost > div > div > div {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Google Identity Services adds these classes to the actual clickable
+   surface. They are global classes, so keep them unscoped and stretch the
+   surface to the same width as the native login button. */
+.buttonHost :global(.nsm7Bb-HzV7m-LgbsSe),
+.buttonHost :global(.nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb),
+.buttonHost :global(.hJDwNd-SxQuSe) {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.buttonHost :global(.nsm7Bb-HzV7m-LgbsSe) {
+  min-height: 3.75rem !important;
+  height: 100% !important;
+  text-align: center !important;
+}
+
+.buttonHost :global(div.nsm7Bb-HzV7m-LgbsSe.hJDwNd-SxQuSe),
+.buttonHost :global(div.nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.buttonHost iframe {
+  height: 100% !important;
+  min-height: 3.75rem !important;
 }
 
 .buttonHost [role='button'] {
@@ -35,11 +106,13 @@
 
 .fallbackButton {
   width: 100%;
-  min-height: 2.75rem;
+  min-height: 3.75rem;
   border: 1px solid var(--color-border, #dadce0);
   border-radius: var(--radius-md);
   background: #fff;
   color: var(--color-text-secondary, #8a8a8a);
   cursor: pointer;
   font: inherit;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
 }

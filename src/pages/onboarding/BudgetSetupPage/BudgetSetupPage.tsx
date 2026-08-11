@@ -48,7 +48,7 @@ function BudgetSetupPage() {
         bottomAligned
       >
         <label className={styles.budgetLabel} htmlFor="monthly-budget">{t('onboarding.monthlyBudget')}</label>
-        <p className={styles.notice}>예산을 초과하면 알려드릴게요</p>
+        <p className={styles.notice}>{t('onboarding.overBudgetNotice')}</p>
         <div className={styles.amountField}>
           <span>{baseCurrency?.symbol ?? ''}</span>
           <input
@@ -60,11 +60,8 @@ function BudgetSetupPage() {
           />
         </div>
         <div className={styles.help}>
-          <strong>ⓘ 도움말</strong>
-          <p>
-            이번 달 사용할 금액을 입력해 주세요. 입력한 금액을 기준으로 지출이 기본 통화로 환산되며,
-            귀국 항공권, 비상금처럼 따로 모아둘 돈은 Pots에서 분리할 수 있어요.
-          </p>
+          <strong>{t('onboarding.help')}</strong>
+          <p>{t('onboarding.budgetHelp')}</p>
         </div>
       </OnboardingPanel>
     </section>

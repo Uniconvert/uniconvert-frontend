@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { allocatePotAmount, archivePot, createPot, isUsingMockPotsApi, updatePot } from '@/api/pots'
+import { allocatePotAmount, archivePot, createPot, updatePot } from '@/api/pots'
 import { getMyUser } from '@/api/users' // 사용자 정보(primaryGoal 포함)를 가져오는 API 임포트
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
@@ -23,7 +23,7 @@ import { useI18n } from '@/i18n/I18nContext'
 
 function PotsPage() {
   const { t } = useI18n()
-  const { data, setData, errorMessage, refetch: reloadPots } = usePotsData()
+  const { data, errorMessage, refetch: reloadPots } = usePotsData()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [activePot, setActivePot] = useState<Pot | null>(null)
@@ -78,6 +78,11 @@ function PotsPage() {
     if (!data || !data.pots) return ["돈을 저축해보는 건 어때요?"]
 
     // Pots가 하나도 없을 때
+    const apiMessages = data.mascotMessages
+      .map((item) => item.message)
+      .filter(Boolean)
+    if (apiMessages.length > 0) return apiMessages
+
     if (data.pots.length === 0) {
       // primaryGoal 종류에 따른 맞춤 멘트 설정
       if (primaryGoal === 'travel') {
@@ -194,7 +199,7 @@ function PotsPage() {
         variant: 'error',
         ...getApiErrorNotice(
           error,
-          isUsingMockPotsApi ? 'Pot을 삭제하지 못했습니다.' : 'Pot을 보관하지 못했습니다.',
+          'Pot을 보관하지 못했습니다.',
         ),
       })
     } finally {
@@ -206,18 +211,10 @@ function PotsPage() {
     setIsSaving(true)
 
     try {
-      const newPot = await createPot(input)
-      setData((current) => {
-        if (!current) return current
-        const allocatedAmount = current.allocatedAmount + newPot.savedAmount
-
-        return {
-          ...current,
-          allocatedAmount,
-          availableAmount: Math.max(current.availableAmount - newPot.savedAmount, 0),
-          pots: [...current.pots, newPot],
-        }
-      })
+      await createPot(input)
+      // Pot 생성 시 서버가 표시 순서와 이번 달 배정 상태를 최종 결정하므로,
+      // 화면의 임시 계산값 대신 서버 데이터를 다시 받아 표시한다.
+      await reloadPots()
       setIsCreateOpen(false)
     } catch (error) {
       showToast({
@@ -259,6 +256,7 @@ function PotsPage() {
           <FloatingMascot
             messages={mascotMessages}
             imageSrc={hasCompletedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
+            speechBubbleVariant="compact"
           />
         </aside>
       </div>
@@ -364,7 +362,7 @@ function PotsPage() {
 
       {deleteTarget && (
         <ModalShell
-          title={isUsingMockPotsApi ? 'Pot을 삭제하고 금액을 되돌릴까요?' : 'Pot을 보관할까요?'}
+          title="Pot을 보관할까요?"
           titleId="delete-pot-title"
           closeLabel="Pot 삭제 팝업 닫기"
           width="31rem"
@@ -373,17 +371,11 @@ function PotsPage() {
         >
           <p className={styles.deletePotName}>“{deleteTarget.name}”</p>
           <p className={styles.deleteRefundMessage}>
-            {isUsingMockPotsApi
-              ? deleteTarget.savedAmount > 0
-                ? `모아둔 ${formatCurrencyAmount(deleteTarget.savedAmount, data.homeCurrency)}은 사용 가능 금액으로 돌아갑니다.`
-                : '모아둔 금액이 없어 Pot만 삭제됩니다.'
-              : '목록에서 숨겨지며 기존 목표와 배정 내역은 유지됩니다.'}
+            목록에서 숨겨지며 기존 목표와 배정 내역은 유지됩니다.
           </p>
           <div className={styles.deleteModalActions}>
             <button type="button" onClick={handleArchivePot} disabled={isSaving}>
-              {isSaving
-                ? isUsingMockPotsApi ? '삭제 중...' : '보관 중...'
-                : isUsingMockPotsApi ? '사용 가능 금액으로 되돌리고 삭제' : 'Pot 보관하기'}
+              {isSaving ? '보관 중...' : 'Pot 보관하기'}
             </button>
             <button type="button" onClick={() => setDeleteTarget(null)} disabled={isSaving}>
               취소

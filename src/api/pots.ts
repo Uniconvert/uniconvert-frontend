@@ -1,4 +1,3 @@
-import { createStoredPot, deleteStoredPot, getStoredPots, updateStoredPot } from '@/mocks/potStore'
 import {
   getDefaultPotRepresentativeImageKey,
   getPotRepresentativeImageKeyBySrc,
@@ -6,7 +5,7 @@ import {
 } from '@/constants/potRepresentativeImages'
 import type { CreatePotInput, Pot, PotsData, UpdatePotInput } from '@/types/pot'
 import { getBudget } from './budgets'
-import { apiRequest, isUsingMockApi } from './client'
+import { apiRequest } from './client'
 import { getExpenseHistory } from './expenses'
 
 interface PotResponseDto {
@@ -31,8 +30,6 @@ interface PotAllocationResponseDto {
   yearMonth?: string | null
   amount?: number
 }
-
-export const isUsingMockPotsApi = isUsingMockApi
 
 function getCurrentYearMonth() {
   const now = new Date()
@@ -73,17 +70,11 @@ function toPot(response: PotResponseDto, fallback?: Partial<Pot>): Pot {
 }
 
 export async function getPots(): Promise<PotsData> {
-  if (isUsingMockPotsApi) return getStoredPots()
-
   const yearMonth = getCurrentYearMonth()
   const [responses, expenseHistory, budget] = await Promise.all([
-    apiRequest<PotResponseDto[]>(
-      '/pots?includeArchived=false',
-      { data: [] },
-      { useMock: false },
-    ),
+    apiRequest<PotResponseDto[]>('/pots?includeArchived=false'),
     getExpenseHistory(yearMonth, 'month').catch(() => null),
-    getBudget(yearMonth, { useMock: false }).catch(() => null),
+    getBudget(yearMonth).catch(() => null),
   ])
 
   const pots = responses.map((response) => toPot(response))
@@ -111,15 +102,13 @@ export async function getPots(): Promise<PotsData> {
     allocatedAmount,
     availableAmount: Math.max(totalAssets - monthlyExpense - allocatedAmount, 0),
     pots,
+    mascotMessages: expenseHistory?.mascotMessages ?? [],
   }
 }
 
 export async function createPot(input: CreatePotInput): Promise<Pot> {
-  if (isUsingMockPotsApi) return createStoredPot(input)
-
   const response = await apiRequest<PotResponseDto>(
     '/pots',
-    { data: { name: input.name, targetAmount: input.targetAmount, savedAmount: 0 } },
     {
       method: 'POST',
       body: JSON.stringify({
@@ -129,7 +118,6 @@ export async function createPot(input: CreatePotInput): Promise<Pot> {
         targetAmount: input.targetAmount,
         monthlyAllocation: input.monthlyContribution,
       }),
-      useMock: false,
     },
   )
 
@@ -139,11 +127,8 @@ export async function createPot(input: CreatePotInput): Promise<Pot> {
 }
 
 export async function updatePot(potId: string, input: UpdatePotInput) {
-  if (isUsingMockPotsApi) return updateStoredPot(potId, input)
-
   const response = await apiRequest<PotResponseDto>(
     `/pots/${encodeURIComponent(potId)}`,
-    { data: { potId: Number(potId), name: input.name, targetAmount: input.targetAmount } },
     {
       method: 'PATCH',
       body: JSON.stringify({
@@ -154,7 +139,6 @@ export async function updatePot(potId: string, input: UpdatePotInput) {
         monthlyAllocation: input.monthlyContribution,
         displayOrder: input.displayOrder,
       }),
-      useMock: false,
     },
   )
 
@@ -164,23 +148,12 @@ export async function updatePot(potId: string, input: UpdatePotInput) {
 export async function allocatePotAmount(pot: Pot, amountToAdd: number): Promise<Pot> {
   if (amountToAdd <= 0) return pot
 
-  if (isUsingMockPotsApi) {
-    const updated = updateStoredPot(pot.potId, {
-      savedAmount: pot.savedAmount + amountToAdd,
-      thisMonthAmount: pot.thisMonthAmount + amountToAdd,
-    })
-    if (!updated) throw new Error('Pot allocation failed')
-    return updated
-  }
-
   const nextThisMonthAmount = pot.thisMonthAmount + amountToAdd
   const allocation = await apiRequest<PotAllocationResponseDto>(
     `/pots/${encodeURIComponent(pot.potId)}/allocations`,
-    { data: { potId: Number(pot.potId), yearMonth: getCurrentYearMonth(), amount: nextThisMonthAmount } },
     {
       method: 'POST',
       body: JSON.stringify({ yearMonth: getCurrentYearMonth(), amount: nextThisMonthAmount }),
-      useMock: false,
     },
   )
 
@@ -192,15 +165,11 @@ export async function allocatePotAmount(pot: Pot, amountToAdd: number): Promise<
 }
 
 export async function archivePot(potId: string) {
-  if (isUsingMockPotsApi) return deleteStoredPot(potId)
-
   await apiRequest<PotResponseDto>(
     `/pots/${encodeURIComponent(potId)}/archive`,
-    { data: { potId: Number(potId), archived: true } },
     {
       method: 'PATCH',
       body: JSON.stringify({ archived: true }),
-      useMock: false,
     },
   )
   return true

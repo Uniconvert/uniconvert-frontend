@@ -1,5 +1,4 @@
-import { getOnboardingSettings, getSessionUser } from '@/auth/session'
-import { apiRequest, isUsingMockApi } from './client'
+import { apiRequest } from './client'
 
 export interface OnboardingSaveInput {
   homeCurrencyCode?: string
@@ -26,53 +25,16 @@ export interface OnboardingResponseDto {
   monthlyLimitHome: number
 }
 
-interface OnboardingApiOptions {
-  useMock?: boolean
-}
-
-export const isUsingMockOnboardingApi = isUsingMockApi
-
-function createMockResponse(input?: OnboardingSaveInput): OnboardingResponseDto {
-  const user = getSessionUser()
-  const settings = getOnboardingSettings()
-  const onboardingCompleted = input ? true : (user?.isOnboardingCompleted ?? false)
-
-  return {
-    userId: user?.userId ?? 0,
-    email: user?.email ?? '',
-    nickname: user?.nickname ?? '',
-    profileImageKey: input?.profileImageKey ?? user?.profileImageKey ?? null,
-    primaryGoal: input?.primaryGoal ?? settings.profileGoals?.[0] ?? user?.primaryGoal ?? null,
-    homeCurrencyCode: input?.homeCurrencyCode ?? settings.baseCurrency ?? null,
-    localCurrencyCode: input?.localCurrencyCode ?? settings.localCurrencies?.[0] ?? null,
-    timezone: input?.timezone ?? settings.timeZone ?? null,
-    onboardingStep: onboardingCompleted ? 5 : 0,
-    onboardingCompleted,
-    onboardingCompletedAt: onboardingCompleted ? new Date().toISOString() : null,
-    yearMonth: new Date().toISOString().slice(0, 7),
-    monthlyLimitHome: input?.monthlyLimitHome ?? settings.monthlyBudget ?? 0,
-  }
-}
-
-export function saveOnboarding(
-  input: OnboardingSaveInput,
-  options: OnboardingApiOptions = {},
-) {
+export function saveOnboarding(input: OnboardingSaveInput) {
   return apiRequest<OnboardingResponseDto>(
     '/onboarding',
-    { data: createMockResponse(input) },
     {
       method: 'POST',
       body: JSON.stringify(input),
-      useMock: options.useMock ?? isUsingMockOnboardingApi,
     },
   )
 }
 
-export function getMyOnboarding(options: OnboardingApiOptions = {}) {
-  return apiRequest<OnboardingResponseDto>(
-    '/onboarding/me',
-    { data: createMockResponse() },
-    { useMock: options.useMock ?? isUsingMockOnboardingApi },
-  )
+export function getMyOnboarding() {
+  return apiRequest<OnboardingResponseDto>('/onboarding/me')
 }
