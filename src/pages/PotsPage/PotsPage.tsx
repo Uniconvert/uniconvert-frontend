@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { allocatePotAmount, archivePot, createPot, isUsingMockPotsApi, updatePot } from '@/api/pots'
+import { getMyUser } from '@/api/users' // 사용자 정보(primaryGoal 포함)를 가져오는 API 임포트
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
@@ -33,8 +34,24 @@ function PotsPage() {
   const [editRepresentativeImageKey, setEditRepresentativeImageKey] = useState('')
   const [editIcon, setEditIcon] = useState('travel')
   const [deleteTarget, setDeleteTarget] = useState<Pot | null>(null)
+
+  // [추가] 사용자 primaryGoal 상태 관리
+  const [primaryGoal, setPrimaryGoal] = useState<string>('')
+
   const previousAllocationRef = useRef<Pick<PotsData, 'totalAssets' | 'monthlyExpense' | 'allocatedAmount'> | null>(null)
   const { toast, showToast, closeToast } = useToastQueue()
+
+  // [추가] 마운트 시 사용자 정보 조회하여 primaryGoal 가져오기
+  useEffect(() => {
+    getMyUser()
+      .then((user) => {
+        console.log('현재 사용자의 primaryGoal 값:', user?.primaryGoal) // 이 값을 콘솔에서 확인해보세요!
+        if (user?.primaryGoal) {
+          setPrimaryGoal(user.primaryGoal)
+        }
+      })
+      .catch((err) => console.error('Failed to fetch user profile:', err))
+  }, [])
 
   useEffect(() => {
     if (!data) return
@@ -56,10 +73,57 @@ function PotsPage() {
     }
   }, [data, showToast])
 
+  // [수정] primaryGoal과 Pot 개수에 따른 마스코트 멘트 풀 분기
+  const mascotMessages = useMemo(() => {
+    if (!data || !data.pots) return ["돈을 저축해보는 건 어때요?"]
+
+    // Pots가 하나도 없을 때
+    if (data.pots.length === 0) {
+      // primaryGoal 종류에 따른 맞춤 멘트 설정
+      if (primaryGoal === 'travel') {
+        return [
+          `오사카 여행을 떠나보는 건 어때요?`,
+          `원하던 ${primaryGoal}에 도전해보세요!`
+        ]
+      } else if (primaryGoal === 'saving') {
+        return [
+          "50만원을 목표로 저축을 시작해봐요!",
+          "작은 금액부터 차근차근 저축해봐요!"
+        ]
+      } else if (primaryGoal === 'education') {
+        return [
+          "필요한 학업비를 위해 저축을 시작해봐요!",
+          "미래를 위한 투자를 준비해보세요!"
+        ]
+      } else {
+        // 기본 Fallback 멘트
+        return [
+          "오사카 여행을 떠나봐요!",
+          "돈을 저축해보는 건 어때요?"
+        ]
+      }
+    }
+
+    // 목표를 달성한 Pot이 하나라도 있는지 확인
+    const hasCompletedPot = data.pots.some((pot) => pot.savedAmount >= pot.targetAmount)
+
+    if (hasCompletedPot) {
+      return [
+        "목표 달성! 정말 대단해요!",
+        "꾸준히 모으더니 해냈네요, 축하해요!",
+        "축하해요! 다음 Pots 는 어떤 게 좋을까요? 지출 내역을 참고해보세요!"
+      ]
+    } else {
+      return [
+        "오늘도 목표를 향해 한 걸음!",
+        "조금씩 쌓이고 있어요. 꾸준히 가봐요!"
+      ]
+    }
+  }, [data, primaryGoal])
+
   if (errorMessage) return <p role="alert">{errorMessage}</p>
   if (!data) return <p aria-live="polite">{t('pots.loading')}</p>
 
-  const completedPot = data.pots.find((pot) => pot.savedAmount >= pot.targetAmount)
   const editTargetRate = data.monthlyBudget > 0
     ? Math.min((editTargetAmount / data.monthlyBudget) * 100, 100)
     : 0
@@ -165,6 +229,8 @@ function PotsPage() {
     }
   }
 
+  const hasCompletedPot = data.pots.length > 0 && data.pots.some((pot) => pot.savedAmount >= pot.targetAmount)
+
   return (
     <section className={styles.page} aria-labelledby="pots-title">
       <h1 id="pots-title">{t('pots.title')}</h1>
@@ -191,8 +257,8 @@ function PotsPage() {
             <img src="/assets/illustrations/wallet.png" alt="" />
           </div>
           <FloatingMascot
-              message={completedPot ? t('pots.mascot.completed') : t('pots.mascot.default')}
-              imageSrc={completedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
+            messages={mascotMessages}
+            imageSrc={hasCompletedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
           />
         </aside>
       </div>
@@ -239,7 +305,7 @@ function PotsPage() {
                       max={data.monthlyBudget}
                       step="10000"
                       value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)}
-                      style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${editTargetRate}%, #e5e5e5 ${editTargetRate}% 100%)` }}
+                      style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${editTooltipRate}%, #e5e5e5 ${editTooltipRate}% 100%)` }}
                       onChange={(event) => setEditTargetAmount(Number(event.target.value))}
                     />
                   </div>

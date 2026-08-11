@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   deleteSavedExpense,
   isUsingMockExpenseReadApi,
@@ -129,6 +129,50 @@ function ExpenseHistoryPage() {
     setDraggedExpenseId(null)
     await updateSavedExpenseOrder(reordered)
   }
+
+  const mascotMessages = useMemo(() => {
+    if (!data) return ["이번 달 예산에 맞게 잘 쓰고 있어요!"]
+
+    const todayStr = new Date().toISOString().slice(0, 10)
+    const todaySpentTotal = savedExpenses
+      .filter((expense) => expense.spentAt.startsWith(todayStr))
+      .reduce((sum, expense) => sum + (expense.convertedAmountHome ?? 0), 0)
+
+    const formattedTodaySpent = formatCurrencyAmount(todaySpentTotal, data.homeCurrency)
+    
+    let dynamicTodayMsg: React.ReactNode = ""
+    if (todaySpentTotal >= 50000) {
+      dynamicTodayMsg = (
+        <>
+          오늘{' '}
+          <span style={{ color: '#6AADEA' }}>{formattedTodaySpent}</span>
+          {' '}썼어요. 꽤 알차게 쓴 하루네요!
+        </>
+      )
+    } else {
+      dynamicTodayMsg = (
+        <>
+          오늘{' '}
+          <span style={{ color: '#6AADEA' }}>{formattedTodaySpent}</span>
+          {' '}썼어요. 지출이 아주 알뜰한 하루네요!
+        </>
+      )
+    }
+
+    let dynamicTopCategoryMsg: React.ReactNode = "이번달 지출 내역을 확인해보세요!"
+    if (data.categories && data.categories.length > 0) {
+      const topCategory = [...data.categories].sort((a, b) => b.amountHome - a.amountHome)[0]
+      if (topCategory && topCategory.amountHome > 0) {
+        dynamicTopCategoryMsg = `이번달 가장 많이 쓴 건 ${topCategory.categoryName}예요!`
+      }
+    }
+
+    return [
+      dynamicTodayMsg,
+      dynamicTopCategoryMsg,
+      "이번 달 예산에 맞게 잘 쓰고 있어요!"
+    ]
+  }, [savedExpenses, data])
 
   if (errorMessage) {
     return (
@@ -312,10 +356,9 @@ function ExpenseHistoryPage() {
         </section>
 
         <FloatingMascot
-            message="외화와 원화를 함께 관리하세요"
-            imageSrc="/assets/illustrations/mascot-check.png"
+          messages={mascotMessages}
+          imageSrc="/assets/illustrations/mascot-check.png"
         />
-        
       </div>
 
       {isSavedExpensesOpen && (

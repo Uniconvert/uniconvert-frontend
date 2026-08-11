@@ -3,6 +3,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 100%;
+  position: relative;
 }
 
 .pageHeader {
@@ -27,6 +28,7 @@
   gap: clamp(2rem, 4vw, 5rem);
   align-items: flex-start;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .exchangeArea {
@@ -445,27 +447,11 @@
 }
 
 .mascotArea {
-  position: fixed;
-  bottom: 16.5rem;
-  right: 2rem;
+  position: absolute;
+  bottom: 12rem;
+  right: 0rem;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-}
-
-.speechBubble {
-  background: #fff;
-  border: 1px solid var(--color-primary, #62a9e8);
-  padding: 0.75rem 1.25rem;
-  border-radius: 2rem;
-  color: #333;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.speechBubble span {
-  color: var(--color-primary, #62a9e8);
-  font-weight: 600;
+  z-index: 9999;
 }

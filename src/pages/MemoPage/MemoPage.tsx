@@ -90,6 +90,13 @@ function MemoPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const { toast, showToast, closeToast } = useToastQueue()
 
+  // 마스코트 정적 메시지 풀 정의
+  const mascotMessages = [
+    "지출할 때 남긴 메모들, 여기 다 모여있어요!",
+    "그때 왜 지출했는지 기억나죠? 메모 덕분이에요 :)",
+    "작은 기록이 나중에 도움이 많이 돼요!"
+  ]
+
   useEffect(() => {
     let isCancelled = false
 
@@ -258,7 +265,7 @@ function MemoPage() {
       )}
 
       <FloatingMascot
-        message="메모를 수정하고 관리할 수 있어요"
+        messages={mascotMessages}
         imageSrc="/assets/illustrations/mascot-checklist.png"
       />
 

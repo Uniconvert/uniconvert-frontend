@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './CalculatorPage.module.css'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
@@ -35,6 +35,7 @@ function CalculatorPage() {
   const [historyList, setHistoryList] = useState<ExchangeQuoteHistoryDto[]>([])
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
 
+  const isSwapRef = useRef(false)
   const fromSelectRef = useRef<HTMLDivElement>(null)
   const toSelectRef = useRef<HTMLDivElement>(null)
 
@@ -62,18 +63,30 @@ function CalculatorPage() {
     getCurrentExchangeRate(fromCurrency, toCurrency)
       .then((res) => {
         if (isActive && res.changeRate !== undefined) {
-          setChangeRate(res.changeRate)
+          if (!isSwapRef.current) {
+            setChangeRate(res.changeRate)
+          } else {
+            isSwapRef.current = false
+          }
         }
       })
-      .catch(() => { if (isActive) setChangeRate(null) })
+      .catch(() => {
+        if (isActive && !isSwapRef.current) {
+          setChangeRate(null)
+        } else {
+          isSwapRef.current = false
+        }
+      })
     return () => { isActive = false }
   }, [fromCurrency, toCurrency])
 
   useEffect(() => {
     const numericAmount = Number(fromAmount.replace(/,/g, '')) || 0
-    const timer = setTimeout(() => setDebouncedAmount(numericAmount), 500)
+    const timer = setTimeout(() => {
+      setDebouncedAmount(numericAmount)
+    }, 500)
     return () => clearTimeout(timer)
-  }, [fromAmount])
+  }, [fromAmount, fromCurrency, toCurrency])
 
   useEffect(() => {
     if (debouncedAmount <= 0) {
@@ -83,7 +96,9 @@ function CalculatorPage() {
     }
 
     let isActive = true
-    getExchangeQuote(fromCurrency, toCurrency, debouncedAmount)
+    const sendAmount = fromCurrency === 'KRW' ? Math.round(debouncedAmount) : debouncedAmount
+
+    getExchangeQuote(fromCurrency, toCurrency, sendAmount)
       .then((res) => {
         if (isActive) {
           const converted = res.convertedAmount ?? 0
@@ -96,17 +111,32 @@ function CalculatorPage() {
           fetchHistory()
         }
       })
-      .catch(() => { if (isActive) setToAmount('오류 발생') })
+      .catch(() => { 
+        if (isActive) setToAmount('오류 발생') 
+      })
 
-    return () => { isActive = false }
+    return () => { 
+      isActive = false 
+    }
   }, [debouncedAmount, fromCurrency, toCurrency, fetchHistory])
 
   const handleSwap = () => {
-    setFromCurrency(toCurrency)
-    setToCurrency(fromCurrency)
+    isSwapRef.current = true
+
+    const prevFrom = fromCurrency
+    const prevTo = toCurrency
+    setFromCurrency(prevTo)
+    setToCurrency(prevFrom)
+
     if (toAmount && toAmount !== '오류 발생') {
       const cleanToAmount = toAmount.replace(/,/g, '')
-      setFromAmount(cleanToAmount)
+      const parts = cleanToAmount.split('.')
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      const decimalPart = parts.length > 1 ? '.' + parts[1] : ''
+
+      setFromAmount(integerPart + decimalPart)
+    } else {
+      setFromAmount('')
     }
   }
 
@@ -126,30 +156,54 @@ function CalculatorPage() {
     setFromAmount((currentNum + addValue).toLocaleString())
   }
 
-  const getMascotMessage = () => {
-    if (changeRate === null || changeRate === undefined) return "환율을 바로 적용하는 계산기를 사용해보세요!"
-    if (changeRate === 0) return "오늘 환율은 전일과 동일해요."
-    const absRate = Math.abs(changeRate)
-    const action = changeRate > 0 ? '증가' : '감소'
-    return `오늘 환율이 ${absRate}% ${action}했어요`
-  }
+  
+  const mascotMessages = useMemo(() => {
+    let dynamicMsg: React.ReactNode = "오늘 환율이 적용된 계산기를 사용해보세요!"
+    
+    if (changeRate !== null && changeRate !== undefined) {
+      if (changeRate === 0) {
+        dynamicMsg = "오늘 환율은 전일과 동일해요."
+      } else {
+        const absRate = Math.abs(changeRate)
+        const action = changeRate > 0 ? '증가' : '감소'
+        // 0보다 크면 #6AADEA(파란색 계열), 작으면 #E16D6D(빨간색 계열)
+        const color = changeRate > 0 ? '#6AADEA' : '#E16D6D'
+
+        dynamicMsg = (
+          <>
+            오늘 환율이{' '}
+            <span style={{ color, fontWeight: 'semibold' }}>
+              {absRate}% {action}
+            </span>
+            했어요 지출에 참고하세요
+          </>
+        )
+      }
+    }
+
+    return [
+      dynamicMsg,
+      "오늘 환율로 얼마인지 바로 계산해봐요!",
+      "현지 통화로 보는 가격이 어려울 때, 여기서 바로 확인해요!"
+    ]
+  }, [changeRate])
 
   const formatHistoryTime = (isoString?: string) => {
-  if (!isoString) return ''
+    if (!isoString) return ''
 
-  const normalizedString = isoString.endsWith('Z') || isoString.includes('+') 
-    ? isoString 
-    : isoString + 'Z'
+    const normalizedString = isoString.endsWith('Z') || isoString.includes('+')
+      ? isoString
+      : isoString + 'Z'
 
-  const d = new Date(normalizedString)
-  
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  const hours = String(d.getHours()).padStart(2, '0')
-  const mins = String(d.getMinutes()).padStart(2, '0')
-  
-  return `${month}.${day} ${hours}:${mins}`
-}
+    const d = new Date(normalizedString)
+
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const hours = String(d.getHours()).padStart(2, '0')
+    const mins = String(d.getMinutes()).padStart(2, '0')
+
+    return `${month}.${day} ${hours}:${mins}`
+  }
 
   return (
     <section className={styles.page}>
@@ -202,7 +256,6 @@ function CalculatorPage() {
                   type="text"
                   value={fromAmount}
                   onChange={handleAmountChange}
-                  placeholder="0"
                   style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 500, background: 'transparent' }}
                 />
               </div>
@@ -261,7 +314,6 @@ function CalculatorPage() {
                   type="text"
                   value={toAmount}
                   readOnly
-                  placeholder="0"
                   style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1.25rem', fontWeight: 500, background: 'transparent' }}
                 />
               </div>
@@ -360,8 +412,12 @@ function CalculatorPage() {
         </ModalShell>
       )}
 
-      <div className={styles.mascotArea} aria-hidden="true">
-        <FloatingMascot message={getMascotMessage()} imageSrc="/assets/illustrations/mascot-check.png" />
+      {/* [수정 포인트] 단일 message 대신 messages 배열을 전달 */}
+      <div className={styles.mascotArea}>
+        <FloatingMascot
+          messages={mascotMessages}
+          imageSrc="/assets/illustrations/mascot-check.png"
+        />
       </div>
     </section>
   )
