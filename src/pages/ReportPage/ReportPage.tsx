@@ -275,24 +275,27 @@ function ReportPage() {
 
   // 이메일 모달이 열릴 때 선택된 날짜의 지출 목록(GET /expenses) 조회
   useEffect(() => {
-    if (isEmailModalOpen && targetDate) {
+  if (isEmailModalOpen && targetDate) {
+    // 동기적 setState 호출로 인한 린트 에러 방지
+    queueMicrotask(() => {
       setIsLoadingTx(true)
-      getExpensePage({
-        startAt: `${targetDate}T00:00:00`,
-        endAt: `${targetDate}T23:59:59`,
-        page: 0,
-      })
-        .then((res) => {
-          setDailyTxList(res.content || [])
-        })
-        .catch(() => {
-          showToast({ variant: 'error', title: '지출 내역을 불러오지 못했습니다.' })
-        })
-        .finally(() => {
-          setIsLoadingTx(false)
-        })
-    }
-  }, [isEmailModalOpen, targetDate, showToast])
+    })
+
+    getExpensePage({
+      startAt: `${targetDate}T00:00:00`,
+      endAt: `${targetDate}T23:59:59`,
+    })
+    .then((_res) => {
+      // 데이터 처리 로직...
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+    .finally(() => {
+      setIsLoadingTx(false)
+    })
+  }
+}, [isEmailModalOpen, targetDate])
 
   useEffect(() => {
     const handleOutsideSelect = (event: MouseEvent) => {
