@@ -9,8 +9,9 @@
 
 .pageHeader h1 {
   margin: 0 0 0.75rem;
-  font-size: 1.75rem;
+  font-size: 1.688rem;
   color: var(--color-primary, #66a9e4);
+  font-weight: 500 !important;
 }
 
 .pageHeader p {
@@ -27,6 +28,10 @@
   gap: 1rem;
   width: 100%;
   flex-wrap: wrap;
+}
+
+.headerWrapper p {
+  font-size: calc(1rem + 1px); 
 }
 
 .emailreportBtn {
@@ -369,7 +374,7 @@
 
 .barColumn .currentLabel {
   color: var(--color-primary, #62a9e8);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 1.25rem !important; 
 }
 

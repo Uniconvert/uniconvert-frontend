@@ -379,7 +379,7 @@
 }
 
 .currencyCodeText {
-  font-size: 1.1rem;
+  font-size: 1.225rem;
   font-weight: 600;
   color: #222;
 }
@@ -390,7 +390,7 @@
 }
 
 .modalHistoryCalcText {
-  font-size: 1.1rem;
+  font-size: 1.225rem;
   color: #333;
   margin-left: 5rem;
   display: flex;
@@ -409,8 +409,14 @@
 }
 
 .modalHistoryTime {
-  font-size: 0.95rem;
+  font-size: 1.075rem;
   color: #999;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
 }
 
 /* 하단 페이지네이션 스타일 */
