@@ -51,7 +51,7 @@ function BaseCurrencyPage() {
         currentStep={1}
         onSubmit={handleSubmit}
         submitDisabled={selectedCodes.length === 0}
-        height="49rem"
+        height="clamp(37rem, 72svh, 44rem)"
         compact
       >
         <CurrencySelection currencies={currencies} selectedCodes={selectedCodes} selectionMode="single" onChange={setSelectedCodes} />

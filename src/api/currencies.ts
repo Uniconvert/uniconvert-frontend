@@ -1,6 +1,6 @@
 import { CURRENCY_OPTIONS } from '@/components/onboarding/CurrencySelection/currencyOptions'
 import type { CurrencyOption } from '@/components/onboarding/CurrencySelection/CurrencySelection'
-import { apiRequest, isUsingMockApi } from './client'
+import { apiRequest } from './client'
 
 interface CurrencyResponseDto {
   code?: string | null
@@ -9,16 +9,8 @@ interface CurrencyResponseDto {
   symbol?: string | null
 }
 
-export const isUsingMockCurrencyApi = isUsingMockApi
-
 export async function getCurrencies(): Promise<CurrencyOption[]> {
-  if (isUsingMockCurrencyApi) return [...CURRENCY_OPTIONS]
-
-  const response = await apiRequest<CurrencyResponseDto[]>(
-    '/currencies',
-    { data: [] },
-    { useMock: false },
-  )
+  const response = await apiRequest<CurrencyResponseDto[]>('/currencies')
 
   const currencies = response
     .filter((item): item is CurrencyResponseDto & { code: string } => Boolean(item.code?.trim()))

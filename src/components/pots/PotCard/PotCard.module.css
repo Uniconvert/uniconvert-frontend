@@ -2,12 +2,11 @@
 .content { display: grid; min-height: 14rem; grid-template-columns: 8.75rem minmax(12rem, .85fr) minmax(18rem, 1.7fr); align-items: center; gap: 2.625rem; padding: 1.75rem 1.5rem; }
 .tripThumbnailFrame { display: grid; width: 8.75rem; height: 11.125rem; place-items: center; overflow: hidden; background: #f3f8fd; border-radius: .75rem; }
 .tripThumbnail { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
-.nativeResolutionImage { width: auto; height: auto; max-width: 90px; max-height: 114px; object-fit: contain; }
-.goalDetails h2 { display: flex; width: fit-content; align-items: center; gap: .5rem; margin-bottom: 2.25rem; font-size: 1.5rem; }
+.goalDetails h2 { display: flex; width: fit-content; align-items: center; gap: .5rem; margin-bottom: 2.25rem; font-size: 1.5rem; font-weight: 600; }
 .goalDetails h2 span { display: inline-flex; flex: 0 0 auto; align-items: center; }
 .goalDetails h2 span img { width: 1.75rem; height: 1.75rem; object-fit: contain; }
 .label { display: block; margin-bottom: .65rem; color: var(--color-text-muted); font-size: .9375rem; }
-.goalDetails strong, .progressHeading strong { font-size: 1.35rem; font-weight: var(--font-weight-semibold); }
+.goalDetails strong, .progressHeading strong { font-size: 1.35rem; font-weight: 600; }
 .progressHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
 .progressHeading b { color: var(--color-primary); font-size: 1.5rem; }
 .progressTrack { display: block; height: .75rem; margin-top: .9rem; overflow: hidden; background: #e7e7e7; border-radius: var(--radius-pill); }
@@ -18,7 +17,7 @@
 .completedText b { margin-left: .4rem; padding: .2rem .45rem; color: #55b982; background: #e5f7ed; border-radius: .35rem; font-size: .75rem; }
 .actions { display: flex; min-height: 5.875rem; align-items: center; gap: 1.4rem; padding: 1.25rem 1.5rem; border-top: 1px solid var(--color-border); }
 .actions button { min-height: 2.75rem; padding: .55rem 1.25rem; border: 1px solid var(--color-border); border-radius: .75rem; color: var(--color-text-muted); background: var(--color-surface); font-size: .9375rem; }
-.actions .addButton { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; color: var(--color-surface); background: var(--color-primary); border-color: var(--color-primary); text-align: center; }
+.actions .addButton { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; color: var(--color-surface); background: var(--color-primary); border-color: var(--color-primary); text-align: center; font-weight: 600; }
 .actions .addButton:disabled { color: #aaa; background: #e6e6e6; border-color: #e6e6e6; }
 .actions button span { margin-right: 0; font-size: 1.25rem; }
 .actionSpacer { flex: 1; }

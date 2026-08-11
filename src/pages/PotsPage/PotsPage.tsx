@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { allocatePotAmount, archivePot, createPot, isUsingMockPotsApi, updatePot } from '@/api/pots'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { allocatePotAmount, archivePot, createPot, updatePot } from '@/api/pots'
+import { getMyUser } from '@/api/users' // 사용자 정보(primaryGoal 포함)를 가져오는 API 임포트
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
@@ -22,7 +23,7 @@ import { useI18n } from '@/i18n/I18nContext'
 
 function PotsPage() {
   const { t } = useI18n()
-  const { data, setData, errorMessage, refetch: reloadPots } = usePotsData()
+  const { data, errorMessage, refetch: reloadPots } = usePotsData()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [activePot, setActivePot] = useState<Pot | null>(null)
@@ -33,8 +34,24 @@ function PotsPage() {
   const [editRepresentativeImageKey, setEditRepresentativeImageKey] = useState('')
   const [editIcon, setEditIcon] = useState('travel')
   const [deleteTarget, setDeleteTarget] = useState<Pot | null>(null)
+
+  // [추가] 사용자 primaryGoal 상태 관리
+  const [primaryGoal, setPrimaryGoal] = useState<string>('')
+
   const previousAllocationRef = useRef<Pick<PotsData, 'totalAssets' | 'monthlyExpense' | 'allocatedAmount'> | null>(null)
   const { toast, showToast, closeToast } = useToastQueue()
+
+  // [추가] 마운트 시 사용자 정보 조회하여 primaryGoal 가져오기
+  useEffect(() => {
+    getMyUser()
+      .then((user) => {
+        console.log('현재 사용자의 primaryGoal 값:', user?.primaryGoal) // 이 값을 콘솔에서 확인해보세요!
+        if (user?.primaryGoal) {
+          setPrimaryGoal(user.primaryGoal)
+        }
+      })
+      .catch((err) => console.error('Failed to fetch user profile:', err))
+  }, [])
 
   useEffect(() => {
     if (!data) return
@@ -56,10 +73,62 @@ function PotsPage() {
     }
   }, [data, showToast])
 
+  // [수정] primaryGoal과 Pot 개수에 따른 마스코트 멘트 풀 분기
+  const mascotMessages = useMemo(() => {
+    if (!data || !data.pots) return ["돈을 저축해보는 건 어때요?"]
+
+    // Pots가 하나도 없을 때
+    const apiMessages = data.mascotMessages
+      .map((item) => item.message)
+      .filter(Boolean)
+    if (apiMessages.length > 0) return apiMessages
+
+    if (data.pots.length === 0) {
+      // primaryGoal 종류에 따른 맞춤 멘트 설정
+      if (primaryGoal === 'travel') {
+        return [
+          `오사카 여행을 떠나보는 건 어때요?`,
+          `원하던 ${primaryGoal}에 도전해보세요!`
+        ]
+      } else if (primaryGoal === 'saving') {
+        return [
+          "50만원을 목표로 저축을 시작해봐요!",
+          "작은 금액부터 차근차근 저축해봐요!"
+        ]
+      } else if (primaryGoal === 'education') {
+        return [
+          "필요한 학업비를 위해 저축을 시작해봐요!",
+          "미래를 위한 투자를 준비해보세요!"
+        ]
+      } else {
+        // 기본 Fallback 멘트
+        return [
+          "오사카 여행을 떠나봐요!",
+          "돈을 저축해보는 건 어때요?"
+        ]
+      }
+    }
+
+    // 목표를 달성한 Pot이 하나라도 있는지 확인
+    const hasCompletedPot = data.pots.some((pot) => pot.savedAmount >= pot.targetAmount)
+
+    if (hasCompletedPot) {
+      return [
+        "목표 달성! 정말 대단해요!",
+        "꾸준히 모으더니 해냈네요, 축하해요!",
+        "축하해요! 다음 Pots 는 어떤 게 좋을까요? 지출 내역을 참고해보세요!"
+      ]
+    } else {
+      return [
+        "오늘도 목표를 향해 한 걸음!",
+        "조금씩 쌓이고 있어요. 꾸준히 가봐요!"
+      ]
+    }
+  }, [data, primaryGoal])
+
   if (errorMessage) return <p role="alert">{errorMessage}</p>
   if (!data) return <p aria-live="polite">{t('pots.loading')}</p>
 
-  const completedPot = data.pots.find((pot) => pot.savedAmount >= pot.targetAmount)
   const editTargetRate = data.monthlyBudget > 0
     ? Math.min((editTargetAmount / data.monthlyBudget) * 100, 100)
     : 0
@@ -130,7 +199,7 @@ function PotsPage() {
         variant: 'error',
         ...getApiErrorNotice(
           error,
-          isUsingMockPotsApi ? 'Pot을 삭제하지 못했습니다.' : 'Pot을 보관하지 못했습니다.',
+          'Pot을 보관하지 못했습니다.',
         ),
       })
     } finally {
@@ -142,18 +211,10 @@ function PotsPage() {
     setIsSaving(true)
 
     try {
-      const newPot = await createPot(input)
-      setData((current) => {
-        if (!current) return current
-        const allocatedAmount = current.allocatedAmount + newPot.savedAmount
-
-        return {
-          ...current,
-          allocatedAmount,
-          availableAmount: Math.max(current.availableAmount - newPot.savedAmount, 0),
-          pots: [...current.pots, newPot],
-        }
-      })
+      await createPot(input)
+      // Pot 생성 시 서버가 표시 순서와 이번 달 배정 상태를 최종 결정하므로,
+      // 화면의 임시 계산값 대신 서버 데이터를 다시 받아 표시한다.
+      await reloadPots()
       setIsCreateOpen(false)
     } catch (error) {
       showToast({
@@ -164,6 +225,8 @@ function PotsPage() {
       setIsSaving(false)
     }
   }
+
+  const hasCompletedPot = data.pots.length > 0 && data.pots.some((pot) => pot.savedAmount >= pot.targetAmount)
 
   return (
     <section className={styles.page} aria-labelledby="pots-title">
@@ -191,8 +254,9 @@ function PotsPage() {
             <img src="/assets/illustrations/wallet.png" alt="" />
           </div>
           <FloatingMascot
-              message={completedPot ? t('pots.mascot.completed') : t('pots.mascot.default')}
-              imageSrc={completedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
+            messages={mascotMessages}
+            imageSrc={hasCompletedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
+            speechBubbleVariant="compact"
           />
         </aside>
       </div>
@@ -239,7 +303,7 @@ function PotsPage() {
                       max={data.monthlyBudget}
                       step="10000"
                       value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)}
-                      style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${editTargetRate}%, #e5e5e5 ${editTargetRate}% 100%)` }}
+                      style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${editTooltipRate}%, #e5e5e5 ${editTooltipRate}% 100%)` }}
                       onChange={(event) => setEditTargetAmount(Number(event.target.value))}
                     />
                   </div>
@@ -298,7 +362,7 @@ function PotsPage() {
 
       {deleteTarget && (
         <ModalShell
-          title={isUsingMockPotsApi ? 'Pot을 삭제하고 금액을 되돌릴까요?' : 'Pot을 보관할까요?'}
+          title="Pot을 보관할까요?"
           titleId="delete-pot-title"
           closeLabel="Pot 삭제 팝업 닫기"
           width="31rem"
@@ -307,17 +371,11 @@ function PotsPage() {
         >
           <p className={styles.deletePotName}>“{deleteTarget.name}”</p>
           <p className={styles.deleteRefundMessage}>
-            {isUsingMockPotsApi
-              ? deleteTarget.savedAmount > 0
-                ? `모아둔 ${formatCurrencyAmount(deleteTarget.savedAmount, data.homeCurrency)}은 사용 가능 금액으로 돌아갑니다.`
-                : '모아둔 금액이 없어 Pot만 삭제됩니다.'
-              : '목록에서 숨겨지며 기존 목표와 배정 내역은 유지됩니다.'}
+            목록에서 숨겨지며 기존 목표와 배정 내역은 유지됩니다.
           </p>
           <div className={styles.deleteModalActions}>
             <button type="button" onClick={handleArchivePot} disabled={isSaving}>
-              {isSaving
-                ? isUsingMockPotsApi ? '삭제 중...' : '보관 중...'
-                : isUsingMockPotsApi ? '사용 가능 금액으로 되돌리고 삭제' : 'Pot 보관하기'}
+              {isSaving ? '보관 중...' : 'Pot 보관하기'}
             </button>
             <button type="button" onClick={() => setDeleteTarget(null)} disabled={isSaving}>
               취소

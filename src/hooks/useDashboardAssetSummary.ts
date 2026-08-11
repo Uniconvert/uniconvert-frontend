@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 
-import { getBudget, isUsingMockBudgetApi } from '@/api/budgets'
+import { getBudget } from '@/api/budgets'
 import { getCurrentExchangeRate } from '@/api/exchangeRates'
 import { getMyUser } from '@/api/users'
 import { getOnboardingSettings } from '@/auth/session'
-import { getMockAssetSummary } from '@/mocks/dashboardStore'
 import { formatConvertedCurrencyAmount } from '@/utils/exchangeRate'
 
 const currencySymbols: Record<string, string> = {
@@ -56,16 +55,21 @@ export function useDashboardAssetSummary({
   yearMonth,
   onError,
 }: UseDashboardAssetSummaryOptions) {
-  const [assetSummary, setAssetSummary] = useState(getMockAssetSummary)
+  const [assetSummary, setAssetSummary] = useState({
+    homeCurrency: 'KRW',
+    currencySymbol: '₩',
+    totalAssetHome: 0,
+    localCurrency: 'USD',
+    localCurrencyAmount: 0,
+    localCurrencyAmountLabel: '환율 정보 없음',
+  })
 
   useEffect(() => {
-    if (isUsingMockBudgetApi) return
-
     let isActive = true
 
     Promise.all([
       getBudget(yearMonth),
-      getMyUser({ useMock: false }),
+      getMyUser(),
     ])
       .then(async ([budget, user]) => {
         const settings = getOnboardingSettings()

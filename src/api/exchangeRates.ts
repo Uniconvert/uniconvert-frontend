@@ -1,5 +1,4 @@
-import { getExchangeRate } from '@/utils/exchangeRate'
-import { apiRequest, isUsingMockApi } from './client'
+import { apiRequest } from './client'
 
 export interface ExchangeRateDto {
   available: boolean
@@ -39,21 +38,16 @@ interface ExchangeQuoteHistoryPageDto {
   last?: boolean
 }
 
-export const isUsingMockExchangeApi = isUsingMockApi
-
 export function getCurrentExchangeRate(from: string, to: string) {
   const normalizedFrom = from.toUpperCase()
   const normalizedTo = to.toUpperCase()
-  const mockRate = normalizedFrom === normalizedTo
-    ? 1
-    : getExchangeRate(normalizedFrom, normalizedTo)
 
-  if (normalizedFrom === normalizedTo || isUsingMockExchangeApi) {
+  if (normalizedFrom === normalizedTo) {
     return Promise.resolve<ExchangeRateDto>({
       available: true,
       fromCurrency: normalizedFrom,
       toCurrency: normalizedTo,
-      rate: mockRate,
+      rate: 1,
       rateDate: new Date().toISOString().slice(0, 10),
     })
   }
@@ -61,24 +55,20 @@ export function getCurrentExchangeRate(from: string, to: string) {
   const params = new URLSearchParams({ from: normalizedFrom, to: normalizedTo })
   return apiRequest<ExchangeRateDto>(
     `/exchange-rates/current?${params.toString()}`,
-    { data: { available: true, fromCurrency: normalizedFrom, toCurrency: normalizedTo, rate: mockRate } },
-    { useMock: false },
   )
 }
 
 export function getExchangeQuote(from: string, to: string, amount: number, date?: string) {
   const normalizedFrom = from.toUpperCase()
   const normalizedTo = to.toUpperCase()
-  const rate = normalizedFrom === normalizedTo ? 1 : getExchangeRate(normalizedFrom, normalizedTo)
-
-  if (normalizedFrom === normalizedTo || isUsingMockExchangeApi) {
+  if (normalizedFrom === normalizedTo) {
     return Promise.resolve<ExchangeQuoteDto>({
       available: true,
       fromCurrency: normalizedFrom,
       toCurrency: normalizedTo,
       amount,
-      appliedRate: rate,
-      convertedAmount: amount * rate,
+      appliedRate: 1,
+      convertedAmount: amount,
       rateDate: date ?? new Date().toISOString().slice(0, 10),
     })
   }
@@ -92,19 +82,13 @@ export function getExchangeQuote(from: string, to: string, amount: number, date?
 
   return apiRequest<ExchangeQuoteDto>(
     `/exchange-rates/quote?${params.toString()}`,
-    { data: { available: true, amount, appliedRate: rate, convertedAmount: amount * rate } },
-    { useMock: false },
   )
 }
 
 export async function getExchangeQuoteHistory(page = 0, size = 10) {
-  if (isUsingMockExchangeApi) return []
-
   const params = new URLSearchParams({ page: String(page), size: String(size) })
   const response = await apiRequest<ExchangeQuoteHistoryPageDto>(
     `/exchange-rates/quote/history?${params.toString()}`,
-    { data: { content: [], totalElements: 0, totalPages: 0, number: page, last: true } },
-    { useMock: false },
   )
   return response.content ?? []
 }

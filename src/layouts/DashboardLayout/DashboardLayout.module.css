@@ -151,8 +151,8 @@
   gap: 0.75rem;
   padding: 1.25rem 2.375rem;
   color: rgba(255, 255, 255, 0.95);
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-regular);
+  font-size: 1.25rem;
+  font-weight: 500;
   transition:
     color var(--transition-fast),
     background-color var(--transition-fast);
@@ -234,8 +234,9 @@
 
 .assetSummary h2 {
   margin-top: .8rem;
-  font-size: 1rem;
-  font-weight: 600;
+  color: #3c688e;
+  font-size: calc(1rem + 1px);
+  font-weight: 500;
 }
 
 .assetRing { display: grid; width: 8.25rem; height: 8.25rem; position: relative; place-items: center; margin: 0.375rem auto 0; }
@@ -308,8 +309,8 @@
   gap: 0.625rem;
   margin-top: 2.0625rem;
   color: var(--color-surface);
-  font-size: 1rem;
-  font-weight: var(--font-weight-bold);
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
 .logoutLink svg {
@@ -348,8 +349,8 @@
   color: rgba(255, 255, 255, 0.9);
   background: #a9c5dc;
   border-radius: 1rem 1rem 0 0;
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-bold);
+  font-size: 1.25rem;
+  font-weight: 500;
   transition: background-color var(--transition-fast);
 }
 
@@ -376,7 +377,8 @@
 .srOnly { width: 1px; height: 1px; position: absolute; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .budgetModalBody { padding: 1.75rem 2rem 1.875rem; }
 .budgetModalBody form { display: grid; gap: 1.5rem; }
-.budgetModalCopy h3 { font-size: 1.2rem; }
+.budgetModalCopy h3 { font-size: 1.2rem; font-weight: 600; }
+:global(#budget-modal-title) { font-weight: 600; }
 .budgetModalCopy p { margin-top: .7rem; color: var(--color-text-muted); font-size: .9rem; }
 .budgetInput { display: flex; height: 3.75rem; align-items: center; gap: .55rem; padding: 0 1.15rem; border: 1px solid var(--color-border-strong); border-radius: .55rem; font-size: 1.35rem; }
 .budgetInput input { min-width: 0; flex: 1; padding: 0; background: transparent; border: 0; outline: 0; font: inherit; }
@@ -409,6 +411,52 @@
 
   .sidebarFooter {
     padding-inline: 1.25rem;
+  }
+}
+
+/* 1920 × 950처럼 가로는 넓지만 세로가 짧은 화면에서는 사이드바가
+   별도의 스크롤 영역이 되지 않도록 세로 리듬만 압축합니다. */
+@media (min-width: 64.0625rem) and (max-height: 60rem) {
+  .sidebarCap {
+    min-height: 4.5rem;
+  }
+
+  .navigationLink,
+  .navigationLink.active {
+    min-height: 4.75rem;
+    padding-block: 1rem;
+  }
+
+  .sidebarFooter {
+    padding-block: 1.25rem 2.25rem;
+  }
+
+  .assetSummary {
+    height: 16.5rem;
+    padding: 1rem 1.125rem 0.75rem;
+  }
+
+  .assetRing {
+    width: 7.5rem;
+    height: 7.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .assetRingWallet {
+    width: 2.625rem;
+    height: 2.625rem;
+  }
+
+  .assetTotal {
+    font-size: 1.375rem;
+  }
+
+  .assetUsd {
+    font-size: 0.9375rem;
+  }
+
+  .logoutLink {
+    margin-top: 1.5rem;
   }
 }
 
@@ -511,7 +559,7 @@
     min-width: max-content;
     min-height: 2.75rem;
     padding: 0.5rem 1.25rem;
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 
   .content {

@@ -37,7 +37,7 @@
 .createButton span { font-size: 2rem; font-weight: 300; line-height: 1; }
 .createButton:hover { background: var(--color-primary-hover); }
 .createButton:active { transform: translateY(1px); }
-.sideColumn { display: flex; flex-direction: column; gap: 1.875rem; }
+.sideColumn { display: flex; flex-direction: column; gap: 1.875rem; min-width: 0; }
 
 .walletIllustration {
   display: grid;
@@ -60,7 +60,7 @@
 
 .editModalDialog h2 {
   font-size: 1.5rem;
-  font-weight: var(--font-weight-semibold);
+  font-weight: 600;
 }
 
 .actionPotName { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
@@ -124,6 +124,7 @@
 .imageChoices legend,
 .categoryChoices legend {
   font-size: 1.15rem;
+  font-weight: 600;
 }
 
 .editTargetSection > p,
@@ -165,7 +166,7 @@
 }
 .rangeLabels { display: flex; justify-content: space-between; color: var(--color-text-muted); }
 .imageChoices, .categoryChoices { margin: 0; padding: 0; border: 0; }
-.imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
+.imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: 600; }
 .imageChoices > div, .categoryChoices > div { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
 
 .imageChoices button {
@@ -217,6 +218,10 @@
 
 .editModalBody > .modalActions {
   margin-top: 1.5rem;
+}
+
+.editModalBody > .modalActions button {
+  font-weight: 500;
 }
 
 .modalActions button {

@@ -63,8 +63,8 @@ function TimezoneSetupPage() {
         </div>
 
         <div className={styles.help}>
-          <strong><span aria-hidden="true">ⓘ</span> 도움말</strong>
-          <p>환율은 서울(대한민국, GMT+9) 기준 매일 오전 8시에 업데이트되며,<br />오전 8시 이전 입력한 내역은 전날 환율을 기준으로 계산됩니다.</p>
+          <strong>{t('onboarding.help')}</strong>
+          <p>{t('onboarding.timezoneHelp')}</p>
         </div>
       </OnboardingPanel>
     </section>

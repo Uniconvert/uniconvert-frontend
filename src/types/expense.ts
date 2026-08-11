@@ -4,6 +4,7 @@ export interface ExpenseCategorySummary {
   percentage: number
   amountHome: number
   color: string
+  iconKey: string
 }
 
 export interface ExpenseListItem {
@@ -24,6 +25,13 @@ export interface ExpenseHistoryData {
   budgetUsagePercent: number
   categories: ExpenseCategorySummary[]
   recentExpenses: ExpenseListItem[]
+  mascotMessages: MascotMessage[]
+}
+
+export interface MascotMessage {
+  key: string
+  message: string
+  type: 'ENTRY' | 'INSIGHT' | 'RANDOM'
 }
 
 export interface SavedExpense {
@@ -68,6 +76,10 @@ export interface BudgetResponseDto {
 
 export interface ReportSummaryResponseDto {
   totalAmount?: number
+  uniMessages?: {
+    entryMessages?: Partial<MascotMessage>[]
+    randomMessages?: Partial<MascotMessage>[]
+  }
 }
 
 export interface ReportCategoryItemDto {
@@ -101,7 +113,7 @@ export interface ExpenseDetail {
 }
 
 export interface CreateExpenseInput extends Omit<ExpenseDetail, 'expenseId'> {
-  /** 실제 API의 카테고리 PK입니다. Mock에서는 없어도 됩니다. */
+  /** 실제 API의 카테고리 PK입니다. */
   categoryId?: number
 }
 

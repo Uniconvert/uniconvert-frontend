@@ -9,14 +9,15 @@
 
 .pageHeader h1 {
   margin: 0 0 0.75rem;
-  font-size: 1.75rem;
+  font-size: calc(1.688rem - 1px);
   color: var(--color-primary, #66a9e4);
+  font-weight: 500 !important;
 }
 
 .pageHeader p {
   margin: 0;
   color: var(--color-text-muted, #9a9a9a);
-  font-size: 1.05rem;
+  font-size: calc(1rem + 1px);
   margin-bottom: 1rem;
 }
 
@@ -30,19 +31,31 @@
 }
 
 .emailreportBtn {
+  flex: 0 0 11rem;
+  width: 11rem;
+  min-width: 11rem;
   font-size: 1.2rem;
-  padding: 0.4rem 1.2rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 0.5rem;
-  height: auto ;
-  min-height: 2rem ;
+  height: auto;
+  min-height: 2rem;
   line-height: 1.2;
   font-weight: normal;
-  white-space: nowrap;
-  margin-left: calc(1rem + 26.5vw);
+  margin-left: auto;
   margin-top: -1em;
 }
 
+.headerWrapper p {
+  font-size: calc(1rem + 1px);
+}
+
+.emailReportLabel {
+  overflow: visible;
+  white-space: nowrap;
+}
+
 .chevronright {
+  flex: 0 0 auto;
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
@@ -50,6 +63,7 @@
   border-right: 1px solid #FFF;
   transform: rotate(45deg) translateY(-0.1rem);
 }
+
 
 .reportContent {
   display: flex;
@@ -365,34 +379,38 @@
   align-self: end;
   padding-top: 0.75rem;
   font-size: 1rem;
+  font-weight: 500;
 }
 
 .barColumn .currentLabel {
   color: var(--color-primary, #62a9e8);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 1.25rem !important; 
 }
 
 .emailModalBackdrop {
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* top 잘림 방지를 위해 flex-start로 변경 */
   position: fixed;
   inset: 0;
   z-index: 9999;
   background: rgb(205 231 250 / 78%);
   backdrop-filter: blur(5px);
-  padding: 1rem;
-  overflow: hidden;
+  padding: 6rem 1rem 3rem 1rem; /* 일러스트(-5rem) 공간 고려하여 상단 padding 6rem 확보 */
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .emailModalWrapper {
   position: relative;
   width: 100%;
   max-width: 32.5rem; 
-  margin: auto; 
+  margin: 0 auto; 
   background: linear-gradient(to top, #6AADEA 0%, #ffffff 100%);
   padding: 4rem 1.5rem 1.5rem 1.5rem; 
   border-radius: 2rem;
+  box-sizing: border-box;
 }
 
 .emailIllustration {
@@ -562,6 +580,7 @@
   flex: 1;
 }
 .chartBar {
+  position: relative;
   width: clamp(2rem, 2.5vw, 2.5rem);
   background: #A8C1D6;
   border-radius: 0.4rem 0.4rem 0 0;
@@ -576,16 +595,16 @@
 
 .chartTooltip {
   position: absolute;
-  bottom: calc(100% + 0.5rem);
+  bottom: calc(100% + 4px);
   left: 50%;
   width: max-content;
   transform: translateX(-50%);
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.25rem;
   border: 0.5px solid #6AADEA;
   border-radius: 0.25rem;
   background: #fff;
   color: var(--color-primary, #62a9e8);
-  font-size: 0.7rem; 
+  font-size: 0.6rem; 
   font-weight: 500;
   white-space: nowrap;
   z-index: 10;

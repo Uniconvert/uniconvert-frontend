@@ -1,14 +1,14 @@
 import { getSessionUser } from '@/auth/session'
-import reportMock from '@/mocks/report.json'
-import { getStoredExpenses } from '@/mocks/expenseStore'
-import { getMockHomeCurrency, isSeededMockUser } from '@/mocks/mockScenario'
-import type { ApiResponse } from '@/types/api'
-import type { MonthlyReportData } from '@/types/report'
-import { apiRequest, isUsingMockApi } from './client'
+import type { MonthlyReportData, UniMessage } from '@/types/report'
+import { apiRequest } from './client'
 
 interface ReportSummaryDto {
   totalAmount?: number
   dailyAmounts?: Array<{ date?: string; amount?: number }>
+  uniMessages?: {
+    entryMessages?: Array<{ key?: string; message?: string; type?: UniMessage['type'] }>
+    randomMessages?: Array<{ key?: string; message?: string; type?: UniMessage['type'] }>
+  }
 }
 
 interface ReportCategoriesDto {
@@ -20,8 +20,6 @@ interface ReportCategoriesDto {
     percentage?: number
   }>
 }
-
-export const isUsingMockReportApi = isUsingMockApi
 
 function getRecentYearMonths(yearMonth: string, count: number) {
   const [year, month] = yearMonth.split('-').map(Number)
@@ -40,69 +38,28 @@ function getMonthRange(yearMonth: string) {
   }
 }
 
-function getDailyExpenses(yearMonth: string) {
-  const dailyTotals = new Map<string, number>()
+function requestSummary(yearMonth: string) {
+  const params = new URLSearchParams(getMonthRange(yearMonth))
+  return apiRequest<ReportSummaryDto>(`/reports/summary?${params.toString()}`)
+}
 
-  getStoredExpenses()
-    .filter((expense) => expense.spentAt.startsWith(yearMonth))
-    .forEach((expense) => {
-      const date = expense.spentAt.slice(0, 10)
-      dailyTotals.set(date, (dailyTotals.get(date) ?? 0) + expense.convertedAmountHome)
-    })
+function mapUniMessages(summary?: ReportSummaryDto): UniMessage[] {
+  const bundle = summary?.uniMessages
+  const messages = [...(bundle?.entryMessages ?? []), ...(bundle?.randomMessages ?? [])]
 
-  const sortedDates = [...dailyTotals.keys()].sort()
-  const latestDate = sortedDates.at(-1) ?? `${yearMonth}-07`
-  const [year, month, day] = latestDate.split('-').map(Number)
-  const endDate = new Date(year, month - 1, day)
+  return messages.flatMap((item, index) => {
+    const message = item.message?.trim()
+    if (!message) return []
 
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(endDate)
-    date.setDate(endDate.getDate() - (6 - index))
-    const dateKey = [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, '0'),
-      String(date.getDate()).padStart(2, '0'),
-    ].join('-')
-    return { date: dateKey, amountHome: dailyTotals.get(dateKey) ?? 0 }
+    return [{
+      key: item.key ?? `uni-message-${index}`,
+      message,
+      type: item.type ?? 'RANDOM',
+    }]
   })
 }
 
-function requestSummary(yearMonth: string) {
-  const params = new URLSearchParams(getMonthRange(yearMonth))
-  return apiRequest<ReportSummaryDto>(
-    `/reports/summary?${params.toString()}`,
-    { data: { totalAmount: 0, dailyAmounts: [] } },
-    { useMock: false },
-  )
-}
-
 export async function getMonthlyReport(yearMonth: string): Promise<MonthlyReportData> {
-  const mockReport = (reportMock as ApiResponse<MonthlyReportData>).data
-
-  if (isUsingMockReportApi) {
-    if (isSeededMockUser()) {
-      const months = getRecentYearMonths(yearMonth, mockReport.monthlyExpenses.length)
-      return {
-        ...mockReport,
-        yearMonth,
-        dailyExpenses: getDailyExpenses(yearMonth),
-        monthlyExpenses: mockReport.monthlyExpenses.map((expense, index) => ({
-          ...expense,
-          yearMonth: months[index],
-        })),
-      }
-    }
-
-    return {
-      yearMonth,
-      homeCurrency: getMockHomeCurrency(),
-      totalExpenseHome: 0,
-      dailyExpenses: getDailyExpenses(yearMonth),
-      monthlyExpenses: [{ yearMonth, amountHome: 0 }],
-      categoryBreakdown: [],
-    }
-  }
-
   const monthRange = getMonthRange(yearMonth)
   const monthParams = new URLSearchParams(monthRange)
   const recentMonths = getRecentYearMonths(yearMonth, 7)
@@ -110,8 +67,6 @@ export async function getMonthlyReport(yearMonth: string): Promise<MonthlyReport
     requestSummary(yearMonth),
     apiRequest<ReportCategoriesDto>(
       `/reports/categories?${monthParams.toString()}`,
-      { data: { categories: [] } },
-      { useMock: false },
     ),
     ...recentMonths.map(requestSummary),
   ])
@@ -135,13 +90,10 @@ export async function getMonthlyReport(yearMonth: string): Promise<MonthlyReport
       percent: category.percentage ?? 0,
       iconKey: category.iconKey?.replace(/^icon_/, '') || 'other',
     })),
+    mascotMessages: mapUniMessages(summary),
   }
 }
 
 export function sendMonthlyReport() {
-  return apiRequest<unknown>(
-    '/reports/email/send',
-    { data: true },
-    { method: 'POST', useMock: isUsingMockReportApi },
-  )
+  return apiRequest<unknown>('/reports/email/send', { method: 'POST' })
 }

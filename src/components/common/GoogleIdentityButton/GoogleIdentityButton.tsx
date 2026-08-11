@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './GoogleIdentityButton.module.css'
 
 const GOOGLE_IDENTITY_SCRIPT_ID = 'google-identity-services'
@@ -21,8 +22,9 @@ interface GoogleIdentityServices {
       size: 'large'
       text: 'signin_with'
       shape: 'rectangular'
-      logo_alignment: 'left'
+      logo_alignment: 'left' | 'center'
       width: string
+      locale?: string
     },
   ) => void
 }
@@ -38,6 +40,21 @@ declare global {
 }
 
 let googleScriptPromise: Promise<void> | null = null
+const GOOGLE_BUTTON_SURFACE_SELECTOR =
+  '.nsm7Bb-HzV7m-LgbsSe, .hJDwNd-SxQuSe, .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb'
+
+function normalizeGoogleButtonSurfaces(buttonHost: HTMLElement) {
+  buttonHost.querySelectorAll<HTMLElement>(GOOGLE_BUTTON_SURFACE_SELECTOR).forEach((surface) => {
+    surface.style.width = '100%'
+    surface.style.maxWidth = 'none'
+    surface.style.height = '100%'
+    surface.style.minHeight = '100%'
+    surface.style.boxSizing = 'border-box'
+    surface.style.display = 'flex'
+    surface.style.alignItems = 'center'
+    surface.style.justifyContent = 'center'
+  })
+}
 
 function loadGoogleIdentityServices() {
   if (window.google?.accounts?.id) return Promise.resolve()
@@ -95,6 +112,7 @@ function GoogleIdentityButton({
   onCredential,
   onError,
 }: GoogleIdentityButtonProps) {
+  const { language, t } = useI18n()
   const buttonRef = useRef<HTMLDivElement>(null)
   const onCredentialRef = useRef(onCredential)
   const onErrorRef = useRef(onError)
@@ -110,6 +128,7 @@ function GoogleIdentityButton({
 
     let isCancelled = false
     let resizeObserver: ResizeObserver | null = null
+    let renderedButtonObserver: MutationObserver | null = null
     let animationFrameId: number | null = null
     let renderedWidth = 0
 
@@ -149,11 +168,22 @@ function GoogleIdentityButton({
             size: 'large',
             text: 'signin_with',
             shape: 'rectangular',
-            logo_alignment: 'left',
+            logo_alignment: 'center',
             width: String(nextWidth),
+            // Google Identity Services expects a language code such as `ko` or `en`.
+            locale: language,
           })
+
+          // GIS creates the clickable surface asynchronously. Its default
+          // width can be narrower than the host, so normalize the generated
+          // surface after every render as well as in CSS.
+          normalizeGoogleButtonSurfaces(buttonHost)
         }
 
+        renderedButtonObserver = new MutationObserver(() => {
+          if (buttonRef.current) normalizeGoogleButtonSurfaces(buttonRef.current)
+        })
+        renderedButtonObserver.observe(container, { childList: true, subtree: true })
         renderButton()
         resizeObserver = new ResizeObserver(() => {
           if (animationFrameId !== null) {
@@ -175,24 +205,25 @@ function GoogleIdentityButton({
     return () => {
       isCancelled = true
       resizeObserver?.disconnect()
+      renderedButtonObserver?.disconnect()
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId)
       }
       container.replaceChildren()
     }
-  }, [clientId])
+  }, [clientId, language])
 
   if (!clientId) {
     return (
       <button
         className={styles.fallbackButton}
         type="button"
-        title="VITE_GOOGLE_CLIENT_ID를 설정해주세요."
+        title={t('google.clientIdRequired')}
         onClick={() =>
-          onError('Google 로그인을 사용하려면 VITE_GOOGLE_CLIENT_ID를 설정해주세요.')
+          onError(t('google.clientIdRequired'))
         }
       >
-        Google 계정으로 로그인
+        {t('login.google')}
       </button>
     )
   }

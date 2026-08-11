@@ -1,11 +1,7 @@
 import { getSessionUser } from '@/auth/session'
-import { getProfileImageKeyBySrc, getProfileImageSrc } from '@/constants/profileOptions'
+import { getProfileImageSrc } from '@/constants/profileOptions'
 import type { AuthUser, UserMeResponseDto } from '@/types/auth'
 import { apiRequest } from './client'
-
-interface UserApiOptions {
-  useMock?: boolean
-}
 
 export interface UpdateMyProfileInput {
   nickname?: string
@@ -31,50 +27,20 @@ function toAuthUser(response: UserMeResponseDto, fallbackProfileImage = ''): Aut
   }
 }
 
-export async function getMyUser(options: UserApiOptions = {}) {
+export async function getMyUser() {
   const sessionUser = getSessionUser()
-  const mockResponse: UserMeResponseDto = {
-    userId: sessionUser?.userId ?? 0,
-    email: sessionUser?.email ?? '',
-    nickname: sessionUser?.nickname ?? '',
-    profileImageKey: sessionUser?.profileImageKey
-      ?? getProfileImageKeyBySrc(sessionUser?.profileImage),
-    primaryGoal: sessionUser?.primaryGoal,
-    onboardingCompleted: sessionUser?.isOnboardingCompleted ?? false,
-  }
-
-  const response = await apiRequest<UserMeResponseDto>(
-    '/users/me',
-    { data: mockResponse },
-    { useMock: options.useMock },
-  )
+  const response = await apiRequest<UserMeResponseDto>('/users/me')
   return toAuthUser(response, sessionUser?.profileImage ?? '')
 }
 
-export async function updateMyProfile(
-  input: UpdateMyProfileInput,
-  options: UserApiOptions = {},
-) {
+export async function updateMyProfile(input: UpdateMyProfileInput) {
   const sessionUser = getSessionUser()
-  const mockResponse: UserMeResponseDto = {
-    userId: sessionUser?.userId ?? 0,
-    email: sessionUser?.email ?? '',
-    nickname: input.nickname ?? sessionUser?.nickname ?? '',
-    profileImageKey: input.profileImageKey
-      ?? sessionUser?.profileImageKey
-      ?? getProfileImageKeyBySrc(sessionUser?.profileImage),
-    primaryGoal: input.primaryGoal ?? sessionUser?.primaryGoal,
-    onboardingCompleted: sessionUser?.isOnboardingCompleted ?? false,
-  }
-
   const response = await apiRequest<UserMeResponseDto>(
     '/users/me',
-    { data: mockResponse },
     {
       method: 'PATCH',
       body: JSON.stringify(input),
-      useMock: options.useMock,
     },
-)
+  )
   return toAuthUser(response, sessionUser?.profileImage ?? '')
 }

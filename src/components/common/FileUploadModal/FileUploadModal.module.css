@@ -7,7 +7,7 @@
 .dropZone label { color: var(--color-primary); text-decoration: underline; cursor: pointer; }
 .dropZone input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 .fileName { max-width: 80%; overflow: hidden; color: var(--color-primary) !important; text-overflow: ellipsis; white-space: nowrap; }
-.guide { display: flex; justify-content: space-between; margin-top: 1.75rem; color: var(--color-text-muted); font-size: .875rem; }
+.guide { display: flex; justify-content: space-between; margin-top: 1.75rem; color: var(--color-text-muted); font-size: 1rem; }
 .error { margin-top: 1rem; color: var(--color-error); font-size: .875rem; }
 .actions { display: flex; justify-content: flex-end; gap: 1.5rem; margin-top: 3.25rem; }
 .actions button { min-width: 8.25rem; min-height: 3rem; padding-block: .5rem; font-size: 1rem; }

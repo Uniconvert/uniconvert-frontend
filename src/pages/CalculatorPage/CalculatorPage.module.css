@@ -3,6 +3,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 100%;
+  position: relative;
 }
 
 .pageHeader {
@@ -27,6 +28,7 @@
   gap: clamp(2rem, 4vw, 5rem);
   align-items: flex-start;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .exchangeArea {
@@ -92,6 +94,17 @@
   background: var(--color-surface, #fff);
   cursor: pointer;
   margin-bottom: 0;
+}
+
+.amountBox input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
 .currencySelectWrap img {
@@ -377,7 +390,7 @@
 }
 
 .currencyCodeText {
-  font-size: 1.1rem;
+  font-size: calc(1.225rem + 2px);
   font-weight: 600;
   color: #222;
 }
@@ -388,7 +401,7 @@
 }
 
 .modalHistoryCalcText {
-  font-size: 1.1rem;
+  font-size: calc(1.225rem + 2px);
   color: #333;
   margin-left: 5rem;
   display: flex;
@@ -407,8 +420,18 @@
 }
 
 .modalHistoryTime {
-  font-size: 0.95rem;
+  font-size: calc(1.075rem + 2px);
   color: #999;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+}
+
+:global(#history-modal-title) {
+  font-weight: 600;
 }
 
 /* 하단 페이지네이션 스타일 */
@@ -445,27 +468,11 @@
 }
 
 .mascotArea {
-  position: fixed;
-  bottom: 16.5rem;
-  right: 2rem;
+  position: absolute;
+  bottom: 12rem;
+  right: 0rem;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-}
-
-.speechBubble {
-  background: #fff;
-  border: 1px solid var(--color-primary, #62a9e8);
-  padding: 0.75rem 1.25rem;
-  border-radius: 2rem;
-  color: #333;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.speechBubble span {
-  color: var(--color-primary, #62a9e8);
-  font-weight: 600;
+  z-index: 9999;
 }

@@ -1,5 +1,5 @@
 import { getCategoryIconPath, normalizeCategoryIconKey } from '@/utils/categoryIcon'
-import { apiRequest, isUsingMockApi } from './client'
+import { apiRequest } from './client'
 
 export interface ExpenseCategoryOption {
   id: string
@@ -26,20 +26,14 @@ const FALLBACK_CATEGORIES: ExpenseCategoryOption[] = [
   { id: 'other', serverId: 7, label: '기타', iconKey: 'other', iconSrc: getCategoryIconPath('other') },
 ]
 
-export const isUsingMockCategoryApi = isUsingMockApi
+const HIDDEN_EXPENSE_CATEGORY_ICON_KEYS = new Set(['housing', 'savings'])
 
 export function getFallbackCategories() {
   return FALLBACK_CATEGORIES
 }
 
 export async function getCategories() {
-  if (isUsingMockCategoryApi) return FALLBACK_CATEGORIES
-
-  const response = await apiRequest<CategoryResponseDto[]>(
-    '/categories',
-    { data: [] },
-    { useMock: false },
-  )
+  const response = await apiRequest<CategoryResponseDto[]>('/categories')
 
   const categories = response
     .filter((category): category is CategoryResponseDto & { categoryId: number } => (
@@ -56,6 +50,7 @@ export async function getCategories() {
         iconSrc: getCategoryIconPath(iconKey),
       }
     })
+    .filter((category) => !HIDDEN_EXPENSE_CATEGORY_ICON_KEYS.has(category.iconKey))
 
   return categories.length > 0 ? categories : FALLBACK_CATEGORIES
 }
