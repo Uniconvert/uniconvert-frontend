@@ -328,6 +328,10 @@
   overflow: visible;
 }
 
+.mobileAssetSummary {
+  display: none;
+}
+
 .pageTabs {
   display: flex;
   min-height: 2.875rem;
@@ -416,7 +420,9 @@
 
 /* 1920 × 950처럼 가로는 넓지만 세로가 짧은 화면에서는 사이드바가
    별도의 스크롤 영역이 되지 않도록 세로 리듬만 압축합니다. */
-@media (min-width: 64.0625rem) and (max-height: 60rem) {
+/* Keep the compact sidebar layout on short desktop viewports so the budget
+   summary never covers the settings and logout navigation items. */
+@media (min-width: 64.0625rem) and (max-height: 64rem) {
   .sidebarCap {
     min-height: 4.5rem;
   }
@@ -460,10 +466,11 @@
   }
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 63.75rem) {
   .layout {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+    overflow-x: hidden;
   }
 
   .topbar {
@@ -496,16 +503,19 @@
     position: relative;
     top: auto;
     grid-column: 1;
-    grid-row: 2;
-    background: var(--color-primary);
+    grid-row: 3;
+    padding: 0 1rem;
+    background: transparent;
     border-radius: 0;
   }
 
   .navigation {
+    display: grid;
     height: auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
     padding: 0;
-    flex-direction: row;
-    overflow-x: auto;
+    overflow: visible;
   }
 
   .upperNavigation,
@@ -519,12 +529,34 @@
 
   .navigationLink,
   .navigationLink.active {
-    min-width: max-content;
-    min-height: 3.75rem;
-    flex: 1;
+    min-width: 0;
+    width: 100%;
+    min-height: 2.5rem;
+    align-items: center;
     justify-content: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.9375rem;
+    gap: 0;
+    padding: 0.5rem 0.25rem;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .navigationLink:hover {
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+  }
+
+  .navigationLink.active {
+    color: var(--color-surface);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  .navigationIcon {
+    display: none;
   }
 
   .sidebarFooter {
@@ -534,7 +566,7 @@
   .workspace {
     min-height: 0;
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 5;
     padding: 0;
   }
 
@@ -546,25 +578,132 @@
     top: auto;
     left: auto;
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 4;
     align-items: flex-end;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem 0;
-    overflow-x: auto;
+    gap: 0;
+    padding: 0.25rem 1rem 0;
+    overflow: visible;
     background: var(--color-background);
   }
 
   .pageTabs a {
-    min-width: max-content;
-    min-height: 2.75rem;
-    padding: 0.5rem 1.25rem;
-    font-size: 1.125rem;
+    min-width: 0;
+    width: 33.333%;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.25rem;
+    color: var(--color-text-muted);
+    background: transparent;
+    border-radius: 0;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .pageTabs a:hover {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+
+  .pageTabs a.activePageTab {
+    color: var(--color-primary);
+    background: transparent;
   }
 
   .content {
     min-height: calc(100svh - 12rem);
     border-radius: 0;
+  }
+
+  .mobileAssetSummary {
+    display: block;
+    grid-column: 1;
+    grid-row: 2;
+    position: relative;
+    padding: 1rem 1rem 1.25rem;
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+  }
+
+  .mobileAssetOverview {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    max-width: 32rem;
+    margin: 0 auto;
+  }
+
+  .mobileAssetSummary .assetRing {
+    width: 8.75rem;
+    height: 8.75rem;
+    margin: 0;
+  }
+
+  .mobileAssetCopy {
+    min-width: 0;
+  }
+
+  .mobileAssetCopy h2 {
+    margin: 0;
+    color: #3c688e;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .mobileAssetCopy .assetTotal {
+    margin-top: .5rem;
+    font-size: 1.5rem;
+  }
+
+  .mobileAssetCopy .assetUsd {
+    margin-top: .25rem;
+    font-size: 1rem;
+  }
+
+  .mobileBudgetSummary {
+    max-width: 32rem;
+    margin: .75rem auto 0;
+  }
+
+  .mobileBudgetSummaryHidden {
+    display: none;
+  }
+
+  .mobileBudgetHeader,
+  .mobileBudgetRemaining {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: .875rem;
+  }
+
+  .mobileBudgetHeader strong,
+  .mobileBudgetRemaining strong {
+    font-weight: 500;
+  }
+
+  .mobileBudgetTrack {
+    height: .625rem;
+    margin-top: .625rem;
+    overflow: hidden;
+    background: var(--color-control-disabled);
+    border-radius: var(--radius-pill);
+  }
+
+  .mobileBudgetTrack span {
+    display: block;
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: inherit;
+  }
+
+  .mobileBudgetRemaining {
+    margin-top: .75rem;
+  }
+
+  .mobileAssetSummary .assetEditButton {
+    display: none;
   }
 }
 
@@ -592,13 +731,7 @@
   }
 
   .navigationLink {
-    gap: 0.375rem;
-    padding-inline: 0.75rem;
-  }
-
-  .navigationIcon {
-    width: 1.125rem;
-    height: 1.125rem;
+    padding-inline: 0.25rem;
   }
 
   .content {

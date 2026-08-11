@@ -14,7 +14,7 @@
   top: calc(100svh - 15.5rem);
 }
 
-@media (max-width: 70rem) {
+@media (max-width: 63.75rem) {
   .floatingMascotRail {
     display: none;
   }

@@ -476,3 +476,129 @@
   align-items: flex-end;
   z-index: 9999;
 }
+
+@media (max-width: 63.75rem) {
+  .pageHeader {
+    margin-bottom: 1rem;
+  }
+
+  .pageHeader h1 {
+    font-size: 1.5rem;
+  }
+
+  .pageHeader p {
+    font-size: 0.95rem;
+  }
+
+  .contentWrapper {
+    width: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .exchangeArea {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .calcCard,
+  .historyArea {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    padding: 1.25rem 1rem;
+  }
+
+  .calcCard {
+    min-height: 0;
+  }
+
+  .inputGroup {
+    margin-bottom: 1rem;
+  }
+
+  .inputLabel {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .currencySelectWrap,
+  .amountBox {
+    min-height: 3rem;
+    padding-inline: 0.875rem;
+  }
+
+  .quickBtn {
+    font-size: 0.95rem;
+  }
+
+  .swapBtn {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+
+  .swapBtn:hover {
+    transform: rotate(90deg) scale(1.05);
+  }
+
+  .historyArea {
+    min-height: 0;
+  }
+
+  .historyItem {
+    padding: 0.875rem;
+  }
+
+  .historyInfo {
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  .historyText {
+    overflow: hidden;
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .modalHistoryContainer {
+    min-height: 0;
+  }
+
+  .modalHistoryItem {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem;
+  }
+
+  .modalHistoryInfo {
+    min-width: 0;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .currencyCodeText,
+  .modalHistoryCalcText {
+    font-size: 1rem;
+  }
+
+  .modalHistoryCalcText {
+    min-width: 0;
+    margin-left: 0;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .modalHistoryTime {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+  }
+
+  .mascotArea {
+    display: none;
+  }
+}

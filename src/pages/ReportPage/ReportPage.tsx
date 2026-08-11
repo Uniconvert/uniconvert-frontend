@@ -723,6 +723,7 @@ function ReportPage() {
       <FloatingMascot
         messages={mascotMessages}
         imageSrc="/assets/illustrations/mascot-check.png"
+        speechBubbleVariant="twoLine"
       />
     </section>
   )

@@ -303,3 +303,32 @@
   .categoryChoices > div { flex-wrap: wrap; justify-content: flex-start; }
   .editModalBody > .modalActions { margin-top: 1.25rem; }
 }
+
+@media (max-width: 63.75rem) {
+  .page {
+    padding: 0;
+  }
+
+  .page h1 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+
+  .dashboardGrid {
+    display: block;
+  }
+
+  .mainColumn {
+    gap: 1rem;
+  }
+
+  .sideColumn {
+    display: none;
+  }
+
+  .createButton {
+    min-height: 3rem;
+    margin-top: 0;
+    font-size: 1rem;
+  }
+}

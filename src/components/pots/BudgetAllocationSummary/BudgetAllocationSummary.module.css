@@ -21,3 +21,35 @@
   .summary { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.5rem; }
   .arrow { display: none; }
 }
+
+@media (max-width: 63.75rem) {
+  .summary {
+    min-height: auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: .75rem;
+    padding: 1rem;
+  }
+
+  .budgetMetric {
+    grid-column: 1 / -1;
+  }
+
+  .walletIcon img {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .label,
+  .metric small {
+    font-size: .8rem;
+  }
+
+  .metric strong {
+    font-size: 1rem;
+  }
+
+  .arrow {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}

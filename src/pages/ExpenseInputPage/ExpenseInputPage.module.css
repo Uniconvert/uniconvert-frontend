@@ -435,3 +435,88 @@
     font-size: 1.05rem;
   }
 }
+
+/* Mobile expense entry: preview first, then a single-column form. */
+@media (max-width: 63.75rem) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .previewPanel {
+    display: block;
+    order: -1;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .exchangeImage {
+    display: none;
+  }
+
+  .previewCard {
+    min-height: auto;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--color-primary);
+    border-radius: 1rem;
+  }
+
+  .previewCard h2 {
+    font-size: 1.1rem;
+  }
+
+  .conversion {
+    gap: .5rem;
+    margin-top: 1.25rem;
+    font-size: 1rem;
+  }
+
+  .conversion b {
+    font-size: 1.5rem;
+  }
+
+  .conversion small {
+    font-size: .875rem;
+  }
+
+  .previewRow {
+    margin-top: 1rem;
+    font-size: .875rem;
+  }
+
+  .previewCard hr {
+    margin: 1rem 0;
+  }
+
+  .progressTrack {
+    height: .625rem;
+  }
+
+  .remaining {
+    margin-top: .75rem;
+    font-size: .875rem;
+  }
+
+  .form {
+    order: 1;
+  }
+
+  .twoColumns {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .categoryList {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .5rem;
+  }
+
+  .categoryList button {
+    min-height: 4.5rem;
+    padding: .4rem;
+    font-size: .8rem;
+  }
+}
