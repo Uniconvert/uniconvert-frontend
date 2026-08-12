@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { createExpense, importExpenses } from '@/api/expenses'
 import Button from '@/components/common/Button/Button'
 import CurrencyDropdown from '@/components/common/CurrencyDropdown/CurrencyDropdown'
@@ -41,6 +42,7 @@ function ExpenseInputPage() {
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
   const { toast, showToast, closeToast } = useToastQueue()
+  const queryClient = useQueryClient()
   const showLoadWarning = useCallback((title: string) => {
     showToast({ variant: 'error', title })
   }, [showToast])
@@ -50,6 +52,9 @@ function ExpenseInputPage() {
     setCategoryId,
     budgetSummary,
     rate,
+    isTemporaryRate,
+    isRateError,
+    retryRate,
     refetchBudget,
   } = useExpenseInputData({
     yearMonth: spentAt.slice(0, 7),
@@ -112,6 +117,9 @@ function ExpenseInputPage() {
         categoryId: selectedCategory.serverId,
         memo: memo.trim(),
       })
+      void queryClient.invalidateQueries({ queryKey: ['monthly-report'] })
+      void queryClient.invalidateQueries({ queryKey: ['expense-history'] })
+      void queryClient.invalidateQueries({ queryKey: ['recent-expenses'] })
       const currencySymbol = activeCurrency === 'KRW' ? '₩' : activeCurrency === 'USD' ? '$' : activeCurrency === 'EUR' ? '€' : '¥'
       const formattedAmount = numericAmount.toLocaleString('en-US', {
         minimumFractionDigits: activeCurrency === 'USD' || activeCurrency === 'EUR' ? 2 : 0,
@@ -131,10 +139,12 @@ function ExpenseInputPage() {
       // 지출 저장 뒤 남은 예산과 Pot 배정 반영 여부는 서버 계산값을 다시 사용한다.
       await refetchBudget()
       setAmount('')
+      setMerchant('')
+      setMemo('')
     } catch (error) {
       showToast({
         variant: 'error',
-        ...getApiErrorNotice(error, '지출을 저장하지 못했습니다.'),
+        ...getApiErrorNotice(error, t('expenseInput.saveError')),
       })
     } finally {
       setIsSaving(false)
@@ -152,6 +162,7 @@ function ExpenseInputPage() {
           </button>
         </div>
 
+        {isRateError && <p role="alert">환율을 불러오지 못했습니다. <button type="button" onClick={() => { void retryRate() }}>다시 시도</button></p>}
         <div className={styles.twoColumns}>
           <div className={styles.field}>
             <span>{t('expenseInput.currency')}</span>
@@ -159,7 +170,7 @@ function ExpenseInputPage() {
           </div>
 
           <label className={styles.field}>
-            <span className={styles.amountLabel}>{t('expenseInput.amount')} <small><b>{t('expenseInput.appliedRate')}</b> {rate.toLocaleString(locale, { maximumFractionDigits: 4 })} {budgetSummary.homeCurrency}</small></span>
+            <span className={styles.amountLabel}>{t('expenseInput.amount')} <small><b>{isTemporaryRate ? '임시 환율' : t('expenseInput.appliedRate')}</b> {rate.toLocaleString(locale, { maximumFractionDigits: 4 })} {budgetSummary.homeCurrency}</small></span>
             <span className={styles.amountInputWrap}>
               <b>{activeCurrency === 'KRW' ? '₩' : activeCurrency === 'USD' ? '$' : activeCurrency === 'EUR' ? '€' : '¥'}</b>
               <input value={amount} inputMode="decimal" aria-label={t('expenseInput.amount')} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} />
@@ -258,7 +269,7 @@ function ExpenseInputPage() {
         onClose={() => setIsUploadOpen(false)}
         onError={(error) => showToast({
           variant: 'error',
-          ...getApiErrorNotice(error, '지출 내역을 가져오지 못했습니다.'),
+          ...getApiErrorNotice(error, t('expenseInput.importError')),
         })}
         onUpload={async (file) => {
           const result = await importExpenses(file)

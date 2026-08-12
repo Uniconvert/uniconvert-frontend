@@ -36,11 +36,15 @@
 .twoLine {
   width: min(18rem, calc(100vw - 7rem));
   max-width: min(18rem, calc(100vw - 7rem));
+  min-height: 4.35rem;
+  max-height: 6.2rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
   white-space: normal;
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .compact {

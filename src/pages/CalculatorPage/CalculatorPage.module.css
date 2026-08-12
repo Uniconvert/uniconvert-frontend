@@ -14,6 +14,7 @@
   margin: 0 0 0.75rem;
   font-size: 1.75rem;
   color: var(--color-primary, #66a9e4);
+  font-weight: 500;
 }
 
 .pageHeader p {
@@ -59,7 +60,7 @@
   margin: 0;
   color: var(--color-primary, #62a9e8);
   font-size: 1.375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .inputGroup {
@@ -285,14 +286,14 @@
   margin: 0;
   font-size: 1.125rem;
   color: #222;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .viewAllBtn {
   background: none;
   border: none;
   color: #999;
-  font-size: 0.9rem;
+  font-size: calc(0.9rem + 2px);
   cursor: pointer;
 }
 
@@ -308,13 +309,34 @@
   justify-content: space-around;
 }
 
-.emptyHistory {
+.historyEmptyState,
+.modalHistoryEmptyState {
+  display: flex;
   width: 100%;
-  margin: 0;
-  padding: 2rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
   color: var(--color-text-muted);
   text-align: center;
 }
+
+.historyMessage {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  color: #8a98a8;
+  text-align: center;
+}
+
+.historyEmptyState { flex: 1; }
+.modalHistoryEmptyState { min-height: 30rem; }
+.historyEmptyState img { width: 5.5rem; margin-bottom: .5rem; }
+.modalHistoryEmptyState img { width: 6.5rem; margin-bottom: .5rem; }
+.historyEmptyState strong,
+.modalHistoryEmptyState strong { color: var(--color-text-primary); }
+.historyEmptyState p,
+.modalHistoryEmptyState p { margin: 0; }
 
 .historyItem {
   display: flex;
@@ -337,14 +359,46 @@
   gap: 1rem;
 }
 
+.historyInfo > img {
+  width: 40px;
+  height: 42px;
+  object-fit: contain;
+}
+
 .historyText {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
   font-size: 0.95rem;
   color: #333;
 }
 
-.historyText span {
+.historySource {
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.historyArrow {
+  flex: 0 0 auto;
   color: var(--color-primary, #62a9e8);
-  margin: 0 0.25rem;
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.historyResult {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-primary, #62a9e8);
+  font-size: 1.18rem;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.historyResult span:last-child {
+  font-size: 1rem;
 }
 
 .historyTime {
@@ -362,6 +416,7 @@
 
 .modalHistoryList {
   display: flex;
+  min-height: 30rem;
   flex-direction: column;
   gap: 1.25rem; /* 아이템 간격을 넉넉하게 설정 */
 }
@@ -381,6 +436,13 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+
+.modalHistoryInfo > img {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .currencyTextGroup {
@@ -558,10 +620,20 @@
   }
 
   .historyText {
-    overflow: hidden;
+    gap: 0.4rem;
     font-size: 0.85rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  }
+
+  .historyArrow {
+    font-size: 1.25rem;
+  }
+
+  .historyResult {
+    font-size: 1rem;
+  }
+
+  .historyResult span:last-child {
+    font-size: 0.85rem;
   }
 
   .modalHistoryContainer {

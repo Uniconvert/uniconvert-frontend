@@ -724,6 +724,7 @@ function ReportPage() {
         messages={mascotMessages}
         imageSrc="/assets/illustrations/mascot-check.png"
         speechBubbleVariant="twoLine"
+        className={styles.lowerMascot}
       />
     </section>
   )

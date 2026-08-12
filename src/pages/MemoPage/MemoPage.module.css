@@ -5,6 +5,10 @@
   padding: 0.25rem 0 5rem;
 }
 
+.lowerMascot {
+  transform: translateY(1rem);
+}
+
 .pageHeader h1 {
   margin: 0 0 0.35rem;
   color: var(--color-primary, #62a9e8);
@@ -472,7 +476,7 @@
   min-height: 7.5rem;
   box-sizing: border-box;
   padding: 1rem 1.1rem;
-  resize: vertical;
+  resize: none;
   border: 1px solid #d8dde1;
   border-radius: 0.7rem;
   outline: 0;

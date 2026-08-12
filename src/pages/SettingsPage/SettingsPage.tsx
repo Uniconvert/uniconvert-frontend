@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { getEmailReportPreview } from '@/api/emailReports'
 import { sendMonthlyReport } from '@/api/reports'
-import { getMyUser, updateMyProfile } from '@/api/users'
 import { getSessionUser, saveSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { useSessionUser } from '@/hooks/useSessionUser'
+import { useMyUserQuery } from '@/hooks/useMyUserQuery'
 import { getProfileImageKeyBySrc, getProfileImageSrc, getRandomProfileImageOption } from '@/constants/profileOptions'
 import type { EmailReportData } from '@/types/emailReport'
 import { getApiErrorNotice } from '@/utils/apiError'
@@ -18,6 +19,7 @@ import styles from './SettingsPage.module.css'
 function SettingsPage() {
   const { t } = useI18n()
   const sessionUser = useSessionUser()
+  const { data: queriedUser, update: updateQueriedUser } = useMyUserQuery()
   const [isEmailReportEnabled, setIsEmailReportEnabled] = useState(false)
   const [savedNickname, setSavedNickname] = useState(() => getSessionUser()?.nickname ?? '')
   const [nickname, setNickname] = useState(() => getSessionUser()?.nickname ?? '')
@@ -25,8 +27,9 @@ function SettingsPage() {
   const [profileImageKey, setProfileImageKey] = useState(savedProfileImageKey)
   const [savedPrimaryGoal, setSavedPrimaryGoal] = useState(() => getSessionUser()?.primaryGoal ?? '')
   const [primaryGoal, setPrimaryGoal] = useState(savedPrimaryGoal)
-  const [emailReport, setEmailReport] = useState<EmailReportData | null>(null)
-  const [reportError, setReportError] = useState('')
+  const emailReportQuery = useQuery<EmailReportData>({ queryKey: ['email-report-preview'], queryFn: getEmailReportPreview })
+  const emailReport = emailReportQuery.data ?? null
+  const reportError = emailReportQuery.error ? t('settings.previewError') : ''
   const [reportCycle, setReportCycle] = useState<'daily' | 'weekly' | 'monthly'>('daily')
   const [reportTime, setReportTime] = useState('09:00')
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false)
@@ -36,30 +39,22 @@ function SettingsPage() {
   const { toast, showToast, closeToast } = useToastQueue()
 
   useEffect(() => {
-    let isActive = true
-    getMyUser().then((user) => {
-      if (!isActive) return
+    if (queriedUser) {
+      const user = queriedUser
       saveSessionUser(user)
-      setSavedNickname(user.nickname); setNickname(user.nickname)
-      setSavedProfileImageKey(user.profileImageKey ?? ''); setProfileImageKey(user.profileImageKey ?? '')
-      setSavedPrimaryGoal(user.primaryGoal ?? ''); setPrimaryGoal(user.primaryGoal ?? '')
-    }).catch(() => undefined)
-    return () => { isActive = false }
-  }, [])
-
-  useEffect(() => {
-    let isActive = true
-    getEmailReportPreview().then((response) => {
-      if (isActive) { setEmailReport(response); setIsEmailReportEnabled(response.isEnabled) }
-    }).catch(() => { if (isActive) setReportError(t('settings.previewError')) })
-    return () => { isActive = false }
-  }, [t])
+      window.setTimeout(() => {
+        setSavedNickname(user.nickname); setNickname(user.nickname)
+        setSavedProfileImageKey(user.profileImageKey ?? ''); setProfileImageKey(user.profileImageKey ?? '')
+        setSavedPrimaryGoal(user.primaryGoal ?? ''); setPrimaryGoal(user.primaryGoal ?? '')
+      }, 0)
+    }
+  }, [queriedUser])
 
   const handleSave = async () => {
     const nextNickname = nickname.trim()
     if (!nextNickname) return
     try {
-      const updatedUser = await updateMyProfile({ nickname: nextNickname, profileImageKey: profileImageKey || undefined, primaryGoal: primaryGoal || undefined })
+      const updatedUser = await updateQueriedUser({ nickname: nextNickname, profileImageKey: profileImageKey || undefined, primaryGoal: primaryGoal || undefined })
       setSavedNickname(updatedUser.nickname); setNickname(updatedUser.nickname)
       setSavedProfileImageKey(updatedUser.profileImageKey ?? ''); setProfileImageKey(updatedUser.profileImageKey ?? '')
       setSavedPrimaryGoal(updatedUser.primaryGoal ?? ''); setPrimaryGoal(updatedUser.primaryGoal ?? '')

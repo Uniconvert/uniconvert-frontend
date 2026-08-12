@@ -2,19 +2,22 @@ import type {
   CreateExpenseInput,
   ExpenseHistoryData,
   ExpenseImportResponseDto,
+  ExpenseListResponseDto,
   ExpenseListItem,
   ExpenseListItemDto,
-  MascotMessage,
   ExpensePageDto,
+  MascotMessage,
   ExpenseResponseDto,
   ExpenseUserContextDto,
   ReportCategoriesResponseDto,
   ReportCategoryItemDto,
   ReportSummaryResponseDto,
   SavedExpense,
+  UniMessageBundleDto,
 } from '@/types/expense'
 import { getBudget } from './budgets'
 import { apiRequest } from './client'
+import { cachedApiRequest } from './cachedRequests'
 
 const categoryColors: Record<string, string> = {
   food: '#366384', transport: '#a9cbfa', education: '#153047',
@@ -53,11 +56,12 @@ function normalizeIconKey(iconKey?: string | null) {
 function toFiniteNumber(value: number | undefined, fallback = 0) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
+const expenseHistoryRequests = new Map<string, Promise<ExpenseHistoryData>>()
 
-function mapMascotMessages(summary: ReportSummaryResponseDto | null): MascotMessage[] {
+function mapMascotMessages(bundle?: UniMessageBundleDto | null): MascotMessage[] {
   const messages = [
-    ...(summary?.uniMessages?.entryMessages ?? []),
-    ...(summary?.uniMessages?.randomMessages ?? []),
+    ...(bundle?.entryMessages ?? []),
+    ...(bundle?.randomMessages ?? []),
   ]
 
   return messages.flatMap((item, index) => {
@@ -81,10 +85,10 @@ function toExpenseListItem(response: ExpenseListItemDto): ExpenseListItem {
   const categoryName = response.categoryName?.trim() || '기타'
 
   return {
-    expenseId: String(response.id ?? ''),
+    expenseId: String(response.id ?? response.expenseId ?? ''),
     merchantName: response.merchantName?.trim() || categoryName,
     categoryName,
-    convertedAmountHome: toFiniteNumber(response.convertedAmountHome),
+    convertedAmountHome: toFiniteNumber(response.convertedAmountHome ?? response.totalAmountHome ?? response.homeAmount ?? response.convertedAmount),
     iconKey,
     spentAt: response.spentAt || '',
   }
@@ -159,9 +163,20 @@ function buildExpenseListParams(query: ExpenseListQuery) {
   return params
 }
 
-function requestExpensePage(query: ExpenseListQuery) {
+function requestExpenseList(query: ExpenseListQuery) {
   const params = buildExpenseListParams(query)
-  return apiRequest<ExpensePageDto>(`/expenses?${params.toString()}`)
+  return apiRequest<ExpenseListResponseDto>(`/expenses?${params.toString()}`)
+}
+
+async function requestExpensePage(query: ExpenseListQuery) {
+  const response = await requestExpenseList(query)
+  const nested = response.expenses as ExpensePageDto | ExpenseListItemDto[] | undefined
+  if (Array.isArray(nested)) return { content: nested }
+  return nested ?? {
+    content: response.content,
+    totalPages: response.totalPages,
+    totalElements: response.totalElements,
+  }
 }
 
 /** Swagger의 페이지 기반 GET /expenses를 그대로 노출합니다. */
@@ -170,7 +185,8 @@ export function getExpensePage(query: ExpenseListQuery = {}) {
 }
 
 async function getAllExpensePages(query: Omit<ExpenseListQuery, 'page'>) {
-  const firstPage = await requestExpensePage({ ...query, page: 0 })
+  const firstResponse = await requestExpenseList({ ...query, page: 0 })
+  const firstPage = firstResponse.expenses ?? {}
   const totalPages = Math.max(1, toFiniteNumber(firstPage.totalPages, 1))
   const remainingPages = totalPages > 1
     ? await Promise.all(
@@ -180,9 +196,12 @@ async function getAllExpensePages(query: Omit<ExpenseListQuery, 'page'>) {
     )
     : []
 
-  return [firstPage, ...remainingPages]
-    .flatMap((page) => page.content ?? [])
-    .sort((a, b) => (b.spentAt ?? '').localeCompare(a.spentAt ?? ''))
+  return {
+    expenses: [firstPage, ...remainingPages]
+      .flatMap((page) => page.content ?? [])
+      .sort((a, b) => (b.spentAt ?? '').localeCompare(a.spentAt ?? '')),
+    mascotMessages: mapMascotMessages(firstResponse.uniMessages),
+  }
 }
 
 async function resolveOrNull<T>(request: Promise<T>) {
@@ -245,14 +264,14 @@ function mapReportCategories(
   }).sort((a, b) => b.amountHome - a.amountHome)
 }
 
-async function buildRealHistory(yearMonth: string, range: string): Promise<ExpenseHistoryData> {
+async function buildRealHistory(yearMonth: string, range: string, userContextOverride?: ExpenseUserContextDto | null): Promise<ExpenseHistoryData> {
   const monthRange = getMonthBounds(yearMonth)
   const reportRange = getReportRange(yearMonth, range)
   const monthQuery = {
     startAt: toDateTimeStart(monthRange.startDate),
     endAt: toDateTimeEnd(monthRange.endDate),
   }
-  const monthCategoryRequest = resolveOrNull(apiRequest<ReportCategoriesResponseDto>(
+  const monthCategoryRequest = resolveOrNull(cachedApiRequest<ReportCategoriesResponseDto>(
     `/reports/categories?${new URLSearchParams({
       startDate: monthRange.startDate,
       endDate: monthRange.endDate,
@@ -261,7 +280,7 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
   const rangeCategoryRequest = reportRange.startDate === monthRange.startDate
     && reportRange.endDate === monthRange.endDate
     ? monthCategoryRequest
-    : resolveOrNull(apiRequest<ReportCategoriesResponseDto>(
+    : resolveOrNull(cachedApiRequest<ReportCategoriesResponseDto>(
       `/reports/categories?${new URLSearchParams(reportRange).toString()}`,
     ))
 
@@ -289,9 +308,9 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
     )),
     monthCategoryRequest,
     rangeCategoryRequest,
-    resolveOrNull(apiRequest<ExpenseUserContextDto>(
-      '/users/me',
-    )),
+    userContextOverride === undefined
+      ? resolveOrNull(apiRequest<ExpenseUserContextDto>('/users/me'))
+      : Promise.resolve(userContextOverride),
   ])
 
   if (
@@ -303,7 +322,7 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
     throw new Error('지출 내역을 불러오지 못했습니다.')
   }
 
-  const monthExpenses = (expenseResponses ?? []).map(toExpenseListItem)
+  const monthExpenses = (expenseResponses?.expenses ?? []).map(toExpenseListItem)
   const fallbackMonthlyCategories = buildCategorySummaryFromExpenses(monthExpenses)
   const listMonthlyTotal = monthExpenses.reduce(
     (sum, expense) => sum + expense.convertedAmountHome,
@@ -360,12 +379,20 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
       iconKey: category.iconKey,
       spentAt: category.latestSpentAt || `${reportRange.endDate}T23:59:59`,
     })),
-    mascotMessages: mapMascotMessages(summary),
+    mascotMessages: expenseResponses?.mascotMessages.length
+      ? expenseResponses.mascotMessages
+      : mapMascotMessages(summary?.uniMessages),
   }
 }
 
-export function getExpenseHistory(yearMonth: string, range: string) {
-  return buildRealHistory(yearMonth, range)
+export function getExpenseHistory(yearMonth: string, range: string, userContext?: ExpenseUserContextDto | null) {
+  const key = `${yearMonth}:${range}:${userContext?.homeCurrencyCode ?? ''}`
+  const cached = expenseHistoryRequests.get(key)
+  if (cached) return cached
+  const request = buildRealHistory(yearMonth, range, userContext)
+  expenseHistoryRequests.set(key, request)
+  window.setTimeout(() => expenseHistoryRequests.delete(key), 5_000)
+  return request
 }
 
 export async function createExpense(input: CreateExpenseInput) {
@@ -442,8 +469,7 @@ export async function getExpensesForMonth(yearMonth: string) {
     startAt: toDateTimeStart(startDate),
     endAt: toDateTimeEnd(endDate),
   })
-
-  return expenses.map(toSavedExpense)
+  return expenses.expenses.map((expense) => toSavedExpense(expense))
 }
 
 export function updateSavedExpenseOrder(expenses: SavedExpense[]) {

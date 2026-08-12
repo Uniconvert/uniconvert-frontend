@@ -1,38 +1,26 @@
-import { useCallback, useEffect, useState } from 'react'
-
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getPots } from '@/api/pots'
 import type { PotsData } from '@/types/pot'
 import { getApiErrorNotice } from '@/utils/apiError'
 
 export function usePotsData() {
-  const [data, setData] = useState<PotsData | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
-
+  const queryClient = useQueryClient()
+  const query = useQuery<PotsData, unknown>({ queryKey: ['pots'], queryFn: getPots })
   const refetch = useCallback(async () => {
-    const response = await getPots()
-    setData(response)
-    setErrorMessage('')
-    return response
-  }, [])
+    const response = await query.refetch()
+    return response.data as PotsData
+  }, [query])
+  const setData = useCallback((next: PotsData | null | ((current: PotsData | null) => PotsData | null)) => {
+    queryClient.setQueryData<PotsData | null>(['pots'], (current) => (
+      typeof next === 'function' ? next(current ?? null) : next
+    ))
+  }, [queryClient])
 
-  useEffect(() => {
-    let isActive = true
-
-    getPots()
-      .then((response) => {
-        if (!isActive) return
-        setData(response)
-        setErrorMessage('')
-      })
-      .catch((error) => {
-        if (!isActive) return
-        setErrorMessage(getApiErrorNotice(error, 'Pots 정보를 불러오지 못했습니다.').title)
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [])
-
-  return { data, setData, errorMessage, refetch }
+  return {
+    data: query.data ?? null,
+    setData,
+    errorMessage: query.error ? getApiErrorNotice(query.error, 'Pots 정보를 불러오지 못했습니다.').title : '',
+    refetch,
+  }
 }

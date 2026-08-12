@@ -5,8 +5,17 @@ export interface BudgetDto {
   yearMonth?: string
   monthlyLimitHome?: number
 }
+const budgetRequests = new Map<string, Promise<BudgetDto>>()
 
 export async function getBudget(yearMonth: string) {
+  const cached = budgetRequests.get(yearMonth)
+  if (cached) return cached
+  const request = loadBudget(yearMonth).finally(() => budgetRequests.delete(yearMonth))
+  budgetRequests.set(yearMonth, request)
+  return request
+}
+
+async function loadBudget(yearMonth: string) {
   try {
     return await apiRequest<BudgetDto>(
       `/budgets/${encodeURIComponent(yearMonth)}`,

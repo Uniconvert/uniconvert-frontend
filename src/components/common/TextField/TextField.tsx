@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import type { InputHTMLAttributes } from 'react'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './TextField.module.css'
 
 export interface TextFieldProps
@@ -24,6 +25,7 @@ function TextField({
   required,
   ...props
 }: TextFieldProps) {
+  const { t } = useI18n()
   const generatedId = useId()
   const inputId = id ?? generatedId
   const messageId = `${inputId}-message`
@@ -83,7 +85,7 @@ function TextField({
             onClick={() => setIsPasswordVisible((current) => !current)}
             disabled={disabled}
             aria-label={
-              isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시하기'
+              isPasswordVisible ? t('common.passwordHide') : t('common.passwordShow')
             }
             aria-pressed={isPasswordVisible}
           >

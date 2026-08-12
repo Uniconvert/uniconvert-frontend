@@ -47,7 +47,8 @@
 }
 
 .panel.compact {
-  overflow-y: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-block: 2.5rem;
 }
 
@@ -59,7 +60,13 @@
   margin-top: 0.5rem;
 }
 
+.compact .content {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
 .compact .nextButton {
+  flex: 0 0 auto;
   margin-top: auto;
 }
 
@@ -69,6 +76,7 @@
 
 @media (max-height: 42rem) {
   .panel.compact {
+    overflow-x: hidden;
     overflow-y: auto;
   }
 }

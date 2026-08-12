@@ -15,7 +15,7 @@
 }
 
 .formToolbar h1 {
-  color: #2f6f9f;
+  color: #6AADEA;
   font-family: 'Pretendard', sans-serif;
   font-size: 1.375rem;
   font-weight: 500;
@@ -39,7 +39,7 @@
 .twoColumns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(1.25rem, 3vh, 2.75rem) clamp(1.5rem, 3vw, 3.5rem);
+  gap: calc(clamp(1.25rem, 3vh, 2.75rem) + 3px) clamp(1.5rem, 3vw, 3.5rem);
   margin-top: clamp(1.25rem, 3vh, 2rem);
 }
 
@@ -58,7 +58,7 @@
 .memoField > span:first-child,
 .categories legend {
   font-size: 1rem;
-  font-weight: var(--font-weight-bold);
+  font-weight: 500;
 }
 
 .field > input,
@@ -113,7 +113,7 @@
 
 .amountLabel small {
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: var(--font-weight-regular);
   white-space: nowrap;
 }
@@ -128,6 +128,7 @@
 
 .amountInputWrap b {
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .amountInputWrap input {
@@ -136,6 +137,7 @@
   border: 0;
   outline: 0;
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .amountInputWrap small {
@@ -168,6 +170,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 500;
 }
 
 .categoryList button > span {
@@ -302,6 +305,7 @@
 .conversion > span:last-child {
   color: #3c688e;
   text-align: right;
+  font-weight: 500;
 }
 
 .conversion small {
@@ -331,12 +335,14 @@
 .previewRow {
   margin-top: 1.75rem;
   font-size: 1.125rem;
+  font-weight: 500;
 }
 
 .previewRow strong {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+  font-weight: 500;
 }
 
 .previewCard hr {
@@ -348,6 +354,12 @@
 .budgetHeading,
 .remaining {
   font-size: 1rem;
+  font-weight: 600;
+}
+
+.budgetHeading strong,
+.remaining strong {
+  font-weight: 600;
 }
 
 .progressTrack {

@@ -1,6 +1,6 @@
 import { getSessionUser } from '@/auth/session'
 import type { EmailReportData } from '@/types/emailReport'
-import { apiRequest } from './client'
+import { cachedApiRequest } from './cachedRequests'
 
 interface ReportSummaryDto {
   totalAmount?: number
@@ -33,10 +33,10 @@ export async function getEmailReportPreview(): Promise<EmailReportData> {
   const { yearMonth, startDate, endDate } = getCurrentMonthRange()
   const params = new URLSearchParams({ startDate, endDate })
   const [summary, categoryReport] = await Promise.all([
-    apiRequest<ReportSummaryDto>(
+    cachedApiRequest<ReportSummaryDto>(
       `/reports/summary?${params.toString()}`,
     ),
-    apiRequest<ReportCategoriesDto>(
+    cachedApiRequest<ReportCategoriesDto>(
       `/reports/categories?${params.toString()}`,
     ),
   ])

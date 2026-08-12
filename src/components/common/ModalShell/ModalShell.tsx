@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './ModalShell.module.css'
 
 interface ModalShellProps {
@@ -39,6 +40,7 @@ function ModalShell({
   showCloseButton = true,
   showBookmark = true,
 }: ModalShellProps) {
+  const { t } = useI18n()
   const generatedTitleId = useId()
   const resolvedTitleId = titleId ?? generatedTitleId
   const dialogRef = useRef<HTMLElement>(null)
@@ -99,7 +101,7 @@ function ModalShell({
                 <button
                   className={styles.closeButton}
                   type="button"
-                  aria-label={closeLabel ?? `${String(title)} 닫기`}
+                  aria-label={closeLabel ?? t('common.close')}
                   onClick={onClose}
                 >
                   ×
