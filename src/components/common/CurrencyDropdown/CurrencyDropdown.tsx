@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CURRENCY_CODES, type CurrencyCode } from './currencyOptions'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './CurrencyDropdown.module.css'
 
 interface CurrencyDropdownProps {
@@ -13,8 +14,9 @@ function CurrencyDropdown({
   value,
   onChange,
   options = CURRENCY_CODES,
-  ariaLabel = '통화 선택',
+  ariaLabel,
 }: CurrencyDropdownProps) {
+  const { t } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -52,7 +54,7 @@ function CurrencyDropdown({
       <button
         className={styles.trigger}
         type="button"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? t('common.currencySelect')}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
@@ -66,7 +68,7 @@ function CurrencyDropdown({
       </button>
 
       {isOpen && (
-        <div className={styles.menu} role="listbox" aria-label="통화 목록">
+        <div className={styles.menu} role="listbox" aria-label={t('common.currencyList')}>
           {options.map((option) => (
             <button
               key={option}

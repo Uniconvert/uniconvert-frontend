@@ -292,7 +292,6 @@ function DashboardLayout() {
               : displayName.charAt(0).toUpperCase()}
           </span>
           <span>{displayName}</span>
-          <span className={styles.notificationDot} aria-hidden="true" />
         </div>
       </header>
 
@@ -450,6 +449,12 @@ function DashboardLayout() {
             if (!isLoggingOut) setIsLogoutModalOpen(false)
           }}
         >
+          <img
+            className={styles.logoutMascot}
+            src="/assets/illustrations/mascot-warning.png"
+            alt=""
+            aria-hidden="true"
+          />
           <p>{t('dashboard.logoutDescription')}</p>
           <div className={styles.logoutModalActions}>
             <button

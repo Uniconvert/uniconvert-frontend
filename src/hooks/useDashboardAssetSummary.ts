@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import { getBudget } from '@/api/budgets'
 import { getCurrentExchangeRate } from '@/api/exchangeRates'
-import { getMyUser } from '@/api/users'
 import { getOnboardingSettings } from '@/auth/session'
 import { formatConvertedCurrencyAmount } from '@/utils/exchangeRate'
+import { useBudgetQuery } from './useBudgetQuery'
+import { useMyUserQuery } from './useMyUserQuery'
 
 const currencySymbols: Record<string, string> = {
   KRW: '₩',
@@ -55,6 +55,8 @@ export function useDashboardAssetSummary({
   yearMonth,
   onError,
 }: UseDashboardAssetSummaryOptions) {
+  const budgetQuery = useBudgetQuery(yearMonth)
+  const userQuery = useMyUserQuery()
   const [assetSummary, setAssetSummary] = useState({
     homeCurrency: 'KRW',
     currencySymbol: '₩',
@@ -65,12 +67,14 @@ export function useDashboardAssetSummary({
   })
 
   useEffect(() => {
+    if (!budgetQuery.data || !userQuery.data) return
     let isActive = true
 
-    Promise.all([
-      getBudget(yearMonth),
-      getMyUser(),
-    ])
+    Promise.all([budgetQuery.data, userQuery.data])
+      .then(([budget, user]) => {
+        if (!budget || !user) throw new Error('dashboard data pending')
+        return Promise.resolve([budget, user] as const)
+      })
       .then(async ([budget, user]) => {
         const settings = getOnboardingSettings()
         const homeCurrency = user.homeCurrencyCode || settings.baseCurrency || 'KRW'
@@ -105,7 +109,7 @@ export function useDashboardAssetSummary({
     return () => {
       isActive = false
     }
-  }, [onError, yearMonth])
+  }, [budgetQuery.data, onError, userQuery.data, yearMonth])
 
   return { assetSummary, setAssetSummary }
 }

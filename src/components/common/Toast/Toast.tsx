@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './Toast.module.css'
 
 export type ToastVariant = 'success' | 'error' | 'info'
@@ -25,6 +26,7 @@ function Toast({
   duration = 3000,
   onClose,
 }: ToastProps) {
+  const { t } = useI18n()
   const onCloseRef = useRef(onClose)
 
   useEffect(() => {
@@ -49,7 +51,7 @@ function Toast({
         <strong>{title}</strong>
         {description && <span>{description}</span>}
       </div>
-      <button type="button" aria-label="알림 닫기" onClick={onClose}>×</button>
+      <button type="button" aria-label={t('common.notificationClose')} onClick={onClose}>×</button>
     </div>,
     document.body,
   )

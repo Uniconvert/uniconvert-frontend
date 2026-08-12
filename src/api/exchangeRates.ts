@@ -53,9 +53,15 @@ export function getCurrentExchangeRate(from: string, to: string) {
   }
 
   const params = new URLSearchParams({ from: normalizedFrom, to: normalizedTo })
-  return apiRequest<ExchangeRateDto>(
+  const key = `${normalizedFrom}:${normalizedTo}`
+  const cached = exchangeRateRequests.get(key)
+  if (cached) return cached
+  const request = apiRequest<ExchangeRateDto>(
     `/exchange-rates/current?${params.toString()}`,
   )
+  exchangeRateRequests.set(key, request)
+  window.setTimeout(() => exchangeRateRequests.delete(key), 5_000)
+  return request
 }
 
 export function getExchangeQuote(from: string, to: string, amount: number, date?: string) {
@@ -84,6 +90,7 @@ export function getExchangeQuote(from: string, to: string, amount: number, date?
     `/exchange-rates/quote?${params.toString()}`,
   )
 }
+const exchangeRateRequests = new Map<string, Promise<ExchangeRateDto>>()
 
 export async function getExchangeQuoteHistory(page = 0, size = 10) {
   const params = new URLSearchParams({ page: String(page), size: String(size) })

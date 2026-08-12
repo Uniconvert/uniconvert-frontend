@@ -9,6 +9,9 @@ export interface UpdateMyProfileInput {
   primaryGoal?: string
 }
 
+let cachedUser: AuthUser | null = null
+let userRequest: Promise<AuthUser> | null = null
+
 function toAuthUser(response: UserMeResponseDto, fallbackProfileImage = ''): AuthUser {
   const profileImageKey = response.profileImageKey ?? undefined
   return {
@@ -28,9 +31,16 @@ function toAuthUser(response: UserMeResponseDto, fallbackProfileImage = ''): Aut
 }
 
 export async function getMyUser() {
+  if (cachedUser) return cachedUser
+  if (userRequest) return userRequest
   const sessionUser = getSessionUser()
-  const response = await apiRequest<UserMeResponseDto>('/users/me')
-  return toAuthUser(response, sessionUser?.profileImage ?? '')
+  userRequest = apiRequest<UserMeResponseDto>('/users/me')
+    .then((response) => {
+      cachedUser = toAuthUser(response, sessionUser?.profileImage ?? '')
+      return cachedUser
+    })
+    .finally(() => { userRequest = null })
+  return userRequest
 }
 
 export async function updateMyProfile(input: UpdateMyProfileInput) {
@@ -42,5 +52,6 @@ export async function updateMyProfile(input: UpdateMyProfileInput) {
       body: JSON.stringify(input),
     },
   )
-  return toAuthUser(response, sessionUser?.profileImage ?? '')
+  cachedUser = toAuthUser(response, sessionUser?.profileImage ?? '')
+  return cachedUser
 }

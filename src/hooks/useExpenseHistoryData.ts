@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
-
-import {
-  getExpenseHistory,
-  getExpensesForMonth,
-  getRecentExpenses,
-} from '@/api/expenses'
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { getExpenseHistory, getExpensesForMonth, getRecentExpenses } from '@/api/expenses'
 import type { ExpenseHistoryData, SavedExpense } from '@/types/expense'
 import { getApiErrorNotice } from '@/utils/apiError'
+import { getSessionUser } from '@/auth/session'
 
 interface UseExpenseHistoryDataOptions {
   yearMonth: string
@@ -15,122 +12,38 @@ interface UseExpenseHistoryDataOptions {
   recentModalYearMonth: string
 }
 
-export function useExpenseHistoryData({
-  yearMonth,
-  range,
-  isRecentModalOpen,
-  recentModalYearMonth,
-}: UseExpenseHistoryDataOptions) {
-  const [data, setData] = useState<ExpenseHistoryData | null>(null)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [recentExpenses, setRecentExpenses] = useState<SavedExpense[]>([])
-  const [recentExpensesError, setRecentExpensesError] = useState('')
-  const [reloadVersion, setReloadVersion] = useState(0)
-  const [modalResult, setModalResult] = useState<{
-    yearMonth: string
-    expenses: SavedExpense[]
-    errorMessage: string
-  }>({ yearMonth: '', expenses: [], errorMessage: '' })
-
-  useEffect(() => {
-    let isActive = true
-
-    getExpenseHistory(yearMonth, range)
-      .then((response) => {
-        if (!isActive) return
-        setData(response)
-        setErrorMessage('')
-      })
-      .catch((error) => {
-        if (!isActive) return
-        setErrorMessage(getApiErrorNotice(error, '지출 내역을 불러오지 못했습니다.').title)
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [range, reloadVersion, yearMonth])
-
-  useEffect(() => {
-    let isActive = true
-
-    getRecentExpenses()
-      .then((expenses) => {
-        if (!isActive) return
-        setRecentExpenses(expenses)
-        setRecentExpensesError('')
-      })
-      .catch((error) => {
-        if (!isActive) return
-        setRecentExpenses([])
-        setRecentExpensesError(
-          getApiErrorNotice(error, '최근 지출을 불러오지 못했습니다.').title,
-        )
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [reloadVersion])
-
-  useEffect(() => {
-    if (!isRecentModalOpen) return
-
-    let isActive = true
-
-    getExpensesForMonth(recentModalYearMonth)
-      .then((expenses) => {
-        if (!isActive) return
-        setModalResult({
-          yearMonth: recentModalYearMonth,
-          expenses,
-          errorMessage: '',
-        })
-      })
-      .catch((error) => {
-        if (!isActive) return
-        setModalResult({
-          yearMonth: recentModalYearMonth,
-          expenses: [],
-          errorMessage: getApiErrorNotice(
-            error,
-            '선택한 월의 지출 내역을 불러오지 못했습니다.',
-          ).title,
-        })
-      })
-
-    return () => {
-      isActive = false
-    }
-  }, [isRecentModalOpen, recentModalYearMonth, reloadVersion])
-
+export function useExpenseHistoryData({ yearMonth, range, isRecentModalOpen, recentModalYearMonth }: UseExpenseHistoryDataOptions) {
+  const queryClient = useQueryClient()
+  const sessionUser = getSessionUser()
+  const freshOnEntry = { staleTime: 0, refetchOnMount: 'always' as const, refetchOnWindowFocus: false }
+  const history = useQuery({ queryKey: ['expense-history', yearMonth, range], queryFn: () => getExpenseHistory(yearMonth, range, sessionUser ? { homeCurrencyCode: sessionUser.homeCurrencyCode } : null), ...freshOnEntry })
+  const recent = useQuery({ queryKey: ['recent-expenses'], queryFn: getRecentExpenses, ...freshOnEntry })
+  const modal = useQuery({
+    queryKey: ['expenses-for-month', recentModalYearMonth],
+    queryFn: () => getExpensesForMonth(recentModalYearMonth),
+    enabled: isRecentModalOpen,
+    ...freshOnEntry,
+  })
   const retry = useCallback(() => {
-    setData(null)
-    setErrorMessage('')
-    setRecentExpensesError('')
-    setReloadVersion((current) => current + 1)
-  }, [])
-
-  const isModalExpensesLoading = Boolean(
-    isRecentModalOpen &&
-    modalResult.yearMonth !== recentModalYearMonth,
-  )
-  const modalExpenses = modalResult.yearMonth === recentModalYearMonth
-    ? modalResult.expenses
-    : []
-  const modalExpensesError = modalResult.yearMonth === recentModalYearMonth
-    ? modalResult.errorMessage
-    : ''
+    void queryClient.invalidateQueries({ queryKey: ['expense-history'] })
+    void queryClient.invalidateQueries({ queryKey: ['recent-expenses'] })
+    void queryClient.invalidateQueries({ queryKey: ['expenses-for-month', recentModalYearMonth] })
+  }, [queryClient, recentModalYearMonth])
+  const setRecentExpenses = useCallback((next: SavedExpense[] | ((current: SavedExpense[]) => SavedExpense[])) => {
+    queryClient.setQueryData<SavedExpense[]>(['recent-expenses'], (current = []) => (
+      typeof next === 'function' ? next(current) : next
+    ))
+  }, [queryClient])
 
   return {
-    data,
-    errorMessage,
-    recentExpenses,
+    data: (history.data as ExpenseHistoryData | undefined) ?? null,
+    errorMessage: history.error ? getApiErrorNotice(history.error, '지출 내역을 불러오지 못했습니다.').title : '',
+    recentExpenses: (recent.data as SavedExpense[] | undefined) ?? [],
     setRecentExpenses,
-    recentExpensesError,
-    modalExpenses,
-    isModalExpensesLoading,
-    modalExpensesError,
+    recentExpensesError: recent.error ? getApiErrorNotice(recent.error, '최근 지출을 불러오지 못했습니다.').title : '',
+    modalExpenses: modal.data ?? [],
+    isModalExpensesLoading: isRecentModalOpen && modal.isLoading,
+    modalExpensesError: modal.error ? getApiErrorNotice(modal.error, '선택한 월의 지출 내역을 불러오지 못했습니다.').title : '',
     retry,
   }
 }

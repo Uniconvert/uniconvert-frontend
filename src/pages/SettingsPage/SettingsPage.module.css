@@ -13,6 +13,7 @@
   grid-column: 1;
   grid-row: 1;
   margin-bottom: 2rem;
+  color: #6aadea;
   font-size: 1.75rem;
   font-weight: 500;
 }
@@ -367,8 +368,8 @@
   place-items: center;
   color: #366894;
   background: linear-gradient(145deg, #fff4cc, #d9efff);
-  border: 2px solid var(--color-primary);
-  border-radius: 2.5rem;
+  border: 0;
+  border-radius: 0.75rem;
   font-weight: var(--font-weight-bold);
   font-size: clamp(2rem, 5vw, 3.5rem);
 }
@@ -414,7 +415,7 @@
 .profileFields span {
   padding-left: 0.8rem;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .profileFields input,
@@ -556,6 +557,7 @@
 .reportTotal strong {
   color: #366894;
   font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .reportCard hr {

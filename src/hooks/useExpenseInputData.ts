@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { getCategories, getFallbackCategories } from '@/api/categories'
 import { getExpenseHistory } from '@/api/expenses'
-import { getCurrentExchangeRate } from '@/api/exchangeRates'
 import { getExchangeRate } from '@/utils/exchangeRate'
+import { useExchangeRateQuery } from './useExchangeRateQuery'
+import { getSessionUser } from '@/auth/session'
 
 interface BudgetSummary {
   homeCurrency: string
@@ -34,10 +35,15 @@ export function useExpenseInputData({
   const [categories, setCategories] = useState(fallbackCategories)
   const [categoryId, setCategoryId] = useState(fallbackCategories[0].id)
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummary>(emptyBudgetSummary)
+  const rateQuery = useExchangeRateQuery(currency, budgetSummary.homeCurrency)
   const [rate, setRate] = useState(() => getExchangeRate(currency, 'KRW'))
+  void rateQuery
 
   const requestBudget = useCallback(
-    () => getExpenseHistory(yearMonth, 'month'),
+    () => {
+      const user = getSessionUser()
+      return getExpenseHistory(yearMonth, 'month', user ? { homeCurrencyCode: user.homeCurrencyCode } : null)
+    },
     [yearMonth],
   )
 
@@ -99,7 +105,7 @@ export function useExpenseInputData({
   useEffect(() => {
     let isActive = true
 
-    getCurrentExchangeRate(currency, budgetSummary.homeCurrency)
+    Promise.resolve(rateQuery.data ?? { rate: undefined })
       .then((response) => {
         if (isActive && typeof response.rate === 'number' && response.rate > 0) {
           setRate(response.rate)
@@ -114,7 +120,8 @@ export function useExpenseInputData({
     return () => {
       isActive = false
     }
-  }, [budgetSummary.homeCurrency, currency, onWarning])
+  }, [budgetSummary.homeCurrency, currency, onWarning, rateQuery.data])
+
 
   return {
     categories,
@@ -123,6 +130,10 @@ export function useExpenseInputData({
     budgetSummary,
     setBudgetSummary,
     rate,
+    isTemporaryRate: false,
+    isRateLoading: rateQuery.isLoading,
+    isRateError: Boolean(rateQuery.error),
+    retryRate: rateQuery.refetch,
     refetchBudget,
   }
 }

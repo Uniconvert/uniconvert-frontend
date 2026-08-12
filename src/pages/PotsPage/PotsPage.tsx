@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { allocatePotAmount, archivePot, createPot, updatePot } from '@/api/pots'
-import { getMyUser } from '@/api/users' // 사용자 정보(primaryGoal 포함)를 가져오는 API 임포트
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
@@ -14,6 +13,7 @@ import {
   POT_REPRESENTATIVE_IMAGE_OPTIONS,
 } from '@/constants/potRepresentativeImages'
 import { usePotsData } from '@/hooks/usePotsData'
+import { useMyUserQuery } from '@/hooks/useMyUserQuery'
 import type { Pot, PotsData } from '@/types/pot'
 import { formatCurrencyAmount } from '@/utils/currency'
 import { getApiErrorNotice } from '@/utils/apiError'
@@ -36,23 +36,12 @@ function PotsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Pot | null>(null)
 
   // [추가] 사용자 primaryGoal 상태 관리
-  const [primaryGoal, setPrimaryGoal] = useState<string>('')
 
   const previousAllocationRef = useRef<Pick<PotsData, 'totalAssets' | 'monthlyExpense' | 'allocatedAmount'> | null>(null)
   const { toast, showToast, closeToast } = useToastQueue()
-
+  const { data: currentUser } = useMyUserQuery()
+  const primaryGoal = currentUser?.primaryGoal ?? ''
   // [추가] 마운트 시 사용자 정보 조회하여 primaryGoal 가져오기
-  useEffect(() => {
-    getMyUser()
-      .then((user) => {
-        console.log('현재 사용자의 primaryGoal 값:', user?.primaryGoal) // 이 값을 콘솔에서 확인해보세요!
-        if (user?.primaryGoal) {
-          setPrimaryGoal(user.primaryGoal)
-        }
-      })
-      .catch((err) => console.error('Failed to fetch user profile:', err))
-  }, [])
-
   useEffect(() => {
     if (!data) return
 
@@ -63,7 +52,7 @@ function PotsPage() {
       : isOverAllocated
 
     if (!wasOverAllocated && isOverAllocated) {
-      showToast({ variant: 'error', title: '배정된 금액이 월예산을 초과했어요' })
+      showToast({ variant: 'error', title: t('pots.overAllocated') })
     }
 
     previousAllocationRef.current = {
@@ -71,7 +60,7 @@ function PotsPage() {
       monthlyExpense: data.monthlyExpense,
       allocatedAmount: data.allocatedAmount,
     }
-  }, [data, showToast])
+  }, [data, showToast, t])
 
   // [수정] primaryGoal과 Pot 개수에 따른 마스코트 멘트 풀 분기
   const mascotMessages = useMemo(() => {
@@ -126,7 +115,7 @@ function PotsPage() {
     }
   }, [data, primaryGoal])
 
-  if (errorMessage) return <p role="alert">{errorMessage}</p>
+  if (errorMessage) return <div role="alert" className={styles.loadError}><p>{errorMessage}</p><button type="button" onClick={() => { void reloadPots() }}>{t('common.retry')}</button></div>
   if (!data) return <p aria-live="polite">{t('pots.loading')}</p>
 
   const editTargetRate = data.monthlyBudget > 0
@@ -136,6 +125,10 @@ function PotsPage() {
   const maximumAdditionalAmount = activePot
     ? Math.max(Math.min(activePot.targetAmount - activePot.savedAmount, data.availableAmount), 0)
     : 0
+  const additionalAmountRate = maximumAdditionalAmount > 0
+    ? Math.min((amountValue / maximumAdditionalAmount) * 100, 100)
+    : 0
+  const additionalTooltipRate = Math.min(Math.max(additionalAmountRate, 8), 92)
 
   const openPanel = (pot: Pot, mode: 'add' | 'edit') => {
     setActivePot(pot)
@@ -169,14 +162,14 @@ function PotsPage() {
           representativeImageKey: editRepresentativeImageKey,
           icon: editIcon,
         })
-        showToast({ variant: 'success', title: '수정되었어요' })
+        showToast({ variant: 'success', title: t('pots.updateSuccess') })
       }
       await reloadPots()
       closePanel()
     } catch (error) {
       showToast({
         variant: 'error',
-        ...getApiErrorNotice(error, 'Pot을 수정하지 못했습니다.'),
+        ...getApiErrorNotice(error, t('pots.updateError')),
       })
     } finally { setIsSaving(false) }
   }
@@ -199,7 +192,7 @@ function PotsPage() {
         variant: 'error',
         ...getApiErrorNotice(
           error,
-          'Pot을 보관하지 못했습니다.',
+          t('pots.archiveError'),
         ),
       })
     } finally {
@@ -219,7 +212,7 @@ function PotsPage() {
     } catch (error) {
       showToast({
         variant: 'error',
-        ...getApiErrorNotice(error, 'Pot을 만들지 못했습니다.'),
+        ...getApiErrorNotice(error, t('pots.createError')),
       })
     } finally {
       setIsSaving(false)
@@ -242,7 +235,13 @@ function PotsPage() {
             currency={data.homeCurrency}
           />
           {data.pots.map((pot) => <PotCard key={pot.potId} pot={pot} currency={data.homeCurrency} onAddAmount={() => openPanel(pot, 'add')} onEdit={() => openPanel(pot, 'edit')} onDelete={() => handleDeletePot(pot)} />)}
-          {data.pots.length === 0 && <p className={styles.emptyState}>{t('pots.empty')}</p>}
+          {data.pots.length === 0 && (
+            <div className={styles.emptyState}>
+              <img src="/assets/illustrations/mascot-checklist.png" alt="" aria-hidden="true" />
+              <strong>{t('pots.empty')}</strong>
+              <p>{t('pots.emptyDescription')}</p>
+            </div>
+          )}
           <button className={styles.createButton} type="button" onClick={() => setIsCreateOpen(true)}>
             <span aria-hidden="true">＋</span>
             {t('pots.create')}
@@ -257,6 +256,7 @@ function PotsPage() {
             messages={mascotMessages}
             imageSrc={hasCompletedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
             speechBubbleVariant="compact"
+            className={styles.lowerMascot}
           />
         </aside>
       </div>
@@ -275,7 +275,7 @@ function PotsPage() {
         <ModalShell
           title={panelMode === 'add' ? t('pots.addAmount') : t('pots.edit')}
           titleId="pot-action-title"
-          closeLabel={panelMode === 'add' ? '금액 추가 닫기' : 'Pots 수정 닫기'}
+          closeLabel={panelMode === 'add' ? t('pots.addAmountClose') : t('pots.editClose')}
           width={panelMode === 'edit' ? '44rem' : '43rem'}
           dialogClassName={panelMode === 'edit' ? styles.editModalDialog : undefined}
           bodyClassName={panelMode === 'edit' ? styles.editModalBody : styles.actionModalBody}
@@ -297,7 +297,7 @@ function PotsPage() {
                   <div className={styles.rangeWrap}>
                     <output style={{ left: `${editTooltipRate}%` }}>{formatCurrencyAmount(editTargetAmount, data.homeCurrency)}</output>
                     <input
-                      aria-label="목표 금액 수정"
+                      aria-label={t('pots.targetAria')}
                       type="range"
                       min="0"
                       max={data.monthlyBudget}
@@ -321,7 +321,7 @@ function PotsPage() {
                         key={option.key}
                         type="button"
                         className={`${styles.imageChoice} ${isSelected ? styles.selectedImageChoice : ''}`}
-                        aria-label={`대표 이미지 ${index + 1}`}
+                        aria-label={t('pots.representativeOption', { index: index + 1 })}
                         aria-pressed={isSelected}
                         onClick={() => setEditRepresentativeImageKey(option.key)}
                       >
@@ -340,18 +340,28 @@ function PotsPage() {
             </div>
           ) : (
             <>
-              <div className={styles.actionPotName}><img src={activePot.imageSrc} alt="" /><div><b>{activePot.name}</b><span>현재 {formatCurrencyAmount(activePot.savedAmount, data.homeCurrency)}</span></div></div>
+              <div className={styles.actionPotName}><img src={activePot.imageSrc} alt="" /><div><b>{activePot.name}</b><span>{t('pots.currentAmount', { amount: formatCurrencyAmount(activePot.savedAmount, data.homeCurrency) })}</span></div></div>
               <label className={styles.rangeField}>
-                <span>추가할 금액</span>
+                <span>{t('pots.additionalAmount')}</span>
                 <CurrencyAmountInput
                   value={amountValue}
                   currency={data.homeCurrency}
                   max={maximumAdditionalAmount}
-                  ariaLabel="추가할 금액 입력"
+                  ariaLabel={t('pots.additionalAmountInput')}
                   onChange={setAmountValue}
                 />
-                <output>{formatCurrencyAmount(amountValue, data.homeCurrency)}</output>
-                <input type="range" min="0" max={maximumAdditionalAmount} step="10000" value={Math.min(amountValue, maximumAdditionalAmount)} onChange={(event) => setAmountValue(Number(event.target.value))} />
+                <div className={styles.rangeWrap}>
+                  <output style={{ left: `${additionalTooltipRate}%` }}>{formatCurrencyAmount(amountValue, data.homeCurrency)}</output>
+                  <input
+                    type="range"
+                    min="0"
+                    max={maximumAdditionalAmount}
+                    step="10000"
+                    value={Math.min(amountValue, maximumAdditionalAmount)}
+                    style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${additionalAmountRate}%, #e5e5e5 ${additionalAmountRate}% 100%)` }}
+                    onChange={(event) => setAmountValue(Number(event.target.value))}
+                  />
+                </div>
                 <span className={styles.rangeLabels}><small>{formatCurrencyAmount(0, data.homeCurrency)}</small><small>{formatCurrencyAmount(maximumAdditionalAmount, data.homeCurrency)}</small></span>
               </label>
             </>
@@ -362,23 +372,21 @@ function PotsPage() {
 
       {deleteTarget && (
         <ModalShell
-          title="Pot을 보관할까요?"
+          title={t('pots.deleteTitle')}
           titleId="delete-pot-title"
-          closeLabel="Pot 삭제 팝업 닫기"
+          closeLabel={t('pots.archiveClose')}
           width="31rem"
           bodyClassName={styles.deleteModalBody}
           onClose={() => setDeleteTarget(null)}
         >
+          <img className={styles.deleteMascot} src="/assets/illustrations/mascot-warning.png" alt="" aria-hidden="true" />
           <p className={styles.deletePotName}>“{deleteTarget.name}”</p>
-          <p className={styles.deleteRefundMessage}>
-            목록에서 숨겨지며 기존 목표와 배정 내역은 유지됩니다.
-          </p>
           <div className={styles.deleteModalActions}>
             <button type="button" onClick={handleArchivePot} disabled={isSaving}>
-              {isSaving ? '보관 중...' : 'Pot 보관하기'}
+              {isSaving ? t('pots.archiving') : t('pots.archive')}
             </button>
             <button type="button" onClick={() => setDeleteTarget(null)} disabled={isSaving}>
-              취소
+              {t('common.cancel')}
             </button>
           </div>
         </ModalShell>

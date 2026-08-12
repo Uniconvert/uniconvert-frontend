@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './CalculatorPage.module.css'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
-import { getCurrentExchangeRate, getExchangeQuote, getExchangeQuoteHistory } from '@/api/exchangeRates'
+import { getExchangeQuote, getExchangeQuoteHistory } from '@/api/exchangeRates'
 import type { ExchangeQuoteHistoryDto } from '@/api/exchangeRates'
 import { useI18n } from '@/i18n/I18nContext'
+import { useExchangeRateQuery } from '@/hooks/useExchangeRateQuery'
 
 const currencies = ['USD', 'EUR', 'JPY', 'KRW', 'CNY']
 const CALCULATION_ERROR = '__CALCULATION_ERROR__'
@@ -19,8 +20,13 @@ function CalculatorPage() {
   const [toAmount, setToAmount] = useState('')
   const [debouncedAmount, setDebouncedAmount] = useState(0)
   const [rateInfo, setRateInfo] = useState<{ date: string; rate: number } | null>(null)
-  const [changeRate, setChangeRate] = useState<number | null>(null)
+  const currentRateQuery = useExchangeRateQuery(fromCurrency, toCurrency)
+  const changeRate = currentRateQuery.data?.changeRate ?? null
   const [historyList, setHistoryList] = useState<ExchangeQuoteHistoryDto[]>([])
+  const [historyError, setHistoryError] = useState('')
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true)
+  const [quoteError, setQuoteError] = useState('')
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const isSwapRef = useRef(false)
   const fromSelectRef = useRef<HTMLDivElement>(null)
@@ -28,9 +34,10 @@ function CalculatorPage() {
 
   const fetchHistory = useCallback(() => {
     getExchangeQuoteHistory(0, 20)
-      .then((data) => setHistoryList(data || []))
-      .catch((error) => console.error('Failed to fetch exchange history:', error))
-  }, [])
+      .then((data) => { setHistoryList(data || []); setHistoryError('') })
+      .catch(() => { setHistoryList([]); setHistoryError(t('calculator.historyLoadError')) })
+      .finally(() => setIsHistoryLoading(false))
+  }, [t])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,25 +51,6 @@ function CalculatorPage() {
   useEffect(() => {
     fetchHistory()
   }, [fetchHistory])
-
-  useEffect(() => {
-    let isActive = true
-    getCurrentExchangeRate(fromCurrency, toCurrency)
-      .then((result) => {
-        if (!isActive) return
-        if (isSwapRef.current) {
-          isSwapRef.current = false
-          return
-        }
-        setChangeRate(result.changeRate ?? null)
-      })
-      .catch(() => {
-        if (!isActive) return
-        if (isSwapRef.current) isSwapRef.current = false
-        else setChangeRate(null)
-      })
-    return () => { isActive = false }
-  }, [fromCurrency, toCurrency])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -82,17 +70,22 @@ function CalculatorPage() {
         const convertedAmount = result.convertedAmount ?? 0
         setToAmount(convertedAmount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
         setRateInfo(result.rateDate && result.appliedRate ? { date: result.rateDate, rate: result.appliedRate } : null)
+        setQuoteError('')
         fetchHistory()
       })
       .catch(() => {
         if (isActive) {
           setToAmount(CALCULATION_ERROR)
           setRateInfo(null)
+          setQuoteError(t('calculator.quoteLoadError'))
         }
       })
+      .finally(() => { if (isActive) setIsQuoteLoading(false) })
+
+    window.setTimeout(() => { if (isActive) { setIsQuoteLoading(true); setQuoteError('') } }, 0)
 
     return () => { isActive = false }
-  }, [debouncedAmount, fetchHistory, fromCurrency, locale, toCurrency])
+  }, [debouncedAmount, fetchHistory, fromCurrency, locale, t, toCurrency])
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let rawValue = event.target.value.replace(/[^0-9.]/g, '')
@@ -200,8 +193,10 @@ function CalculatorPage() {
             {currencySelector(toCurrency, isToOpen, () => { setIsToOpen((open) => !open); setIsFromOpen(false) }, (currency) => { setToCurrency(currency); setIsToOpen(false) }, toSelectRef)}
             <div className={styles.inputGroup}>
               <span className={styles.inputLabel}>{t('calculator.result')}</span>
-              <div className={styles.amountBox}><input type="text" value={toAmount === CALCULATION_ERROR ? t('calculator.error') : toAmount} readOnly /></div>
+            <div className={styles.amountBox}><input type="text" value={toAmount === CALCULATION_ERROR ? t('calculator.error') : toAmount} readOnly /></div>
             </div>
+            {isQuoteLoading && <p className={styles.statusMessage} role="status">환율을 계산하고 있어요.</p>}
+            {quoteError && <p className={styles.statusMessage} role="alert">{quoteError}</p>}
             <div className={styles.statusMessage} style={{ visibility: rateInfo ? 'visible' : 'hidden' }}>
               <span className={styles.statusDot} />
               <span>{rateInfo ? t('calculator.rateApplied', { date: rateInfo.date.replaceAll('-', '.') }) : ''}</span>
@@ -215,11 +210,26 @@ function CalculatorPage() {
             <button type="button" className={styles.viewAllBtn} onClick={() => setIsHistoryModalOpen(true)}>{t('calculator.viewAll')} <span className={styles.chevronRight} /></button>
           </div>
           <div className={styles.historyList}>
-            {historyList.length === 0 ? <p>{t('calculator.noHistory')}</p> : historyList.slice(0, 3).map((item, index) => (
+            {isHistoryLoading ? <p className={styles.historyMessage} role="status">최근 계산 내역을 불러오는 중이에요.</p> : historyError ? (
+              <p className={styles.historyMessage} role="alert">{historyError} <button type="button" onClick={() => { setHistoryError(''); setIsHistoryLoading(true); fetchHistory() }}>다시 시도</button></p>
+            ) : historyList.length === 0 ? (
+              <div className={styles.historyEmptyState}>
+                <img src="/assets/illustrations/mascot-checklist.png" alt="" aria-hidden="true" />
+                <strong>{t('calculator.noHistory')}</strong>
+                <p>{t('calculator.noHistoryDescription')}</p>
+              </div>
+            ) : historyList.slice(0, 3).map((item, index) => (
               <div key={item.id ?? index} className={`${styles.historyItem} ${index === 0 ? styles.active : ''}`}>
                 <div className={styles.historyInfo}>
                   <img src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.src = '/assets/icons/currencies/currency-default.png' }} />
-                  <div className={styles.historyText}>{(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}<span>→ {(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })} {item.toCurrency}</span></div>
+                  <div className={styles.historyText}>
+                    <span className={styles.historySource}>{(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}</span>
+                    <span className={styles.historyArrow} aria-hidden="true">→</span>
+                    <span className={styles.historyResult}>
+                      <span>{(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })}</span>
+                      <span>{item.toCurrency}</span>
+                    </span>
+                  </div>
                 </div>
                 <span className={styles.historyTime}>{formatHistoryTime(item.createdAt)}</span>
               </div>
@@ -231,7 +241,15 @@ function CalculatorPage() {
       {isHistoryModalOpen && <ModalShell title={t('calculator.history')} titleId="history-modal-title" closeLabel={t('calculator.closeHistory')} width="52rem" onClose={() => setIsHistoryModalOpen(false)}>
         <div className={styles.modalHistoryContainer}>
           <div className={styles.modalHistoryList}>
-            {historyList.length === 0 ? <p>{t('calculator.emptyHistory')}</p> : historyList.map((item, index) => (
+            {isHistoryLoading ? <p className={styles.historyMessage} role="status">최근 계산 내역을 불러오는 중이에요.</p> : historyError ? (
+              <p className={styles.historyMessage} role="alert">{historyError} <button type="button" onClick={() => { setHistoryError(''); setIsHistoryLoading(true); fetchHistory() }}>다시 시도</button></p>
+            ) : historyList.length === 0 ? (
+              <div className={styles.modalHistoryEmptyState}>
+                <img src="/assets/illustrations/mascot-checklist.png" alt="" aria-hidden="true" />
+                <strong>{t('calculator.noHistory')}</strong>
+                <p>{t('calculator.noHistoryDescription')}</p>
+              </div>
+            ) : historyList.map((item, index) => (
               <div key={`history-${item.id ?? index}`} className={styles.modalHistoryItem}>
                 <div className={styles.modalHistoryInfo}>
                   <img src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.src = '/assets/icons/currencies/currency-default.png' }} />

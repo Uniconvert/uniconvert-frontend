@@ -27,12 +27,19 @@ const FALLBACK_CATEGORIES: ExpenseCategoryOption[] = [
 ]
 
 const HIDDEN_EXPENSE_CATEGORY_ICON_KEYS = new Set(['housing', 'savings'])
+let categoriesRequest: Promise<ExpenseCategoryOption[]> | null = null
 
 export function getFallbackCategories() {
   return FALLBACK_CATEGORIES
 }
 
 export async function getCategories() {
+  if (categoriesRequest) return categoriesRequest
+  categoriesRequest = loadCategories().finally(() => { categoriesRequest = null })
+  return categoriesRequest
+}
+
+async function loadCategories() {
   const response = await apiRequest<CategoryResponseDto[]>('/categories')
 
   const categories = response

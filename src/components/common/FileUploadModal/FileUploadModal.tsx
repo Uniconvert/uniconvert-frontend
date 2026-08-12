@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import Button from '@/components/common/Button/Button'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './FileUploadModal.module.css'
 
 interface FileUploadModalProps {
@@ -14,6 +15,7 @@ const MAX_FILE_SIZE = 30 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['csv']
 
 function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModalProps) {
+  const { t } = useI18n()
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -39,11 +41,11 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
   const validateFile = (file: File) => {
     const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
     if (!ACCEPTED_EXTENSIONS.includes(extension)) {
-      setErrorMessage('Wise 또는 Monzo CSV 파일만 업로드할 수 있습니다.')
+      setErrorMessage(t('expenseInput.uploadTypeError'))
       return false
     }
     if (file.size > MAX_FILE_SIZE) {
-      setErrorMessage('파일 크기는 최대 30MB까지 가능합니다.')
+      setErrorMessage(t('expenseInput.uploadSizeError'))
       return false
     }
     setErrorMessage('')
@@ -53,7 +55,7 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setErrorMessage('업로드할 파일을 선택해주세요.')
+      setErrorMessage(t('expenseInput.uploadSelectError'))
       return
     }
 
@@ -64,7 +66,7 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
     } catch (error) {
       const message = error instanceof Error
         ? error.message
-        : '파일을 가져오지 못했습니다. 다시 시도해주세요.'
+        : t('expenseInput.uploadError')
       setErrorMessage(message)
       onError?.(error)
     } finally {
@@ -74,9 +76,9 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
 
   return (
     <ModalShell
-      title="업로드 파일"
+      title={t('expenseInput.uploadModalTitle')}
       titleId="file-upload-title"
-      closeLabel="파일 업로드 닫기"
+      closeLabel={t('expenseInput.uploadModalClose')}
       width="47.25rem"
       minHeight="39.75rem"
       bodyClassName={styles.modalBody}
@@ -98,20 +100,19 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
           {selectedFile ? (
             <p className={styles.fileName}>{selectedFile.name}</p>
           ) : (
-            <p>여기에 파일을 드래그하거나 <label htmlFor={inputId}>클릭하여 업로드</label></p>
+            <p>{t('expenseInput.uploadDrop')} <label htmlFor={inputId}>{t('expenseInput.uploadBrowse')}</label></p>
           )}
           <input ref={fileInputRef} id={inputId} type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) validateFile(file) }} />
         </div>
 
         <div className={styles.guide}>
-          <span>Wise/Monzo CSV 파일만 지원됩니다.</span>
-          <span>최대 파일용량: 30MB</span>
+          <span>{t('expenseInput.uploadFormat')}</span>
+          <span>{t('expenseInput.uploadMaxSize')}</span>
         </div>
         {errorMessage && <p className={styles.error} role="alert">{errorMessage}</p>}
 
         <div className={styles.actions}>
-          <Button variant="outline" onClick={handleClose}>취소</Button>
-          <Button onClick={handleUpload} isLoading={isUploading} disabled={!selectedFile || isUploading}>업로드</Button>
+          <Button onClick={handleUpload} isLoading={isUploading} disabled={!selectedFile || isUploading}>{t('common.upload')}</Button>
         </div>
     </ModalShell>
   )

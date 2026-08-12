@@ -138,14 +138,14 @@ function GoogleIdentityButton({
 
         const googleIdentity = window.google?.accounts?.id
         if (!googleIdentity) {
-          throw new Error('Google 로그인 서비스를 초기화하지 못했습니다.')
+          throw new Error(t('google.initializationError'))
         }
 
         googleIdentity.initialize({
           client_id: clientId,
           callback: ({ credential }) => {
             if (!credential) {
-              onErrorRef.current('Google 인증 정보를 받지 못했습니다.')
+              onErrorRef.current(t('google.credentialError'))
               return
             }
 
@@ -193,13 +193,9 @@ function GoogleIdentityButton({
         })
         resizeObserver.observe(buttonRef.current)
       })
-      .catch((error: unknown) => {
+      .catch(() => {
         if (isCancelled) return
-        onErrorRef.current(
-          error instanceof Error
-            ? error.message
-            : 'Google 로그인을 준비하지 못했습니다.',
-        )
+        onErrorRef.current(t('google.prepareError'))
       })
 
     return () => {
@@ -211,7 +207,7 @@ function GoogleIdentityButton({
       }
       container.replaceChildren()
     }
-  }, [clientId, language])
+  }, [clientId, language, t])
 
   if (!clientId) {
     return (

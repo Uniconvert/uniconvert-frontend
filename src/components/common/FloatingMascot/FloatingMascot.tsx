@@ -6,12 +6,14 @@ interface FloatingMascotProps {
   messages: React.ReactNode[]; // 수정: string[] -> React.ReactNode[]
   imageSrc: string;
   speechBubbleVariant?: 'default' | 'twoLine' | 'compact';
+  className?: string;
 }
 
 export default function FloatingMascot({
   messages,
   imageSrc,
   speechBubbleVariant,
+  className = '',
 }: FloatingMascotProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const timerRef = useRef<number | null>(null)
@@ -58,7 +60,7 @@ export default function FloatingMascot({
 
   return (
     <div 
-      className={styles.floatingMascotRail} 
+      className={`${styles.floatingMascotRail} ${className}`.trim()}
       onClick={handleClick} 
       style={{ cursor: 'pointer', userSelect: 'none' }}
     >

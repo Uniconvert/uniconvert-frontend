@@ -34,6 +34,11 @@ export interface MascotMessage {
   type: 'ENTRY' | 'INSIGHT' | 'RANDOM'
 }
 
+export interface UniMessageBundleDto {
+  entryMessages?: Partial<MascotMessage>[]
+  randomMessages?: Partial<MascotMessage>[]
+}
+
 export interface SavedExpense {
   expenseId: string
   merchantName: string
@@ -45,11 +50,15 @@ export interface SavedExpense {
 /** Swagger GET /expenses, GET /expenses/recent 응답 항목입니다. */
 export interface ExpenseListItemDto {
   id?: number
+  expenseId?: number | string
   merchantName?: string | null
   categoryId?: number
   categoryName?: string | null
   iconKey?: string | null
   convertedAmountHome?: number
+  totalAmountHome?: number
+  homeAmount?: number
+  convertedAmount?: number
   originalCurrency?: string | null
   originalAmount?: number
   spentAt?: string | null
@@ -68,6 +77,15 @@ export interface ExpensePageDto {
   empty?: boolean
 }
 
+/** Swagger GET /expenses의 data 응답입니다. */
+export interface ExpenseListResponseDto {
+  expenses?: ExpensePageDto
+  content?: ExpenseListItemDto[]
+  totalPages?: number
+  totalElements?: number
+  uniMessages?: UniMessageBundleDto
+}
+
 export interface BudgetResponseDto {
   budgetId?: number
   yearMonth?: string
@@ -76,10 +94,7 @@ export interface BudgetResponseDto {
 
 export interface ReportSummaryResponseDto {
   totalAmount?: number
-  uniMessages?: {
-    entryMessages?: Partial<MascotMessage>[]
-    randomMessages?: Partial<MascotMessage>[]
-  }
+  uniMessages?: UniMessageBundleDto
 }
 
 export interface ReportCategoryItemDto {

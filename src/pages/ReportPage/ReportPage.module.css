@@ -7,8 +7,12 @@
   grid-template-rows: auto 1fr;
 }
 
+.lowerMascot {
+  transform: translateY(1rem);
+}
+
 .pageHeader h1 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.35rem;
   font-size: calc(1.688rem - 1px);
   color: var(--color-primary, #66a9e4);
   font-weight: 500 !important;
@@ -23,32 +27,48 @@
   margin: 0;
   color: var(--color-text-muted, #9a9a9a);
   font-size: calc(1rem + 1px);
-  margin-bottom: 1rem;
 }
 
 .headerWrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+  position: relative;
   width: 100%;
   min-width: 0;
-  flex-wrap: nowrap;
+  min-height: 3rem;
 }
 
 .emailreportBtn {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  display: inline-flex;
   flex: 0 0 11rem;
   width: 11rem;
   min-width: 11rem;
-  font-size: 1.2rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 0.5rem;
+  gap: 0.625rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--color-primary, #66a9e4);
+  border-radius: 0.625rem;
+  background: var(--color-primary, #66a9e4);
+  box-shadow: 0 2px 5px rgb(45 119 183 / 20%);
+  color: #fff;
+  font-size: 1.125rem;
   min-height: 2.75rem;
   height: 2.75rem;
   line-height: 1.2;
-  font-weight: normal;
-  margin-left: auto;
-  margin-top: 0;
+  font-weight: 600;
+  margin: 0;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.emailreportBtn:hover:not(:disabled) {
+  border-color: var(--color-primary-hover, #4d98d9);
+  background: var(--color-primary-hover, #4d98d9);
+  box-shadow: 0 4px 10px rgb(45 119 183 / 24%);
+}
+
+.emailreportBtn:focus-visible {
+  outline: 3px solid rgb(102 169 228 / 28%);
+  outline-offset: 2px;
 }
 
 .headerWrapper p {
@@ -56,6 +76,7 @@
 }
 
 .emailReportLabel {
+  display: inline-block;
   overflow: visible;
   white-space: nowrap;
 }
@@ -72,11 +93,16 @@
 
 @media (max-width: 48rem) {
   .headerWrapper {
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .emailreportBtn {
+    position: static;
     margin-left: 0;
+    margin-bottom: 4px;
   }
 }
 
@@ -709,9 +735,7 @@
   }
 
   .headerWrapper {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    min-height: 3rem;
   }
 
   .emailreportBtn {

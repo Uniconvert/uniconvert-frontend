@@ -130,7 +130,7 @@ function MemoPage() {
 
       <section className={styles.memoListCard} aria-label={t('memo.list')}>
         {isLoading && <p className={styles.listMessage}>{t('memo.loading')}</p>}
-        {errorMessage && <p className={styles.listMessage} role="alert">{errorMessage}</p>}
+        {errorMessage && <p className={styles.listMessage} role="alert">{errorMessage} <button type="button" onClick={() => { setErrorMessage(''); setIsLoading(true); setReloadKey((current) => current + 1) }}>{t('common.retry')}</button></p>}
         {!isLoading && !errorMessage && memos.length === 0 && <div className={styles.emptyState}>
           <img src="/assets/illustrations/mascot-checklist.png" alt="" aria-hidden="true" />
           <strong>{query ? t('memo.noSearch') : t('memo.noMemos')}</strong><p>{query ? t('memo.noSearchDescription') : t('memo.noMemosDescription')}</p>
@@ -159,6 +159,7 @@ function MemoPage() {
         messages={mascotMessages}
         imageSrc="/assets/illustrations/mascot-checklist.png"
         speechBubbleVariant="compact"
+        className={styles.lowerMascot}
       />
       {editingMemo && <MemoEditModal item={editingMemo} onClose={() => setEditingMemo(null)} onSave={async (memo) => {
         try {
