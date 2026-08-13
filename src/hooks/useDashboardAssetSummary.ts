@@ -17,6 +17,7 @@ const currencySymbols: Record<string, string> = {
 interface UseDashboardAssetSummaryOptions {
   yearMonth: string
   onError: () => void
+  enabled?: boolean
 }
 
 async function getRateInKrw(currency: string) {
@@ -54,6 +55,7 @@ async function convertBudgetToLocalCurrency(
 export function useDashboardAssetSummary({
   yearMonth,
   onError,
+  enabled = true,
 }: UseDashboardAssetSummaryOptions) {
   const budgetQuery = useBudgetQuery(yearMonth)
   const userQuery = useMyUserQuery()
@@ -82,11 +84,9 @@ export function useDashboardAssetSummary({
           || settings.localCurrencies?.[0]
           || (homeCurrency === 'KRW' ? 'USD' : 'KRW')
         const monthlyBudget = budget.monthlyLimitHome ?? 0
-        const convertedBudget = await convertBudgetToLocalCurrency(
-          monthlyBudget,
-          homeCurrency,
-          localCurrency,
-        ).catch(() => null)
+        const convertedBudget = enabled
+          ? await convertBudgetToLocalCurrency(monthlyBudget, homeCurrency, localCurrency).catch(() => null)
+          : null
         const hasAvailableRate = convertedBudget !== null
         const localCurrencyAmount = convertedBudget ?? 0
 
@@ -109,7 +109,7 @@ export function useDashboardAssetSummary({
     return () => {
       isActive = false
     }
-  }, [budgetQuery.data, onError, userQuery.data, yearMonth])
+  }, [budgetQuery.data, enabled, onError, userQuery.data, yearMonth])
 
   return { assetSummary, setAssetSummary }
 }

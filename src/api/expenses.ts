@@ -267,10 +267,6 @@ function mapReportCategories(
 async function buildRealHistory(yearMonth: string, range: string, userContextOverride?: ExpenseUserContextDto | null): Promise<ExpenseHistoryData> {
   const monthRange = getMonthBounds(yearMonth)
   const reportRange = getReportRange(yearMonth, range)
-  const monthQuery = {
-    startAt: toDateTimeStart(monthRange.startDate),
-    endAt: toDateTimeEnd(monthRange.endDate),
-  }
   const monthCategoryRequest = resolveOrNull(cachedApiRequest<ReportCategoriesResponseDto>(
     `/reports/categories?${new URLSearchParams({
       startDate: monthRange.startDate,
@@ -295,7 +291,9 @@ async function buildRealHistory(yearMonth: string, range: string, userContextOve
     rangeCategoryReport,
     userContext,
   ] = await Promise.all([
-    resolveOrNull(getAllExpensePages(monthQuery)),
+    // Summary/categories are the source of truth for the dashboard. Do not
+    // walk every /expenses page just to build a fallback that is not rendered.
+    Promise.resolve({ expenses: [], mascotMessages: [] } as { expenses: ExpenseListItemDto[]; mascotMessages: MascotMessage[] }),
     resolveOrNull(getBudget(yearMonth)),
     resolveOrNull(apiRequest<number>(
       `/expenses/remaining-budget?${new URLSearchParams({ yearMonth }).toString()}`,
@@ -400,7 +398,11 @@ export async function createExpense(input: CreateExpenseInput) {
     throw new Error('지출 카테고리를 다시 선택해 주세요.')
   }
 
-  const spentAt = input.spentAt.includes('T') ? input.spentAt : `${input.spentAt}T12:00:00`
+  // The form supplies a calendar date; preserve it and attach the user's current local time.
+  // Using a fixed noon value made every newly saved expense appear at 12:00:00.
+  const now = new Date()
+  const localTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+  const spentAt = input.spentAt.includes('T') ? input.spentAt : `${input.spentAt}T${localTime}`
   const response = await apiRequest<ExpenseResponseDto>(
     '/expenses',
     {
