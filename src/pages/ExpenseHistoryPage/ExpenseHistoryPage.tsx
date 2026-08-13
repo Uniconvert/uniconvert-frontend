@@ -354,7 +354,7 @@ function ExpenseHistoryPage() {
 
       <FloatingMascot
         messages={mascotMessages}
-        imageSrc="/assets/illustrations/mascot-check.png"
+        imageSrc="/assets/illustrations/mascot-calendar.png"
         speechBubbleVariant="twoLine"
         className={styles.lowerMascot}
       />

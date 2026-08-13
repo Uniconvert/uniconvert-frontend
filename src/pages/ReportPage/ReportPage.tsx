@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { sendMonthlyReport } from '@/api/reports'
+import { sendEmailReport } from '@/api/reports'
 import { getExpensePage } from '@/api/expenses'
 
 import styles from './ReportPage.module.css'
@@ -247,7 +247,6 @@ function ReportPage() {
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
 
-  // 모달 안의 지출 내역 API 연동을 위한 상태
   const [dailyTxList, setDailyTxList] = useState<ExpenseListItemDto[]>([])
   const [isLoadingTx, setIsLoadingTx] = useState(false)
 
@@ -279,7 +278,6 @@ function ReportPage() {
 
   const targetDate = selectedDate || todayStr
 
-  // 이메일 모달이 열릴 때 선택된 날짜의 지출 목록(GET /expenses) 조회
   useEffect(() => {
     if (!isEmailModalOpen || !targetDate) return
 
@@ -337,8 +335,9 @@ function ReportPage() {
     if (isSendingEmail) return
     setIsSendingEmail(true)
     try {
-      await sendMonthlyReport()
+      await sendEmailReport(locale) 
       showToast({ variant: 'success', title: t('report.sendSuccess') })
+      setIsEmailModalOpen(false) 
     } catch (error) {
       showToast({
         variant: 'error',
@@ -721,7 +720,7 @@ function ReportPage() {
 
       <FloatingMascot
         messages={mascotMessages}
-        imageSrc="/assets/illustrations/mascot-check.png"
+        imageSrc="/assets/illustrations/mascot-calendar.png"
         speechBubbleVariant="twoLine"
         className={styles.lowerMascot}
       />

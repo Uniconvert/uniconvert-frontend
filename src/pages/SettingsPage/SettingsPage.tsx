@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getEmailReportPreview } from '@/api/emailReports'
-import { sendMonthlyReport } from '@/api/reports'
+import { getEmailReportSetting, updateEmailReportSetting } from '@/api/users'
 import { getSessionUser, saveSessionUser, updateSessionUser } from '@/auth/session'
 import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
@@ -15,9 +15,10 @@ import { getCategoryIconPath } from '@/utils/categoryIcon'
 import { formatCurrencyAmount } from '@/utils/currency'
 import { useI18n } from '@/i18n/I18nContext'
 import styles from './SettingsPage.module.css'
+import { sendEmailReport } from '@/api/reports'
 
 function SettingsPage() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const sessionUser = useSessionUser()
   const { data: queriedUser, update: updateQueriedUser } = useMyUserQuery()
   const [isEmailReportEnabled, setIsEmailReportEnabled] = useState(false)
@@ -37,6 +38,25 @@ function SettingsPage() {
   const [timePage, setTimePage] = useState(0)
   const [isSendingReport, setIsSendingReport] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
+
+  useEffect(() => {
+    getEmailReportSetting()
+      .then((res) => {
+        if (res) {
+          setIsEmailReportEnabled(res.enabled ?? false)
+
+          if (res.frequency) {
+            setReportCycle(res.frequency.toLowerCase() as 'daily' | 'weekly' | 'monthly')
+          }
+
+          if (res.sendTime) {
+            setReportTime(res.sendTime.slice(0, 5))
+          }
+        }
+      })
+      .catch(() => {
+      })
+  }, [])
 
   useEffect(() => {
     if (queriedUser) {
@@ -65,13 +85,37 @@ function SettingsPage() {
     }
   }
 
-  const handleSendReport = async () => {
-    if (isSendingReport) return
-    setIsSendingReport(true)
-    try { await sendMonthlyReport(); showToast({ variant: 'success', title: t('report.sendSuccess') }) }
-    catch (error) { showToast({ variant: 'error', ...getApiErrorNotice(error, t('settings.reportSendError')) }) }
-    finally { setIsSendingReport(false) }
+  const handleSaveEmailSettings = async () => {
+    try {
+      await updateEmailReportSetting({
+        enabled: isEmailReportEnabled,
+        frequency: (reportCycle.toUpperCase() as 'DAILY' | 'WEEKLY' | 'MONTHLY'),
+        sendTime: reportTime.length === 5 ? `${reportTime}:00` : reportTime,
+      })
+
+      showToast({ variant: 'success', title: t('settings.profileUpdated') })
+    } catch (error) {
+      showToast({ variant: 'error', ...getApiErrorNotice(error, t('settings.profileUpdateError')) })
+    }
   }
+
+  const handleSendReport = async () => {
+  if (isSendingReport) return
+  setIsSendingReport(true)
+  try {
+    await sendEmailReport(locale) 
+    showToast({ variant: 'success', title: t('report.sendSuccess') })
+  }
+  catch (error) {
+    showToast({ 
+      variant: 'error', 
+      ...getApiErrorNotice(error, t('settings.reportSendError')) 
+    })
+  }
+  finally { 
+    setIsSendingReport(false) 
+  }
+}
 
   const allTimes = Array.from({ length: 24 }, (_, index) => `${String(index + 1).padStart(2, '0')}:00`)
   const itemsPerPage = 6
@@ -101,7 +145,7 @@ function SettingsPage() {
           <div className={styles.optionRow}><span className={styles.optionLabel}>{t('settings.sendCycle')}</span><div className={styles.cycleButtonGroup}>
             {(['daily', 'weekly', 'monthly'] as const).map((cycle) => <button key={cycle} type="button" className={reportCycle === cycle ? styles.activeCycle : ''} onClick={() => setReportCycle(cycle)}>{t(`settings.${cycle}`)}</button>)}
           </div></div>
-          <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span><div className={styles.optionActions}><Button onClick={handleSave} disabled={!nickname.trim()}>{t('common.save')}</Button></div></div>
+          <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span><div className={styles.optionActions}><Button onClick={handleSaveEmailSettings}>{t('common.save')}</Button></div></div>
         </div>}
       </section>
       <section className={styles.profileCard} aria-labelledby="profile-title">

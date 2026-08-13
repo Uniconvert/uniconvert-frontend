@@ -35,13 +35,11 @@ function PotsPage() {
   const [editIcon, setEditIcon] = useState('travel')
   const [deleteTarget, setDeleteTarget] = useState<Pot | null>(null)
 
-  // [추가] 사용자 primaryGoal 상태 관리
-
   const previousAllocationRef = useRef<Pick<PotsData, 'totalAssets' | 'monthlyExpense' | 'allocatedAmount'> | null>(null)
   const { toast, showToast, closeToast } = useToastQueue()
   const { data: currentUser } = useMyUserQuery()
   const primaryGoal = currentUser?.primaryGoal ?? ''
-  // [추가] 마운트 시 사용자 정보 조회하여 primaryGoal 가져오기
+
   useEffect(() => {
     if (!data) return
 
@@ -62,18 +60,29 @@ function PotsPage() {
     }
   }, [data, showToast, t])
 
-  // [수정] primaryGoal과 Pot 개수에 따른 마스코트 멘트 풀 분기
+  // 목표 달성 여부 판단을 상단에서 먼저 정의
+  const hasCompletedPot = useMemo(() => {
+    return Boolean(data && data.pots.length > 0 && data.pots.some((pot) => pot.savedAmount >= pot.targetAmount))
+  }, [data])
+
+  // 마스코트 멘트 설정 (목표 달성 시 진짜 멘트 출력)
   const mascotMessages = useMemo(() => {
     if (!data || !data.pots) return ["돈을 저축해보는 건 어때요?"]
 
-    // Pots가 하나도 없을 때
+    if (hasCompletedPot) {
+      return [
+        "목표 달성! 정말 대단해요!",
+        "꾸준히 모으더니 해냈네요, 축하해요!",
+        "축하해요! 다음 Pots 는 어떤 게 좋을까요? 지출 내역을 참고해보세요!"
+      ]
+    }
+
     const apiMessages = data.mascotMessages
       .map((item) => item.message)
       .filter(Boolean)
     if (apiMessages.length > 0) return apiMessages
 
     if (data.pots.length === 0) {
-      // primaryGoal 종류에 따른 맞춤 멘트 설정
       if (primaryGoal === 'travel') {
         return [
           `오사카 여행을 떠나보는 건 어때요?`,
@@ -90,7 +99,6 @@ function PotsPage() {
           "미래를 위한 투자를 준비해보세요!"
         ]
       } else {
-        // 기본 Fallback 멘트
         return [
           "오사카 여행을 떠나봐요!",
           "돈을 저축해보는 건 어때요?"
@@ -98,22 +106,11 @@ function PotsPage() {
       }
     }
 
-    // 목표를 달성한 Pot이 하나라도 있는지 확인
-    const hasCompletedPot = data.pots.some((pot) => pot.savedAmount >= pot.targetAmount)
-
-    if (hasCompletedPot) {
-      return [
-        "목표 달성! 정말 대단해요!",
-        "꾸준히 모으더니 해냈네요, 축하해요!",
-        "축하해요! 다음 Pots 는 어떤 게 좋을까요? 지출 내역을 참고해보세요!"
-      ]
-    } else {
-      return [
-        "오늘도 목표를 향해 한 걸음!",
-        "조금씩 쌓이고 있어요. 꾸준히 가봐요!"
-      ]
-    }
-  }, [data, primaryGoal])
+    return [
+      "오늘도 목표를 향해 한 걸음!",
+      "조금씩 쌓이고 있어요. 꾸준히 가봐요!"
+    ]
+  }, [data, primaryGoal, hasCompletedPot])
 
   if (errorMessage) return <div role="alert" className={styles.loadError}><p>{errorMessage}</p><button type="button" onClick={() => { void reloadPots() }}>{t('common.retry')}</button></div>
   if (!data) return <p aria-live="polite">{t('pots.loading')}</p>
@@ -205,8 +202,6 @@ function PotsPage() {
 
     try {
       await createPot(input)
-      // Pot 생성 시 서버가 표시 순서와 이번 달 배정 상태를 최종 결정하므로,
-      // 화면의 임시 계산값 대신 서버 데이터를 다시 받아 표시한다.
       await reloadPots()
       setIsCreateOpen(false)
     } catch (error) {
@@ -218,8 +213,6 @@ function PotsPage() {
       setIsSaving(false)
     }
   }
-
-  const hasCompletedPot = data.pots.length > 0 && data.pots.some((pot) => pot.savedAmount >= pot.targetAmount)
 
   return (
     <section className={styles.page} aria-labelledby="pots-title">
@@ -254,7 +247,7 @@ function PotsPage() {
           </div>
           <FloatingMascot
             messages={mascotMessages}
-            imageSrc={hasCompletedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-checklist.png'}
+            imageSrc={hasCompletedPot ? '/assets/illustrations/mascot-celebration.png' : '/assets/illustrations/mascot-finance.png'}
             speechBubbleVariant="compact"
             className={styles.lowerMascot}
           />

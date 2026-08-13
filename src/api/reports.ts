@@ -94,6 +94,21 @@ export async function getMonthlyReport(yearMonth: string): Promise<MonthlyReport
   }
 }
 
-export function sendMonthlyReport() {
-  return apiRequest<unknown>('/reports/email/send', { method: 'POST' })
+export function sendEmailReport(language: string = 'ko-KR') {
+  return apiRequest<unknown>('/reports/email/send', {
+    method: 'POST',
+    headers: {
+      'X-Browser-Language': language,
+    },
+    body: JSON.stringify({}),
+  })
+}
+
+export function sendMonthlyEmailReport(language: string = 'ko-KR') {
+  return apiRequest<unknown>('/reports/monthly/email', {
+    method: 'POST',
+    headers: {
+      'X-Browser-Language': language,
+    },
+  })
 }
