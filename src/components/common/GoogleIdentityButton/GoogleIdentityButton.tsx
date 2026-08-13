@@ -169,7 +169,10 @@ function GoogleIdentityButton({
             text: 'continue_with',
             shape: 'rectangular',
             logo_alignment: 'center',
-            width: String(nextWidth),
+            // GIS standard buttons are capped at 400px. Render at the capped
+            // width and let the host center it instead of inheriting a stale
+            // right-aligned iframe width on production.
+            width: String(Math.min(nextWidth, 400)),
             // Google Identity Services expects a language code such as `ko` or `en`.
             locale: language,
           })

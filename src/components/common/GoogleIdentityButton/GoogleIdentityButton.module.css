@@ -21,9 +21,10 @@
 
 .buttonHost > div,
 .buttonHost iframe {
-  width: 100% !important;
+  width: min(100%, 400px) !important;
   max-width: none !important;
   display: block;
+  margin: 0 auto !important;
   border-radius: inherit !important;
 }
 
