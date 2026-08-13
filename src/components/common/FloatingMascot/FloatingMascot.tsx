@@ -5,13 +5,20 @@ import styles from './FloatingMascot.module.css'
 interface FloatingMascotProps {
   messages: React.ReactNode[]; // 수정: string[] -> React.ReactNode[]
   imageSrc: string;
+  speechBubbleVariant?: 'default' | 'twoLine' | 'compact';
+  className?: string;
 }
 
-export default function FloatingMascot({ messages, imageSrc }: FloatingMascotProps) {
+export default function FloatingMascot({
+  messages,
+  imageSrc,
+  speechBubbleVariant,
+  className = '',
+}: FloatingMascotProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const timerRef = useRef<number | null>(null)
-
   const messagesRef = useRef(messages)
+
   useEffect(() => {
     messagesRef.current = messages
   }, [messages])
@@ -19,9 +26,10 @@ export default function FloatingMascot({ messages, imageSrc }: FloatingMascotPro
   const showNextMessage = useCallback(() => {
     setCurrentIndex((prev) => {
       const currentMessages = messagesRef.current
-      if (!currentMessages || currentMessages.length <= 1) return 0
+      if (currentMessages.length <= 1) return 0
+      const activeIndex = prev % currentMessages.length
       let next = Math.floor(Math.random() * currentMessages.length)
-      while (next === prev) {
+      while (next === activeIndex) {
         next = Math.floor(Math.random() * currentMessages.length)
       }
       return next
@@ -36,7 +44,6 @@ export default function FloatingMascot({ messages, imageSrc }: FloatingMascotPro
   }, [showNextMessage])
 
   useEffect(() => {
-    setCurrentIndex(0)
     resetTimer()
 
     return () => {
@@ -49,17 +56,20 @@ export default function FloatingMascot({ messages, imageSrc }: FloatingMascotPro
     resetTimer()
   }
 
-  const currentMessages = messagesRef.current
-  const currentMessage = currentMessages && currentMessages.length > 0 ? currentMessages[currentIndex] : ''
+  const currentMessage = messages.length > 0 ? messages[currentIndex % messages.length] : ''
 
   return (
     <div 
-      className={styles.floatingMascotRail} 
+      className={`${styles.floatingMascotRail} ${className}`.trim()}
       onClick={handleClick} 
-      style={{ cursor: 'pointer', display: 'inline-block', userSelect: 'none' }}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
     >
       <div className={styles.floatingMascot}>
-        <Mascot message={currentMessage} imageSrc={imageSrc} />
+        <Mascot
+          message={currentMessage}
+          imageSrc={imageSrc}
+          speechBubbleVariant={speechBubbleVariant}
+        />
       </div>
     </div>
   )

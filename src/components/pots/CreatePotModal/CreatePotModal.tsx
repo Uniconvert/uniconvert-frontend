@@ -52,7 +52,7 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
     <ModalShell
       title={t('pots.create')}
       titleId="create-pot-title"
-      closeLabel="새로운 Pots 만들기 닫기"
+      closeLabel={t('pots.createClose')}
       width="43rem"
       bodyClassName={styles.modalBody}
       onClose={onClose}
@@ -60,7 +60,7 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
       <form onSubmit={submit}>
           <label>
             <span>{t('pots.editName')}</span>
-            <span className={styles.nameInputRow}><i><img src={selectedCategory.iconSrc} alt="" aria-hidden="true" /></i><input value={name} maxLength={30} placeholder="예) 유럽 여행, 비상금, 노트북 구매 등" onChange={(event) => setName(event.target.value)} required /></span>
+            <span className={styles.nameInputRow}><i><img src={selectedCategory.iconSrc} alt="" aria-hidden="true" /></i><input value={name} maxLength={30} placeholder={t('pots.namePlaceholder')} onChange={(event) => setName(event.target.value)} required /></span>
           </label>
 
           <div className={styles.targetField}>
@@ -74,7 +74,7 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
                 max={maximumTargetAmount}
                 step="10000"
                 value={targetAmount}
-                aria-label="목표 금액"
+                aria-label={t('pots.targetAmountLabel')}
                 style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${targetRate}%, #e5e5e5 ${targetRate}% 100%)` }}
                 onChange={(event) => setTargetAmount(Number(event.target.value))}
               />
@@ -90,7 +90,7 @@ function CreatePotModal({ isSaving, onClose, onSubmit, maximumTargetAmount, curr
                 key={option.key}
                 type="button"
                 className={option.key === representativeImageKey ? styles.selectedImage : ''}
-                aria-label={`대표 이미지 ${index + 1}`}
+                aria-label={t('pots.imageOption', { index: index + 1 })}
                 aria-pressed={option.key === representativeImageKey}
                 onClick={() => setRepresentativeImageKey(option.key)}
               >

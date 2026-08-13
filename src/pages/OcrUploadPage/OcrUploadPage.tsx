@@ -5,9 +5,11 @@ import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { getApiErrorNotice } from '@/utils/apiError'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './OcrUploadPage.module.css'
 
 function OcrUploadPage() {
+  const { t } = useI18n()
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [statusMessage, setStatusMessage] = useState('')
   const { toast, showToast, closeToast } = useToastQueue()
@@ -17,9 +19,9 @@ function OcrUploadPage() {
       {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <div className={styles.previewCard}>
         <span>CSV</span>
-        <h1 id="ocr-title">CSV로 지출 내역 등록</h1>
-        <p>Wise 또는 Monzo CSV 파일을 업로드해 지출 데이터를 불러올 수 있습니다.</p>
-        <Button onClick={() => setIsModalOpen(true)}>파일 업로드</Button>
+        <h1 id="ocr-title">{t('expenseInput.csvTitle')}</h1>
+        <p>{t('expenseInput.csvDescription')}</p>
+        <Button onClick={() => setIsModalOpen(true)}>{t('expenseInput.uploadButton')}</Button>
         {statusMessage && <p className={styles.status} role="status">{statusMessage}</p>}
       </div>
 
@@ -28,18 +30,25 @@ function OcrUploadPage() {
         onClose={() => setIsModalOpen(false)}
         onError={(error) => showToast({
           variant: 'error',
-          ...getApiErrorNotice(error, '지출 내역을 가져오지 못했습니다.'),
+          ...getApiErrorNotice(error, t('expenseInput.importError')),
         })}
         onUpload={async (file) => {
           const result = await importExpenses(file)
           setStatusMessage(
-            `저장 ${result.savedCount ?? 0}건 · 제외 ${result.excludedCount ?? 0}건 · 오류 ${result.errorCount ?? 0}건`,
+            t('expenseInput.importStatus', {
+              saved: result.savedCount ?? 0,
+              excluded: result.excludedCount ?? 0,
+              errors: result.errorCount ?? 0,
+            }),
           )
           setIsModalOpen(false)
           showToast({
             variant: 'success',
-            title: `${result.savedCount ?? 0}건의 지출을 가져왔어요`,
-            description: `제외 ${result.excludedCount ?? 0}건 · 오류 ${result.errorCount ?? 0}건`,
+            title: t('expenseInput.importSuccess', { saved: result.savedCount ?? 0 }),
+            description: t('expenseInput.importSummary', {
+              excluded: result.excludedCount ?? 0,
+              errors: result.errorCount ?? 0,
+            }),
           })
         }}
       />

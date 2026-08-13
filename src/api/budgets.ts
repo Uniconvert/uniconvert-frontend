@@ -1,36 +1,24 @@
-import { getMockMonthlyBudget } from '@/mocks/mockScenario'
-import { updateStoredMonthlyBudget } from '@/mocks/potStore'
-import { ApiError, apiRequest, isUsingMockApi } from './client'
+import { ApiError, apiRequest } from './client'
 
 export interface BudgetDto {
   budgetId?: number
   yearMonth?: string
   monthlyLimitHome?: number
 }
+const budgetRequests = new Map<string, Promise<BudgetDto>>()
 
-export const isUsingMockBudgetApi = isUsingMockApi
-
-interface GetBudgetOptions {
-  useMock?: boolean
+export async function getBudget(yearMonth: string) {
+  const cached = budgetRequests.get(yearMonth)
+  if (cached) return cached
+  const request = loadBudget(yearMonth).finally(() => budgetRequests.delete(yearMonth))
+  budgetRequests.set(yearMonth, request)
+  return request
 }
 
-export async function getBudget(
-  yearMonth: string,
-  { useMock = isUsingMockBudgetApi }: GetBudgetOptions = {},
-) {
-  if (useMock) {
-    return Promise.resolve<BudgetDto>({
-      budgetId: 0,
-      yearMonth,
-      monthlyLimitHome: getMockMonthlyBudget(),
-    })
-  }
-
+async function loadBudget(yearMonth: string) {
   try {
     return await apiRequest<BudgetDto>(
       `/budgets/${encodeURIComponent(yearMonth)}`,
-      { data: { budgetId: 0, yearMonth, monthlyLimitHome: 0 } },
-      { useMock: false },
     )
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
@@ -41,18 +29,11 @@ export async function getBudget(
 }
 
 export function upsertBudget(yearMonth: string, monthlyLimitHome: number) {
-  if (isUsingMockBudgetApi) {
-    updateStoredMonthlyBudget(monthlyLimitHome)
-    return Promise.resolve<BudgetDto>({ budgetId: 0, yearMonth, monthlyLimitHome })
-  }
-
   return apiRequest<BudgetDto>(
     `/budgets/${encodeURIComponent(yearMonth)}`,
-    { data: { budgetId: 0, yearMonth, monthlyLimitHome } },
     {
       method: 'PUT',
       body: JSON.stringify({ monthlyLimitHome }),
-      useMock: false,
     },
   )
 }

@@ -15,7 +15,7 @@
 }
 
 .formToolbar h1 {
-  color: #2f6f9f;
+  color: #6AADEA;
   font-family: 'Pretendard', sans-serif;
   font-size: 1.375rem;
   font-weight: 500;
@@ -39,7 +39,7 @@
 .twoColumns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(1.25rem, 3vh, 2.75rem) clamp(1.5rem, 3vw, 3.5rem);
+  gap: calc(clamp(1.25rem, 3vh, 2.75rem) + 3px) clamp(1.5rem, 3vw, 3.5rem);
   margin-top: clamp(1.25rem, 3vh, 2rem);
 }
 
@@ -58,7 +58,7 @@
 .memoField > span:first-child,
 .categories legend {
   font-size: 1rem;
-  font-weight: var(--font-weight-bold);
+  font-weight: 500;
 }
 
 .field > input,
@@ -113,7 +113,7 @@
 
 .amountLabel small {
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: var(--font-weight-regular);
   white-space: nowrap;
 }
@@ -128,6 +128,7 @@
 
 .amountInputWrap b {
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .amountInputWrap input {
@@ -136,6 +137,7 @@
   border: 0;
   outline: 0;
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .amountInputWrap small {
@@ -152,8 +154,8 @@
 
 .categoryList {
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: clamp(0.375rem, 0.65vw, 0.875rem);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(0.75rem, 1.6vw, 2rem);
   margin-top: 0.5rem;
 }
 
@@ -168,6 +170,30 @@
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   font-size: clamp(0.85rem, 1.5vw, 1rem);
+  font-weight: 500;
+}
+
+.categoryList button > span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryList button > .multilineCategoryLabel {
+  display: -webkit-box;
+  width: 100%;
+  margin-top: 2px;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .categoryList button.selectedCategory {
@@ -186,6 +212,11 @@
 .categoryList img.largeCategoryIcon {
   width: 2rem;
   height: 2rem;
+}
+
+.categoryList img.savingsCategoryIcon {
+  width: 2.2rem;
+  height: 2.2rem;
 }
 
 .categorySymbol {
@@ -274,6 +305,7 @@
 .conversion > span:last-child {
   color: #3c688e;
   text-align: right;
+  font-weight: 500;
 }
 
 .conversion small {
@@ -303,12 +335,14 @@
 .previewRow {
   margin-top: 1.75rem;
   font-size: 1.125rem;
+  font-weight: 500;
 }
 
 .previewRow strong {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+  font-weight: 500;
 }
 
 .previewCard hr {
@@ -320,6 +354,12 @@
 .budgetHeading,
 .remaining {
   font-size: 1rem;
+  font-weight: 600;
+}
+
+.budgetHeading strong,
+.remaining strong {
+  font-weight: 600;
 }
 
 .progressTrack {
@@ -405,5 +445,90 @@
   .conversion {
     gap: 0.5rem;
     font-size: 1.05rem;
+  }
+}
+
+/* Mobile expense entry: preview first, then a single-column form. */
+@media (max-width: 63.75rem) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .previewPanel {
+    display: block;
+    order: -1;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .exchangeImage {
+    display: none;
+  }
+
+  .previewCard {
+    min-height: auto;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--color-primary);
+    border-radius: 1rem;
+  }
+
+  .previewCard h2 {
+    font-size: 1.1rem;
+  }
+
+  .conversion {
+    gap: .5rem;
+    margin-top: 1.25rem;
+    font-size: 1rem;
+  }
+
+  .conversion b {
+    font-size: 1.5rem;
+  }
+
+  .conversion small {
+    font-size: .875rem;
+  }
+
+  .previewRow {
+    margin-top: 1rem;
+    font-size: .875rem;
+  }
+
+  .previewCard hr {
+    margin: 1rem 0;
+  }
+
+  .progressTrack {
+    height: .625rem;
+  }
+
+  .remaining {
+    margin-top: .75rem;
+    font-size: .875rem;
+  }
+
+  .form {
+    order: 1;
+  }
+
+  .twoColumns {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .categoryList {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .5rem;
+  }
+
+  .categoryList button {
+    min-height: 4.5rem;
+    padding: .4rem;
+    font-size: .8rem;
   }
 }

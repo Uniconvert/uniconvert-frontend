@@ -2,8 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError, apiRequest } from './client'
 
-const mockResponse = { data: { source: 'mock' as const } }
-
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -22,16 +20,6 @@ describe('apiRequest', () => {
     vi.restoreAllMocks()
   })
 
-  it('Mock 모드에서는 네트워크 요청 없이 Mock 데이터를 반환한다', async () => {
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
-
-    await expect(apiRequest('/test', mockResponse, { useMock: true })).resolves.toEqual({
-      source: 'mock',
-    })
-    expect(fetchMock).not.toHaveBeenCalled()
-  })
-
   it('공통 성공 응답의 data를 화면에 반환한다', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
@@ -44,10 +32,7 @@ describe('apiRequest', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      apiRequest('/test', mockResponse, {
-        useMock: false,
-        skipAuth: true,
-      }),
+      apiRequest('/test', { skipAuth: true }),
     ).resolves.toEqual({ source: 'server' })
 
     const [, request] = fetchMock.mock.calls[0]
@@ -72,10 +57,7 @@ describe('apiRequest', () => {
       ),
     )
 
-    const error = await apiRequest('/test', mockResponse, {
-      useMock: false,
-      skipAuth: true,
-    }).catch((caught: unknown) => caught)
+    const error = await apiRequest('/test', { skipAuth: true }).catch((caught: unknown) => caught)
 
     expect(error).toBeInstanceOf(ApiError)
     expect(error).toMatchObject({
@@ -89,10 +71,7 @@ describe('apiRequest', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
     await expect(
-      apiRequest('/test', mockResponse, {
-        useMock: false,
-        skipAuth: true,
-      }),
+      apiRequest('/test', { skipAuth: true }),
     ).rejects.toMatchObject({
       status: 0,
       code: 'NETWORK_ERROR',

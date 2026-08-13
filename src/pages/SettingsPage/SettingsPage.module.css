@@ -13,6 +13,7 @@
   grid-column: 1;
   grid-row: 1;
   margin-bottom: 2rem;
+  color: #6aadea;
   font-size: 1.75rem;
   font-weight: 500;
 }
@@ -367,8 +368,8 @@
   place-items: center;
   color: #366894;
   background: linear-gradient(145deg, #fff4cc, #d9efff);
-  border: 2px solid var(--color-primary);
-  border-radius: 2.5rem;
+  border: 0;
+  border-radius: 0.75rem;
   font-weight: var(--font-weight-bold);
   font-size: clamp(2rem, 5vw, 3.5rem);
 }
@@ -414,7 +415,7 @@
 .profileFields span {
   padding-left: 0.8rem;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .profileFields input,
@@ -556,6 +557,7 @@
 .reportTotal strong {
   color: #366894;
   font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .reportCard hr {
@@ -718,5 +720,63 @@
 
   .reportCard {
     padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 63.75rem) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .page > h1 {
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .leftColumn,
+  .reportPanel {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .emailSetting {
+    padding: 1rem;
+  }
+
+  .emailSettingHeader {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.75rem;
+  }
+
+  .emailIcon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .optionRow {
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .profileCard {
+    margin-top: 1rem;
+  }
+
+  .reportPanel {
+    min-height: auto;
+    padding: 4rem 1rem 1rem;
+    border-radius: 1.5rem;
+  }
+
+  .reportCard {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .emailIllustration {
+    width: 9rem;
+    right: 0;
   }
 }

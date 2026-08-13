@@ -4,6 +4,7 @@ export interface ExpenseCategorySummary {
   percentage: number
   amountHome: number
   color: string
+  iconKey: string
 }
 
 export interface ExpenseListItem {
@@ -24,6 +25,18 @@ export interface ExpenseHistoryData {
   budgetUsagePercent: number
   categories: ExpenseCategorySummary[]
   recentExpenses: ExpenseListItem[]
+  mascotMessages: MascotMessage[]
+}
+
+export interface MascotMessage {
+  key: string
+  message: string
+  type: 'ENTRY' | 'INSIGHT' | 'RANDOM'
+}
+
+export interface UniMessageBundleDto {
+  entryMessages?: Partial<MascotMessage>[]
+  randomMessages?: Partial<MascotMessage>[]
 }
 
 export interface SavedExpense {
@@ -37,11 +50,15 @@ export interface SavedExpense {
 /** Swagger GET /expenses, GET /expenses/recent 응답 항목입니다. */
 export interface ExpenseListItemDto {
   id?: number
+  expenseId?: number | string
   merchantName?: string | null
   categoryId?: number
   categoryName?: string | null
   iconKey?: string | null
   convertedAmountHome?: number
+  totalAmountHome?: number
+  homeAmount?: number
+  convertedAmount?: number
   originalCurrency?: string | null
   originalAmount?: number
   spentAt?: string | null
@@ -60,6 +77,15 @@ export interface ExpensePageDto {
   empty?: boolean
 }
 
+/** Swagger GET /expenses의 data 응답입니다. */
+export interface ExpenseListResponseDto {
+  expenses?: ExpensePageDto
+  content?: ExpenseListItemDto[]
+  totalPages?: number
+  totalElements?: number
+  uniMessages?: UniMessageBundleDto
+}
+
 export interface BudgetResponseDto {
   budgetId?: number
   yearMonth?: string
@@ -68,6 +94,7 @@ export interface BudgetResponseDto {
 
 export interface ReportSummaryResponseDto {
   totalAmount?: number
+  uniMessages?: UniMessageBundleDto
 }
 
 export interface ReportCategoryItemDto {
@@ -101,7 +128,7 @@ export interface ExpenseDetail {
 }
 
 export interface CreateExpenseInput extends Omit<ExpenseDetail, 'expenseId'> {
-  /** 실제 API의 카테고리 PK입니다. Mock에서는 없어도 됩니다. */
+  /** 실제 API의 카테고리 PK입니다. */
   categoryId?: number
 }
 

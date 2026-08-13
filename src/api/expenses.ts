@@ -1,29 +1,23 @@
-import expenseHistoryMock from '@/mocks/expense-history.json'
-import { createStoredExpense, getStoredExpenses, updateStoredExpense } from '@/mocks/expenseStore'
-import { getMockHomeCurrency, getMockMonthlyBudget } from '@/mocks/mockScenario'
-import { getStoredSavedExpenses, saveStoredSavedExpenses } from '@/mocks/savedExpenseStore'
-import type { ApiResponse } from '@/types/api'
 import type {
   CreateExpenseInput,
   ExpenseHistoryData,
   ExpenseImportResponseDto,
+  ExpenseListResponseDto,
   ExpenseListItem,
   ExpenseListItemDto,
   ExpensePageDto,
+  MascotMessage,
   ExpenseResponseDto,
   ExpenseUserContextDto,
   ReportCategoriesResponseDto,
   ReportCategoryItemDto,
   ReportSummaryResponseDto,
   SavedExpense,
+  UniMessageBundleDto,
 } from '@/types/expense'
 import { getBudget } from './budgets'
-import { apiRequest, isUsingMockApi } from './client'
-
-export const isUsingMockExpenseApi = isUsingMockApi
-
-/** 기존 화면 코드와의 호환을 위한 별칭입니다. */
-export const isUsingMockExpenseReadApi = isUsingMockExpenseApi
+import { apiRequest } from './client'
+import { cachedApiRequest } from './cachedRequests'
 
 const categoryColors: Record<string, string> = {
   food: '#366384', transport: '#a9cbfa', education: '#153047',
@@ -62,16 +56,39 @@ function normalizeIconKey(iconKey?: string | null) {
 function toFiniteNumber(value: number | undefined, fallback = 0) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
+const expenseHistoryRequests = new Map<string, Promise<ExpenseHistoryData>>()
+
+function mapMascotMessages(bundle?: UniMessageBundleDto | null): MascotMessage[] {
+  const messages = [
+    ...(bundle?.entryMessages ?? []),
+    ...(bundle?.randomMessages ?? []),
+  ]
+
+  return messages.flatMap((item, index) => {
+    const message = item.message?.trim()
+    if (!message) return []
+
+    const type = item.type === 'ENTRY' || item.type === 'INSIGHT' || item.type === 'RANDOM'
+      ? item.type
+      : 'RANDOM'
+
+    return [{
+      key: item.key?.trim() || `report-message-${index}`,
+      message,
+      type,
+    }]
+  })
+}
 
 function toExpenseListItem(response: ExpenseListItemDto): ExpenseListItem {
   const iconKey = normalizeIconKey(response.iconKey)
   const categoryName = response.categoryName?.trim() || '기타'
 
   return {
-    expenseId: String(response.id ?? ''),
+    expenseId: String(response.id ?? response.expenseId ?? ''),
     merchantName: response.merchantName?.trim() || categoryName,
     categoryName,
-    convertedAmountHome: toFiniteNumber(response.convertedAmountHome),
+    convertedAmountHome: toFiniteNumber(response.convertedAmountHome ?? response.totalAmountHome ?? response.homeAmount ?? response.convertedAmount),
     iconKey,
     spentAt: response.spentAt || '',
   }
@@ -146,56 +163,30 @@ function buildExpenseListParams(query: ExpenseListQuery) {
   return params
 }
 
-function requestExpensePage(query: ExpenseListQuery) {
+function requestExpenseList(query: ExpenseListQuery) {
   const params = buildExpenseListParams(query)
-  return apiRequest<ExpensePageDto>(
-    `/expenses?${params.toString()}`,
-    { data: { content: [], number: query.page ?? 0, totalPages: 0, empty: true } },
-    { useMock: false },
-  )
+  return apiRequest<ExpenseListResponseDto>(`/expenses?${params.toString()}`)
 }
 
-function buildMockExpensePage(query: ExpenseListQuery): ExpensePageDto {
-  const page = query.page ?? 0
-  const pageSize = 6
-  const content = getStoredExpenses()
-    .filter((expense) => !query.startAt || expense.spentAt >= query.startAt)
-    .filter((expense) => !query.endAt || expense.spentAt <= query.endAt)
-    .sort((a, b) => b.spentAt.localeCompare(a.spentAt))
-    .map((expense, index): ExpenseListItemDto => ({
-      id: Number.parseInt(expense.expenseId.replace(/\D/g, ''), 10) || index + 1,
-      merchantName: expense.merchantName,
-      categoryName: expense.categoryName,
-      iconKey: expense.iconKey,
-      convertedAmountHome: expense.convertedAmountHome,
-      originalCurrency: expense.currency,
-      originalAmount: expense.originalAmount,
-      spentAt: expense.spentAt,
-    }))
-  const totalPages = Math.ceil(content.length / pageSize)
-  const pageContent = content.slice(page * pageSize, (page + 1) * pageSize)
-
-  return {
-    content: pageContent,
-    number: page,
-    size: pageSize,
-    numberOfElements: pageContent.length,
-    totalElements: content.length,
-    totalPages,
-    first: page === 0,
-    last: page >= totalPages - 1,
-    empty: pageContent.length === 0,
+async function requestExpensePage(query: ExpenseListQuery) {
+  const response = await requestExpenseList(query)
+  const nested = response.expenses as ExpensePageDto | ExpenseListItemDto[] | undefined
+  if (Array.isArray(nested)) return { content: nested }
+  return nested ?? {
+    content: response.content,
+    totalPages: response.totalPages,
+    totalElements: response.totalElements,
   }
 }
 
 /** Swagger의 페이지 기반 GET /expenses를 그대로 노출합니다. */
 export function getExpensePage(query: ExpenseListQuery = {}) {
-  if (isUsingMockExpenseReadApi) return Promise.resolve(buildMockExpensePage(query))
   return requestExpensePage(query)
 }
 
 async function getAllExpensePages(query: Omit<ExpenseListQuery, 'page'>) {
-  const firstPage = await requestExpensePage({ ...query, page: 0 })
+  const firstResponse = await requestExpenseList({ ...query, page: 0 })
+  const firstPage = firstResponse.expenses ?? {}
   const totalPages = Math.max(1, toFiniteNumber(firstPage.totalPages, 1))
   const remainingPages = totalPages > 1
     ? await Promise.all(
@@ -205,9 +196,12 @@ async function getAllExpensePages(query: Omit<ExpenseListQuery, 'page'>) {
     )
     : []
 
-  return [firstPage, ...remainingPages]
-    .flatMap((page) => page.content ?? [])
-    .sort((a, b) => (b.spentAt ?? '').localeCompare(a.spentAt ?? ''))
+  return {
+    expenses: [firstPage, ...remainingPages]
+      .flatMap((page) => page.content ?? [])
+      .sort((a, b) => (b.spentAt ?? '').localeCompare(a.spentAt ?? '')),
+    mascotMessages: mapMascotMessages(firstResponse.uniMessages),
+  }
 }
 
 async function resolveOrNull<T>(request: Promise<T>) {
@@ -215,83 +209,6 @@ async function resolveOrNull<T>(request: Promise<T>) {
     return await request
   } catch {
     return null
-  }
-}
-
-function buildCategoryTotals(
-  expenses: ReturnType<typeof getStoredExpenses>,
-  yearMonth: string,
-  range: string,
-) {
-  const today = formatLocalDate(new Date())
-  const referenceDate = today.startsWith(yearMonth)
-    ? today
-    : expenses[0]?.spentAt.slice(0, 10) ?? `${yearMonth}-01`
-  const rangeStart = getRangeStart(referenceDate, range)
-  const rangeEnd = range === 'month' ? `${yearMonth}-31` : referenceDate
-  const totals = new Map<string, { categoryName: string; amount: number; spentAt: string }>()
-
-  expenses
-    .filter((expense) => {
-      const spentDate = expense.spentAt.slice(0, 10)
-      return spentDate >= rangeStart && spentDate <= rangeEnd
-    })
-    .forEach((expense) => {
-      const current = totals.get(expense.iconKey)
-      totals.set(expense.iconKey, {
-        categoryName: expense.categoryName,
-        amount: (current?.amount ?? 0) + expense.convertedAmountHome,
-        spentAt: current?.spentAt && current.spentAt > expense.spentAt ? current.spentAt : expense.spentAt,
-      })
-    })
-
-  return Array.from(totals, ([iconKey, value]) => ({
-    expenseId: `category-${range}-${iconKey}`,
-    merchantName: value.categoryName,
-    categoryName: value.categoryName,
-    convertedAmountHome: value.amount,
-    iconKey,
-    spentAt: value.spentAt,
-  })).sort((a, b) => b.convertedAmountHome - a.convertedAmountHome)
-}
-
-function buildMockHistory(yearMonth: string, range: string): ExpenseHistoryData {
-  const mockBase = (expenseHistoryMock as ApiResponse<ExpenseHistoryData>).data
-  const base: ExpenseHistoryData = {
-    ...mockBase,
-    homeCurrency: getMockHomeCurrency(),
-    monthlyBudgetHome: getMockMonthlyBudget(),
-  }
-  const expenses = getStoredExpenses()
-    .filter((expense) => expense.spentAt.startsWith(yearMonth))
-    .sort((a, b) => b.spentAt.localeCompare(a.spentAt))
-  const monthlyExpenseHome = expenses.reduce((sum, expense) => sum + expense.convertedAmountHome, 0)
-  const categoryMap = new Map<string, { name: string; amount: number }>()
-
-  expenses.forEach((expense) => {
-    const current = categoryMap.get(expense.iconKey)
-    categoryMap.set(expense.iconKey, {
-      name: expense.categoryName,
-      amount: (current?.amount ?? 0) + expense.convertedAmountHome,
-    })
-  })
-
-  return {
-    ...base,
-    yearMonth,
-    monthlyExpenseHome,
-    remainingBudgetHome: Math.max(base.monthlyBudgetHome - monthlyExpenseHome, 0),
-    budgetUsagePercent: base.monthlyBudgetHome > 0
-      ? Math.round((monthlyExpenseHome / base.monthlyBudgetHome) * 1000) / 10
-      : 0,
-    categories: Array.from(categoryMap, ([categoryId, value]) => ({
-      categoryId,
-      categoryName: value.name,
-      amountHome: value.amount,
-      percentage: monthlyExpenseHome > 0 ? Math.round((value.amount / monthlyExpenseHome) * 100) : 0,
-      color: categoryColors[categoryId] ?? categoryColors.other,
-    })),
-    recentExpenses: buildCategoryTotals(expenses, yearMonth, range),
   }
 }
 
@@ -347,28 +264,24 @@ function mapReportCategories(
   }).sort((a, b) => b.amountHome - a.amountHome)
 }
 
-async function buildRealHistory(yearMonth: string, range: string): Promise<ExpenseHistoryData> {
+async function buildRealHistory(yearMonth: string, range: string, userContextOverride?: ExpenseUserContextDto | null): Promise<ExpenseHistoryData> {
   const monthRange = getMonthBounds(yearMonth)
   const reportRange = getReportRange(yearMonth, range)
   const monthQuery = {
     startAt: toDateTimeStart(monthRange.startDate),
     endAt: toDateTimeEnd(monthRange.endDate),
   }
-  const monthCategoryRequest = resolveOrNull(apiRequest<ReportCategoriesResponseDto>(
+  const monthCategoryRequest = resolveOrNull(cachedApiRequest<ReportCategoriesResponseDto>(
     `/reports/categories?${new URLSearchParams({
       startDate: monthRange.startDate,
       endDate: monthRange.endDate,
     }).toString()}`,
-    { data: { totalAmount: 0, categories: [] } },
-    { useMock: false },
   ))
   const rangeCategoryRequest = reportRange.startDate === monthRange.startDate
     && reportRange.endDate === monthRange.endDate
     ? monthCategoryRequest
-    : resolveOrNull(apiRequest<ReportCategoriesResponseDto>(
+    : resolveOrNull(cachedApiRequest<ReportCategoriesResponseDto>(
       `/reports/categories?${new URLSearchParams(reportRange).toString()}`,
-      { data: { totalAmount: 0, categories: [] } },
-      { useMock: false },
     ))
 
   // 집계 API가 아직 500을 반환하는 환경에서도 목록 데이터로 화면을 복구할 수 있게
@@ -383,27 +296,21 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
     userContext,
   ] = await Promise.all([
     resolveOrNull(getAllExpensePages(monthQuery)),
-    resolveOrNull(getBudget(yearMonth, { useMock: false })),
+    resolveOrNull(getBudget(yearMonth)),
     resolveOrNull(apiRequest<number>(
       `/expenses/remaining-budget?${new URLSearchParams({ yearMonth }).toString()}`,
-      { data: 0 },
-      { useMock: false },
     )),
     resolveOrNull(apiRequest<ReportSummaryResponseDto>(
       `/reports/summary?${new URLSearchParams({
         startDate: monthRange.startDate,
         endDate: monthRange.endDate,
       }).toString()}`,
-      { data: { totalAmount: 0 } },
-      { useMock: false },
     )),
     monthCategoryRequest,
     rangeCategoryRequest,
-    resolveOrNull(apiRequest<ExpenseUserContextDto>(
-      '/users/me',
-      { data: { homeCurrencyCode: 'KRW' } },
-      { useMock: false },
-    )),
+    userContextOverride === undefined
+      ? resolveOrNull(apiRequest<ExpenseUserContextDto>('/users/me'))
+      : Promise.resolve(userContextOverride),
   ])
 
   if (
@@ -415,7 +322,7 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
     throw new Error('지출 내역을 불러오지 못했습니다.')
   }
 
-  const monthExpenses = (expenseResponses ?? []).map(toExpenseListItem)
+  const monthExpenses = (expenseResponses?.expenses ?? []).map(toExpenseListItem)
   const fallbackMonthlyCategories = buildCategorySummaryFromExpenses(monthExpenses)
   const listMonthlyTotal = monthExpenses.reduce(
     (sum, expense) => sum + expense.convertedAmountHome,
@@ -434,6 +341,7 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
     amountHome: category.amountHome,
     percentage: category.percentage,
     color: category.color,
+    iconKey: category.iconKey,
   }))
   const rangeExpenses = monthExpenses.filter((expense) => {
     const spentDate = expense.spentAt.slice(0, 10)
@@ -471,28 +379,23 @@ async function buildRealHistory(yearMonth: string, range: string): Promise<Expen
       iconKey: category.iconKey,
       spentAt: category.latestSpentAt || `${reportRange.endDate}T23:59:59`,
     })),
+    mascotMessages: expenseResponses?.mascotMessages.length
+      ? expenseResponses.mascotMessages
+      : mapMascotMessages(summary?.uniMessages),
   }
 }
 
-export function getExpenseHistory(yearMonth: string, range: string) {
-  if (isUsingMockExpenseApi) return Promise.resolve(buildMockHistory(yearMonth, range))
-  return buildRealHistory(yearMonth, range)
+export function getExpenseHistory(yearMonth: string, range: string, userContext?: ExpenseUserContextDto | null) {
+  const key = `${yearMonth}:${range}:${userContext?.homeCurrencyCode ?? ''}`
+  const cached = expenseHistoryRequests.get(key)
+  if (cached) return cached
+  const request = buildRealHistory(yearMonth, range, userContext)
+  expenseHistoryRequests.set(key, request)
+  window.setTimeout(() => expenseHistoryRequests.delete(key), 5_000)
+  return request
 }
 
 export async function createExpense(input: CreateExpenseInput) {
-  if (isUsingMockExpenseApi) {
-    const expense = createStoredExpense(input)
-    const savedExpense: SavedExpense = {
-      expenseId: expense.expenseId,
-      merchantName: expense.merchantName.trim() || expense.categoryName,
-      convertedAmountHome: expense.convertedAmountHome,
-      iconKey: expense.iconKey,
-      spentAt: expense.spentAt,
-    }
-    saveStoredSavedExpenses([savedExpense, ...getStoredSavedExpenses()])
-    return expense
-  }
-
   if (!input.categoryId) {
     throw new Error('지출 카테고리를 다시 선택해 주세요.')
   }
@@ -500,19 +403,6 @@ export async function createExpense(input: CreateExpenseInput) {
   const spentAt = input.spentAt.includes('T') ? input.spentAt : `${input.spentAt}T12:00:00`
   const response = await apiRequest<ExpenseResponseDto>(
     '/expenses',
-    {
-      data: {
-        id: 0,
-        originalAmount: input.originalAmount,
-        originalCurrency: input.currency,
-        appliedRate: input.appliedRate,
-        convertedAmountHome: input.convertedAmountHome,
-        merchantName: input.merchantName,
-        memo: input.memo,
-        categoryId: input.categoryId,
-        spentAt,
-      },
-    },
     {
       method: 'POST',
       body: JSON.stringify({
@@ -523,7 +413,6 @@ export async function createExpense(input: CreateExpenseInput) {
         merchantName: input.merchantName || undefined,
         memo: input.memo || undefined,
       }),
-      useMock: false,
     },
   )
 
@@ -543,34 +432,18 @@ export async function createExpense(input: CreateExpenseInput) {
 }
 
 export async function importExpenses(file: File) {
-  if (isUsingMockExpenseApi) {
-    return {
-      provider: 'MOCK',
-      totalRowCount: 1,
-      savedCount: 1,
-      excludedCount: 0,
-      errorCount: 0,
-      errors: [],
-    } satisfies ExpenseImportResponseDto
-  }
-
   const formData = new FormData()
   formData.append('file', file)
   return apiRequest<ExpenseImportResponseDto>(
     '/expenses/import',
-    { data: { totalRowCount: 0, savedCount: 0, excludedCount: 0, errorCount: 0, errors: [] } },
-    { method: 'POST', body: formData, useMock: false },
+    { method: 'POST', body: formData },
   )
 }
 
 /** 최근 지출은 서버가 보장하는 최신순을 다시 정렬해 화면 모델로 변환합니다. */
 export async function getRecentExpenses() {
-  if (isUsingMockExpenseApi) return getStoredSavedExpenses()
-
   const recent = await resolveOrNull(apiRequest<ExpenseListItemDto[]>(
     '/expenses/recent',
-    { data: [] },
-    { useMock: false },
   ))
   if (recent) {
     return recent
@@ -591,51 +464,68 @@ export async function getRecentExpenses() {
 
 /** 최근 지출 모달에서 선택한 월의 전체 페이지를 조회합니다. */
 export async function getExpensesForMonth(yearMonth: string) {
-  if (isUsingMockExpenseApi) {
-    return getStoredSavedExpenses()
-      .filter((expense) => expense.spentAt.startsWith(yearMonth))
-      .sort((a, b) => b.spentAt.localeCompare(a.spentAt))
-  }
-
   const { startDate, endDate } = getMonthBounds(yearMonth)
   const expenses = await getAllExpensePages({
     startAt: toDateTimeStart(startDate),
     endAt: toDateTimeEnd(endDate),
   })
-
-  return expenses.map(toSavedExpense)
+  return expenses.expenses.map((expense) => toSavedExpense(expense))
 }
 
 export function updateSavedExpenseOrder(expenses: SavedExpense[]) {
-  if (isUsingMockApi) {
-    saveStoredSavedExpenses(expenses)
-    return Promise.resolve(expenses)
-  }
+  void expenses
   return Promise.reject(new Error('실제 API에는 최근 지출 순서 저장 기능이 없습니다.'))
 }
 
 export function updateSavedExpenseName(expense: SavedExpense, merchantName: string) {
   const updatedExpense = { ...expense, merchantName: merchantName.trim() }
 
-  if (isUsingMockApi) {
-    const next = getStoredSavedExpenses().map((item) => (
-      item.expenseId === expense.expenseId ? updatedExpense : item
-    ))
-    saveStoredSavedExpenses(next)
-    updateStoredExpense(expense.expenseId, { merchantName: updatedExpense.merchantName })
-    return Promise.resolve(updatedExpense)
-  }
+  return (async () => {
+    const id = Number(expense.expenseId)
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      throw new Error('올바르지 않은 지출 ID입니다.')
+    }
 
-  return Promise.reject(new Error('지출 수정은 상세 데이터와 함께 별도 연동해야 합니다.'))
+    // PATCH는 금액·통화·날짜·카테고리를 모두 요구한다. 목록에 없는 원본 값을
+    // 먼저 단건 조회로 보존한 뒤 상점명만 변경해 보낸다.
+    const current = await apiRequest<ExpenseResponseDto>(
+      `/expenses/${id}`,
+    )
+    if (
+      !Number.isFinite(current.originalAmount)
+      || !current.originalCurrency
+      || !current.spentAt
+      || !Number.isSafeInteger(current.categoryId)
+    ) {
+      throw new Error('지출 상세 정보가 완전하지 않아 수정할 수 없습니다.')
+    }
+
+    const response = await apiRequest<ExpenseResponseDto>(
+      `/expenses/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          originalAmount: current.originalAmount,
+          originalCurrency: current.originalCurrency,
+          spentAt: current.spentAt,
+          categoryId: current.categoryId,
+          merchantName: updatedExpense.merchantName,
+          memo: current.memo ?? undefined,
+          potId: current.potId ?? undefined,
+        }),
+      },
+    )
+
+    return {
+      ...updatedExpense,
+      merchantName: response.merchantName?.trim() || updatedExpense.merchantName,
+      convertedAmountHome: response.convertedAmountHome ?? expense.convertedAmountHome,
+      spentAt: response.spentAt ?? expense.spentAt,
+    }
+  })()
 }
 
 export async function deleteSavedExpense(expenseId: string) {
-  if (isUsingMockApi) {
-    const next = getStoredSavedExpenses().filter((expense) => expense.expenseId !== expenseId)
-    saveStoredSavedExpenses(next)
-    return true
-  }
-
   const id = Number(expenseId)
   if (!Number.isSafeInteger(id) || id <= 0) {
     throw new Error('올바르지 않은 지출 ID입니다.')
@@ -643,8 +533,7 @@ export async function deleteSavedExpense(expenseId: string) {
 
   await apiRequest<void>(
     `/expenses/${id}`,
-    { data: undefined },
-    { method: 'DELETE', useMock: false },
+    { method: 'DELETE' },
   )
   return true
 }

@@ -14,6 +14,7 @@
   margin: 0 0 0.75rem;
   font-size: 1.75rem;
   color: var(--color-primary, #66a9e4);
+  font-weight: 500;
 }
 
 .pageHeader p {
@@ -59,7 +60,7 @@
   margin: 0;
   color: var(--color-primary, #62a9e8);
   font-size: 1.375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .inputGroup {
@@ -94,6 +95,17 @@
   background: var(--color-surface, #fff);
   cursor: pointer;
   margin-bottom: 0;
+}
+
+.amountBox input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
 .currencySelectWrap img {
@@ -274,14 +286,14 @@
   margin: 0;
   font-size: 1.125rem;
   color: #222;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .viewAllBtn {
   background: none;
   border: none;
   color: #999;
-  font-size: 0.9rem;
+  font-size: calc(0.9rem + 2px);
   cursor: pointer;
 }
 
@@ -297,13 +309,34 @@
   justify-content: space-around;
 }
 
-.emptyHistory {
+.historyEmptyState,
+.modalHistoryEmptyState {
+  display: flex;
   width: 100%;
-  margin: 0;
-  padding: 2rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
   color: var(--color-text-muted);
   text-align: center;
 }
+
+.historyMessage {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  color: #8a98a8;
+  text-align: center;
+}
+
+.historyEmptyState { flex: 1; }
+.modalHistoryEmptyState { min-height: 30rem; }
+.historyEmptyState img { width: 5.5rem; margin-bottom: .5rem; }
+.modalHistoryEmptyState img { width: 6.5rem; margin-bottom: .5rem; }
+.historyEmptyState strong,
+.modalHistoryEmptyState strong { color: var(--color-text-primary); }
+.historyEmptyState p,
+.modalHistoryEmptyState p { margin: 0; }
 
 .historyItem {
   display: flex;
@@ -326,14 +359,46 @@
   gap: 1rem;
 }
 
+.historyInfo > img {
+  width: 40px;
+  height: 42px;
+  object-fit: contain;
+}
+
 .historyText {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
   font-size: 0.95rem;
   color: #333;
 }
 
-.historyText span {
+.historySource {
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.historyArrow {
+  flex: 0 0 auto;
   color: var(--color-primary, #62a9e8);
-  margin: 0 0.25rem;
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.historyResult {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-primary, #62a9e8);
+  font-size: 1.18rem;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.historyResult span:last-child {
+  font-size: 1rem;
 }
 
 .historyTime {
@@ -351,6 +416,7 @@
 
 .modalHistoryList {
   display: flex;
+  min-height: 30rem;
   flex-direction: column;
   gap: 1.25rem; /* 아이템 간격을 넉넉하게 설정 */
 }
@@ -372,6 +438,13 @@
   gap: 1.25rem;
 }
 
+.modalHistoryInfo > img {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 42px;
+  object-fit: contain;
+}
+
 .currencyTextGroup {
   display: flex;
   flex-direction: column;
@@ -379,7 +452,7 @@
 }
 
 .currencyCodeText {
-  font-size: 1.225rem;
+  font-size: calc(1.225rem + 2px);
   font-weight: 600;
   color: #222;
 }
@@ -390,7 +463,7 @@
 }
 
 .modalHistoryCalcText {
-  font-size: 1.225rem;
+  font-size: calc(1.225rem + 2px);
   color: #333;
   margin-left: 5rem;
   display: flex;
@@ -409,7 +482,7 @@
 }
 
 .modalHistoryTime {
-  font-size: 1.075rem;
+  font-size: calc(1.075rem + 2px);
   color: #999;
 }
 
@@ -417,6 +490,10 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: #222;
+}
+
+:global(#history-modal-title) {
+  font-weight: 600;
 }
 
 /* 하단 페이지네이션 스타일 */
@@ -460,4 +537,140 @@
   flex-direction: column;
   align-items: flex-end;
   z-index: 9999;
+}
+
+@media (max-width: 63.75rem) {
+  .pageHeader {
+    margin-bottom: 1rem;
+  }
+
+  .pageHeader h1 {
+    font-size: 1.5rem;
+  }
+
+  .pageHeader p {
+    font-size: 0.95rem;
+  }
+
+  .contentWrapper {
+    width: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .exchangeArea {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .calcCard,
+  .historyArea {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    padding: 1.25rem 1rem;
+  }
+
+  .calcCard {
+    min-height: 0;
+  }
+
+  .inputGroup {
+    margin-bottom: 1rem;
+  }
+
+  .inputLabel {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .currencySelectWrap,
+  .amountBox {
+    min-height: 3rem;
+    padding-inline: 0.875rem;
+  }
+
+  .quickBtn {
+    font-size: 0.95rem;
+  }
+
+  .swapBtn {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+
+  .swapBtn:hover {
+    transform: rotate(90deg) scale(1.05);
+  }
+
+  .historyArea {
+    min-height: 0;
+  }
+
+  .historyItem {
+    padding: 0.875rem;
+  }
+
+  .historyInfo {
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  .historyText {
+    gap: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .historyArrow {
+    font-size: 1.25rem;
+  }
+
+  .historyResult {
+    font-size: 1rem;
+  }
+
+  .historyResult span:last-child {
+    font-size: 0.85rem;
+  }
+
+  .modalHistoryContainer {
+    min-height: 0;
+  }
+
+  .modalHistoryItem {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem;
+  }
+
+  .modalHistoryInfo {
+    min-width: 0;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .currencyCodeText,
+  .modalHistoryCalcText {
+    font-size: 1rem;
+  }
+
+  .modalHistoryCalcText {
+    min-width: 0;
+    margin-left: 0;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .modalHistoryTime {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+  }
+
+  .mascotArea {
+    display: none;
+  }
 }

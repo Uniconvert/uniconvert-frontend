@@ -1,5 +1,6 @@
 .toast {
   --toast-accent: #69c594;
+  --toast-shadow: rgb(105 197 148 / 30%);
   display: grid;
   width: fit-content;
   min-width: min(31rem, calc(100vw - 2rem));
@@ -16,7 +17,7 @@
   background: white;
   border: 2px solid var(--toast-accent);
   border-radius: 1.25rem;
-  box-shadow: 0 .5rem 1.4rem rgba(46, 152, 238, .3);
+  box-shadow: 0 .5rem 1.4rem var(--toast-shadow);
   transform: translateX(-50%);
   animation: toast-enter .2s ease-out;
 }
@@ -27,10 +28,12 @@
 
 .error {
   --toast-accent: #ef7474;
+  --toast-shadow: rgb(239 116 116 / 30%);
 }
 
 .info {
   --toast-accent: #f4a84d;
+  --toast-shadow: rgb(244 168 77 / 30%);
 }
 
 .icon {

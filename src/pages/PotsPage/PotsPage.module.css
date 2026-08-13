@@ -1,7 +1,8 @@
 .page { width: 100%; min-width: 0; min-height: 100%; position: relative; padding-right: 2.75rem; padding-left: .3125rem; }
+.lowerMascot { transform: translateY(1rem); }
 .page h1 {
   margin-bottom: 1.75rem;
-  color: #2f6f9f;
+  color: #6AADEA;
   font-family: 'Pretendard', sans-serif;
   font-size: 1.625rem;
   font-weight: 500;
@@ -15,8 +16,26 @@
 }
 
 .mainColumn { display: grid; min-width: 0; gap: 4rem; }
-.emptyMainColumn { align-content: start; }
-.emptyState { margin: 0; color: var(--color-text-muted); line-height: 1.5; }
+.emptyMainColumn { align-content: start; gap: 1.5rem; }
+.emptyState {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  margin: 0;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  line-height: 1.5;
+}
+
+.emptyState img { width: 6.5rem; margin-bottom: .5rem; }
+.emptyState strong { color: var(--color-text-primary); }
+.emptyState p { margin: 0; }
+
+.emptyMainColumn .createButton { margin-top: 0; }
 
 .createButton {
   display: inline-flex;
@@ -37,7 +56,7 @@
 .createButton span { font-size: 2rem; font-weight: 300; line-height: 1; }
 .createButton:hover { background: var(--color-primary-hover); }
 .createButton:active { transform: translateY(1px); }
-.sideColumn { display: flex; flex-direction: column; gap: 1.875rem; }
+.sideColumn { display: flex; flex-direction: column; gap: 1.875rem; min-width: 0; }
 
 .walletIllustration {
   display: grid;
@@ -54,13 +73,16 @@
   padding: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 4vw, 2.5rem);
 }
 
+.actionModalBody .actionPotName { margin: .75rem 0; }
+.actionModalBody .modalActions { margin-top: 1rem; }
+
 .editModalBody {
   padding: 1.6rem 1.9rem 1.5rem;
 }
 
 .editModalDialog h2 {
   font-size: 1.5rem;
-  font-weight: var(--font-weight-semibold);
+  font-weight: 600;
 }
 
 .actionPotName { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
@@ -124,6 +146,7 @@
 .imageChoices legend,
 .categoryChoices legend {
   font-size: 1.15rem;
+  font-weight: 600;
 }
 
 .editTargetSection > p,
@@ -135,7 +158,31 @@
 }
 
 .rangeField > output { width: fit-content; margin: .5rem auto 0; padding: .4rem .8rem; color: white; background: var(--color-primary); border-radius: .5rem; font-weight: var(--font-weight-bold); }
-.rangeField > input[type='range'] { width: 100%; accent-color: var(--color-primary); }
+.rangeField > input[type='range'] {
+  width: 100%;
+  height: .5rem;
+  padding: 0;
+  appearance: none;
+  background: #e5e5e5;
+  border-radius: 999px;
+}
+.rangeField > input[type='range']::-webkit-slider-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  appearance: none;
+  background: var(--color-primary);
+  border: .2rem solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+}
+.rangeField > input[type='range']::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  background: var(--color-primary);
+  border: .2rem solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+}
 .rangeWrap { position: relative; height: 3.5rem; padding-top: 2.1rem; }
 .rangeWrap output { position: absolute; top: 0; width: fit-content; margin: 0; padding: .35rem .75rem; color: white; background: var(--color-primary); border-radius: .45rem; font-size: .8rem; font-weight: var(--font-weight-bold); white-space: nowrap; transform: translateX(-50%); }
 .rangeWrap output::after { position: absolute; top: 100%; left: 50%; content: ''; border-top: .45rem solid var(--color-primary); border-right: .4rem solid transparent; border-left: .4rem solid transparent; transform: translateX(-50%); }
@@ -165,7 +212,7 @@
 }
 .rangeLabels { display: flex; justify-content: space-between; color: var(--color-text-muted); }
 .imageChoices, .categoryChoices { margin: 0; padding: 0; border: 0; }
-.imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: var(--font-weight-bold); }
+.imageChoices legend, .categoryChoices legend { margin-bottom: .75rem; font-weight: 600; }
 .imageChoices > div, .categoryChoices > div { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
 
 .imageChoices button {
@@ -219,6 +266,10 @@
   margin-top: 1.5rem;
 }
 
+.editModalBody > .modalActions button {
+  font-weight: 500;
+}
+
 .modalActions button {
   min-height: clamp(2.5rem, 5vh, 3rem);
   border: 1px solid var(--color-border);
@@ -232,19 +283,14 @@
 .modalActions button:disabled { opacity: .5; }
 
 .deleteModalBody {
-  padding: 1.5rem 2rem 2rem;
+  padding: 1rem 2rem 2rem;
 }
+
+.deleteMascot { display: block; width: 6rem; height: 6rem; object-fit: contain; margin: 0 auto .5rem; }
 
 .deletePotName {
   margin: 0 0 1.25rem;
   color: var(--color-text-muted);
-  text-align: center;
-}
-
-.deleteRefundMessage {
-  margin: 0 0 1.5rem;
-  color: var(--color-text);
-  line-height: 1.6;
   text-align: center;
 }
 
@@ -264,8 +310,9 @@
 }
 
 .deleteModalActions button:first-child {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
+  color: #fff;
+  background: #ef6464;
+  border-color: #ef6464;
 }
 
 .deleteModalActions button:last-child {
@@ -297,4 +344,33 @@
   .editFields { gap: 1.5rem; }
   .categoryChoices > div { flex-wrap: wrap; justify-content: flex-start; }
   .editModalBody > .modalActions { margin-top: 1.25rem; }
+}
+
+@media (max-width: 63.75rem) {
+  .page {
+    padding: 0;
+  }
+
+  .page h1 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+
+  .dashboardGrid {
+    display: block;
+  }
+
+  .mainColumn {
+    gap: 1rem;
+  }
+
+  .sideColumn {
+    display: none;
+  }
+
+  .createButton {
+    min-height: 3rem;
+    margin-top: 0;
+    font-size: 1rem;
+  }
 }

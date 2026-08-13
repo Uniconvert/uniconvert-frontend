@@ -1,3 +1,5 @@
+import type { MascotMessage } from './expense'
+
 export interface Pot {
   potId: string
   name: string
@@ -40,4 +42,5 @@ export interface PotsData {
   allocatedAmount: number
   availableAmount: number
   pots: Pot[]
+  mascotMessages: MascotMessage[]
 }

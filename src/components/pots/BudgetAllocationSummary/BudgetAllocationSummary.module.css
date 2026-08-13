@@ -4,8 +4,8 @@
 .walletIcon { color: var(--color-primary); }
 .walletIcon img { width: 2.875rem; height: 2.875rem; object-fit: contain; }
 .label { display: block; color: var(--color-text-muted); font-size: .9375rem; }
-.metric strong { display: block; color: var(--color-text-primary); font-size: 1.25rem; line-height: 1.3; white-space: nowrap; }
-.metric small { color: var(--color-text-muted); font-size: .9375rem; font-weight: var(--font-weight-regular); }
+.metric strong { display: block; color: var(--color-text-primary); font-size: 1.25rem; font-weight: 600; line-height: 1.3; white-space: nowrap; }
+.metric small { color: var(--color-text-muted); font-size: .9375rem; font-weight: 600; }
 .overAllocated strong,
 .overAllocated strong small { color: #eb6464; }
 .overAllocated .track span { background: #eb6464; }
@@ -20,4 +20,36 @@
 @media (max-width: 48rem) {
   .summary { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.5rem; }
   .arrow { display: none; }
+}
+
+@media (max-width: 63.75rem) {
+  .summary {
+    min-height: auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: .75rem;
+    padding: 1rem;
+  }
+
+  .budgetMetric {
+    grid-column: 1 / -1;
+  }
+
+  .walletIcon img {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .label,
+  .metric small {
+    font-size: .8rem;
+  }
+
+  .metric strong {
+    font-size: 1rem;
+  }
+
+  .arrow {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
 }

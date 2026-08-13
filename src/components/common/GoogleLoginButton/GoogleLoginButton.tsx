@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Button from '@/components/common/Button/Button'
 import type { ButtonProps } from '@/components/common/Button/Button'
+import { useI18n } from '@/i18n/I18nContext'
 import styles from './GoogleLoginButton.module.css'
 
 export interface GoogleLoginButtonProps
@@ -9,9 +10,11 @@ export interface GoogleLoginButtonProps
 }
 
 function GoogleLoginButton({
-  children = '구글 계정으로 로그인',
+  children,
   ...props
 }: GoogleLoginButtonProps) {
+  const { t } = useI18n()
+
   return (
     <Button {...props} variant="outline">
       <img
@@ -20,7 +23,7 @@ function GoogleLoginButton({
         alt=""
         aria-hidden="true"
       />
-      <span>{children}</span>
+      <span>{children ?? t('login.google')}</span>
     </Button>
   )
 }

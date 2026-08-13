@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { signUp } from '@/api/auth'
+import { googleLogin, login, signUp } from '@/api/auth'
 import Button from '@/components/common/Button/Button'
-import GoogleLoginButton from '@/components/common/GoogleLoginButton/GoogleLoginButton'
+import GoogleIdentityButton from '@/components/common/GoogleIdentityButton/GoogleIdentityButton'
 import TextField from '@/components/common/TextField/TextField'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
@@ -21,13 +21,25 @@ function SignUpPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
+  const googleClientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim()
 
   const normalizedEmail = email.trim().toLowerCase()
   const isEmailValid = EMAIL_PATTERN.test(normalizedEmail)
   const isPasswordValid = password.length >= 8 && password.length <= 100
   const isPasswordConfirmed = password === passwordConfirm
   const canSubmit = isEmailValid && isPasswordValid && isPasswordConfirmed
+
+  const navigateAfterLogin = (sessionUser: Awaited<ReturnType<typeof login>>) => {
+    if (!sessionUser.isEmailVerified) {
+      navigate(ROUTE_PATHS.verifyEmail)
+    } else if (!sessionUser.isOnboardingCompleted) {
+      navigate(ROUTE_PATHS.onboardingBaseCurrency)
+    } else {
+      navigate(ROUTE_PATHS.home)
+    }
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -56,8 +68,24 @@ function SignUpPage() {
     }
   }
 
-  const handleGoogleSignup = () => {
-    setStatusMessage('Google 회원가입은 백엔드 OAuth 연동 후 제공됩니다.')
+  const handleGoogleCredential = async (credential: string) => {
+    if (isGoogleLoading) return
+
+    setIsGoogleLoading(true)
+    setStatusMessage('')
+
+    try {
+      // Google API는 기존 계정 로그인과 신규 계정 생성을 서버에서 함께 처리합니다.
+      const sessionUser = await googleLogin(credential)
+      navigateAfterLogin(sessionUser)
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        ...getApiErrorNotice(error, 'Google 로그인에 실패했습니다.'),
+      })
+    } finally {
+      setIsGoogleLoading(false)
+    }
   }
 
   return (
@@ -120,7 +148,12 @@ function SignUpPage() {
 
           <Button type="submit" fullWidth disabled={!canSubmit || isLoading} isLoading={isLoading}>{t('signup.submit')}</Button>
           <div className={styles.divider}><span>{t('signup.or')}</span></div>
-          <GoogleLoginButton fullWidth onClick={handleGoogleSignup}>{t('signup.google')}</GoogleLoginButton>
+          <GoogleIdentityButton
+            clientId={googleClientId}
+            disabled={isLoading || isGoogleLoading}
+            onCredential={handleGoogleCredential}
+            onError={(message) => showToast({ variant: 'error', title: message })}
+          />
 
           {statusMessage && <p className={styles.status} role="status" aria-live="polite">{statusMessage}</p>}
         </form>
