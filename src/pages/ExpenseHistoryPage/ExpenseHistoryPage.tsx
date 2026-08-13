@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   deleteSavedExpense,
   updateSavedExpenseName,
@@ -420,7 +420,7 @@ function ExpenseHistoryPage() {
               {!isModalExpensesLoading && modalExpensesError && (
                 <li className={styles.emptySaved} role="alert">{modalExpensesError}</li>
               )}
-              {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.map((expense :any) => (
+              {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.map((expense: SavedExpense) => (
                 <li
                   key={expense.expenseId}
                   className={isManagingExpenses ? styles.managedExpense : ''}

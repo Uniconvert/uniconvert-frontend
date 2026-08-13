@@ -362,7 +362,7 @@ function ReportPage() {
   const timeData = useMemo(() => {
     if (!report?.dailyExpenses) return []
     return dateList.map((dateStr) => {
-      const found = report.dailyExpenses.find((expense: any) => expense.date === dateStr)
+      const found = report.dailyExpenses.find((expense: { date: string; amountHome: number }) => expense.date === dateStr)
       return {
         label: String(Number(dateStr.slice(8))),
         amount: found ? found.amountHome : 0,
@@ -385,8 +385,8 @@ function ReportPage() {
       return d.toISOString().slice(0, 10)
     })()
 
-    const todayExpenseAmount = report.dailyExpenses.find((e: any) => e.date === todayStr)?.amountHome ?? 0
-    const yesterdayExpenseAmount = report.dailyExpenses.find((e: any) => e.date === yesterdayStr)?.amountHome ?? 0
+    const todayExpenseAmount = report.dailyExpenses.find((e: { date: string; amountHome: number }) => e.date === todayStr)?.amountHome ?? 0
+    const yesterdayExpenseAmount = report.dailyExpenses.find((e: { date: string; amountHome: number }) => e.date === yesterdayStr)?.amountHome ?? 0
 
     if (yesterdayExpenseAmount === 0) {
       return todayExpenseAmount > 0 ? 100 : 0
@@ -431,7 +431,7 @@ function ReportPage() {
 
   const mascotMessages = useMemo(() => {
     const apiMessages = report?.mascotMessages
-      .map((item: any) => item.message)
+      ?.map((item: { message?: string }) => item.message)
       .filter(Boolean) ?? []
 
     if (apiMessages.length > 0) return apiMessages
@@ -471,7 +471,7 @@ function ReportPage() {
   }
 
   const targetExpenseData = report.dailyExpenses.find(
-    (expense: any) => expense.date === targetDate
+    (expense: { date: string; amountHome: number }) => expense.date === targetDate
   )
   const targetAmount = targetExpenseData ? targetExpenseData.amountHome : 0
 
@@ -489,7 +489,7 @@ function ReportPage() {
   const rawMonthlyExpenses = report.monthlyExpenses ?? []
 
   const monthlyData = fixedMonthList.map((monthStr) => {
-    const found = rawMonthlyExpenses.find((expense: any) => expense.yearMonth === monthStr)
+    const found = rawMonthlyExpenses.find((expense: { yearMonth: string; amountHome: number }) => expense.yearMonth === monthStr)
     return {
       label: new Intl.DateTimeFormat(locale, { month: 'short' }).format(
         new Date(Number(monthStr.slice(0, 4)), Number(monthStr.slice(5)) - 1, 1),
