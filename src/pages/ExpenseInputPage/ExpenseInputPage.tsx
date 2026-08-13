@@ -13,6 +13,7 @@ import { getApiErrorNotice } from '@/utils/apiError'
 import { formatCurrencyAmount } from '@/utils/currency'
 import { useI18n } from '@/i18n/I18nContext'
 import styles from './ExpenseInputPage.module.css'
+import { getOnboardingSettings } from '@/auth/session'
 
 const WEEKDAY_KEYS = [
   'calendar.weekday.sun',
@@ -32,7 +33,10 @@ function getTodayDateInputValue() {
 
 function ExpenseInputPage() {
   const { t, locale } = useI18n()
-  const [currency, setCurrency] = useState<CurrencyCode>('USD')
+  const onboarding = getOnboardingSettings()
+  const defaultCurrency = (onboarding.localCurrencies?.[0] as CurrencyCode) || 'USD'
+
+  const [currency, setCurrency] = useState<CurrencyCode>(defaultCurrency)
   const [amount, setAmount] = useState('')
   const [spentAt, setSpentAt] = useState(getTodayDateInputValue)
   const [merchant, setMerchant] = useState('')

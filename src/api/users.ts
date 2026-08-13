@@ -9,6 +9,12 @@ export interface UpdateMyProfileInput {
   primaryGoal?: string
 }
 
+export interface EmailReportSettingDto {
+  enabled?: boolean
+  frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY'
+  sendTime?: string
+}
+
 let cachedUser: AuthUser | null = null
 let userRequest: Promise<AuthUser> | null = null
 
@@ -54,4 +60,15 @@ export async function updateMyProfile(input: UpdateMyProfileInput) {
   )
   cachedUser = toAuthUser(response, sessionUser?.profileImage ?? '')
   return cachedUser
+}
+
+export function getEmailReportSetting() {
+  return apiRequest<EmailReportSettingDto>('/users/me/email-report-setting')
+}
+
+export function updateEmailReportSetting(data: EmailReportSettingDto) {
+  return apiRequest<EmailReportSettingDto>('/users/me/email-report-setting', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
 }

@@ -36,6 +36,10 @@
   min-height: 3rem;
 }
 
+.headerWrapper p {
+  font-size: calc(1rem + 1px); 
+}
+
 .emailreportBtn {
   position: absolute;
   right: 0;

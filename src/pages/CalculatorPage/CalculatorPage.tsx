@@ -6,14 +6,27 @@ import { getExchangeQuote, getExchangeQuoteHistory } from '@/api/exchangeRates'
 import type { ExchangeQuoteHistoryDto } from '@/api/exchangeRates'
 import { useI18n } from '@/i18n/I18nContext'
 import { useExchangeRateQuery } from '@/hooks/useExchangeRateQuery'
+import { getOnboardingSettings } from '@/auth/session'
 
 const currencies = ['USD', 'EUR', 'JPY', 'KRW', 'CNY']
+const SUPPORTED_LOCALES = ['ko-kr', 'en-us', 'ja-jp', 'zh-cn']
+
 const CALCULATION_ERROR = '__CALCULATION_ERROR__'
 
 function CalculatorPage() {
   const { locale, t } = useI18n()
-  const [fromCurrency, setFromCurrency] = useState('USD')
-  const [toCurrency, setToCurrency] = useState('KRW')
+  
+  const mascotLocale = locale.toLowerCase()
+  const mascotImagePath = SUPPORTED_LOCALES.includes(mascotLocale)
+    ? `/assets/illustrations/mascot-${mascotLocale}.png`
+    : '/assets/illustrations/mascot-check.png'
+
+  const onboarding = getOnboardingSettings()
+  const defaultLocal = onboarding.localCurrencies?.[0] || 'USD'
+  const defaultHome = onboarding.baseCurrency || 'KRW'
+
+  const [fromCurrency, setFromCurrency] = useState(defaultLocal)
+  const [toCurrency, setToCurrency] = useState(defaultHome)
   const [isFromOpen, setIsFromOpen] = useState(false)
   const [isToOpen, setIsToOpen] = useState(false)
   const [fromAmount, setFromAmount] = useState('')
@@ -193,7 +206,7 @@ function CalculatorPage() {
             {currencySelector(toCurrency, isToOpen, () => { setIsToOpen((open) => !open); setIsFromOpen(false) }, (currency) => { setToCurrency(currency); setIsToOpen(false) }, toSelectRef)}
             <div className={styles.inputGroup}>
               <span className={styles.inputLabel}>{t('calculator.result')}</span>
-            <div className={styles.amountBox}><input type="text" value={toAmount === CALCULATION_ERROR ? t('calculator.error') : toAmount} readOnly /></div>
+              <div className={styles.amountBox}><input type="text" value={toAmount === CALCULATION_ERROR ? t('calculator.error') : toAmount} readOnly /></div>
             </div>
             {isQuoteLoading && <p className={styles.statusMessage} role="status">환율을 계산하고 있어요.</p>}
             {quoteError && <p className={styles.statusMessage} role="alert">{quoteError}</p>}
@@ -223,11 +236,25 @@ function CalculatorPage() {
                 <div className={styles.historyInfo}>
                   <img src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.src = '/assets/icons/currencies/currency-default.png' }} />
                   <div className={styles.historyText}>
-                    <span className={styles.historySource}>{(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}</span>
+                    <span className={styles.historySource}>
+                      {(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}
+                    </span>
                     <span className={styles.historyArrow} aria-hidden="true">→</span>
                     <span className={styles.historyResult}>
-                      <span>{(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })}</span>
-                      <span>{item.toCurrency}</span>
+                      {(() => {
+                        const formattedNum = (item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 });
+
+                        if (formattedNum.length >= 6) {
+                          return (
+                            <>
+                              <span>{formattedNum}</span>
+                              <span>{item.toCurrency}</span>
+                            </>
+                          );
+                        }
+
+                        return `${formattedNum} ${item.toCurrency}`;
+                      })()}
                     </span>
                   </div>
                 </div>
@@ -263,7 +290,9 @@ function CalculatorPage() {
         </div>
       </ModalShell>}
 
-      <div className={styles.mascotArea}><FloatingMascot messages={mascotMessages} imageSrc="/assets/illustrations/mascot-check.png" /></div>
+      <div className={styles.mascotArea}>
+        <FloatingMascot messages={mascotMessages} imageSrc={mascotImagePath} />
+      </div>
     </section>
   )
 }

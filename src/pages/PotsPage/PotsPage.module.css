@@ -1,5 +1,9 @@
 .page { width: 100%; min-width: 0; min-height: 100%; position: relative; padding-right: 2.75rem; padding-left: .3125rem; }
 .lowerMascot { transform: translateY(1rem); }
+.lowerMascot img {
+  transform-origin: bottom center;
+  transform: scale(0.93); 
+}
 .page h1 {
   margin-bottom: 1.75rem;
   color: #6AADEA;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   deleteSavedExpense,
   updateSavedExpenseName,
@@ -354,7 +354,7 @@ function ExpenseHistoryPage() {
 
       <FloatingMascot
         messages={mascotMessages}
-        imageSrc="/assets/illustrations/mascot-check.png"
+        imageSrc="/assets/illustrations/mascot-calendar.png"
         speechBubbleVariant="twoLine"
         className={styles.lowerMascot}
       />
@@ -420,7 +420,7 @@ function ExpenseHistoryPage() {
               {!isModalExpensesLoading && modalExpensesError && (
                 <li className={styles.emptySaved} role="alert">{modalExpensesError}</li>
               )}
-              {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.map((expense) => (
+              {!isModalExpensesLoading && !modalExpensesError && filteredModalExpenses.map((expense: SavedExpense) => (
                 <li
                   key={expense.expenseId}
                   className={isManagingExpenses ? styles.managedExpense : ''}

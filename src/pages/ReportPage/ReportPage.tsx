@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { sendMonthlyReport } from '@/api/reports'
+import { sendEmailReport } from '@/api/reports'
 import { getExpensePage } from '@/api/expenses'
 
 import styles from './ReportPage.module.css'
@@ -247,7 +247,6 @@ function ReportPage() {
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
 
-  // 모달 안의 지출 내역 API 연동을 위한 상태
   const [dailyTxList, setDailyTxList] = useState<ExpenseListItemDto[]>([])
   const [isLoadingTx, setIsLoadingTx] = useState(false)
 
@@ -279,7 +278,6 @@ function ReportPage() {
 
   const targetDate = selectedDate || todayStr
 
-  // 이메일 모달이 열릴 때 선택된 날짜의 지출 목록(GET /expenses) 조회
   useEffect(() => {
     if (!isEmailModalOpen || !targetDate) return
 
@@ -288,7 +286,6 @@ function ReportPage() {
       getExpensePage({
         startAt: `${targetDate}T00:00:00`,
         endAt: `${targetDate}T23:59:59`,
-        page: 0,
       })
         .then((res) => {
           if (!isCancelled) setDailyTxList(res.content || [])
@@ -338,8 +335,9 @@ function ReportPage() {
     if (isSendingEmail) return
     setIsSendingEmail(true)
     try {
-      await sendMonthlyReport()
+      await sendEmailReport(locale) 
       showToast({ variant: 'success', title: t('report.sendSuccess') })
+      setIsEmailModalOpen(false) 
     } catch (error) {
       showToast({
         variant: 'error',
@@ -364,7 +362,7 @@ function ReportPage() {
   const timeData = useMemo(() => {
     if (!report?.dailyExpenses) return []
     return dateList.map((dateStr) => {
-      const found = report.dailyExpenses.find((expense) => expense.date === dateStr)
+      const found = report.dailyExpenses.find((expense: { date: string; amountHome: number }) => expense.date === dateStr)
       return {
         label: String(Number(dateStr.slice(8))),
         amount: found ? found.amountHome : 0,
@@ -387,8 +385,8 @@ function ReportPage() {
       return d.toISOString().slice(0, 10)
     })()
 
-    const todayExpenseAmount = report.dailyExpenses.find((e) => e.date === todayStr)?.amountHome ?? 0
-    const yesterdayExpenseAmount = report.dailyExpenses.find((e) => e.date === yesterdayStr)?.amountHome ?? 0
+    const todayExpenseAmount = report.dailyExpenses.find((e: { date: string; amountHome: number }) => e.date === todayStr)?.amountHome ?? 0
+    const yesterdayExpenseAmount = report.dailyExpenses.find((e: { date: string; amountHome: number }) => e.date === yesterdayStr)?.amountHome ?? 0
 
     if (yesterdayExpenseAmount === 0) {
       return todayExpenseAmount > 0 ? 100 : 0
@@ -433,7 +431,7 @@ function ReportPage() {
 
   const mascotMessages = useMemo(() => {
     const apiMessages = report?.mascotMessages
-      .map((item) => item.message)
+      ?.map((item: { message?: string }) => item.message)
       .filter(Boolean) ?? []
 
     if (apiMessages.length > 0) return apiMessages
@@ -473,7 +471,7 @@ function ReportPage() {
   }
 
   const targetExpenseData = report.dailyExpenses.find(
-    (expense) => expense.date === targetDate
+    (expense: { date: string; amountHome: number }) => expense.date === targetDate
   )
   const targetAmount = targetExpenseData ? targetExpenseData.amountHome : 0
 
@@ -491,7 +489,7 @@ function ReportPage() {
   const rawMonthlyExpenses = report.monthlyExpenses ?? []
 
   const monthlyData = fixedMonthList.map((monthStr) => {
-    const found = rawMonthlyExpenses.find((expense) => expense.yearMonth === monthStr)
+    const found = rawMonthlyExpenses.find((expense: { yearMonth: string; amountHome: number }) => expense.yearMonth === monthStr)
     return {
       label: new Intl.DateTimeFormat(locale, { month: 'short' }).format(
         new Date(Number(monthStr.slice(0, 4)), Number(monthStr.slice(5)) - 1, 1),
@@ -722,7 +720,7 @@ function ReportPage() {
 
       <FloatingMascot
         messages={mascotMessages}
-        imageSrc="/assets/illustrations/mascot-check.png"
+        imageSrc="/assets/illustrations/mascot-calendar.png"
         speechBubbleVariant="twoLine"
         className={styles.lowerMascot}
       />
