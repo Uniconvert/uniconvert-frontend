@@ -312,7 +312,7 @@ function ExpenseHistoryPage() {
                 {categorySummary.map((category) => (
                   <li key={category.categoryId}>
                     <span className={styles.categoryName}><i style={{ backgroundColor: category.color }} />{getCategoryLabel(category.iconKey, category.categoryName)}</span>
-                    <span className={styles.categoryPercentage}>{category.percentage}%</span>
+                    <span className={styles.categoryPercentage}>{Math.round(category.percentage)}%</span>
                     <strong>{formatCurrencyAmount(category.amountHome, data.homeCurrency)}</strong>
                   </li>
                 ))}

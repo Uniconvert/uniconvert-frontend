@@ -20,7 +20,7 @@ interface GoogleIdentityServices {
       type: 'standard'
       theme: 'outline'
       size: 'large'
-      text: 'signin_with'
+      text: 'signin_with' | 'continue_with' | 'signup_with' | 'signin'
       shape: 'rectangular'
       logo_alignment: 'left' | 'center'
       width: string
@@ -166,7 +166,7 @@ function GoogleIdentityButton({
             type: 'standard',
             theme: 'outline',
             size: 'large',
-            text: 'signin_with',
+            text: 'continue_with',
             shape: 'rectangular',
             logo_alignment: 'center',
             width: String(nextWidth),

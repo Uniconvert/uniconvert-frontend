@@ -212,6 +212,7 @@ function DashboardLayout() {
   const { assetSummary, setAssetSummary } = useDashboardAssetSummary({
     yearMonth: currentYearMonthApi,
     onError: showBudgetLoadError,
+    enabled: pathname !== ROUTE_PATHS.reportMemos,
   })
   const displayName = sessionUser?.nickname || t('common.user')
   // The shared sidebar summary only has the budget response. Page-specific

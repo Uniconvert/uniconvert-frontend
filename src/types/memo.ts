@@ -10,9 +10,11 @@ export interface ExpenseMemo {
 /** Swagger GET /expenses/memos의 개별 메모 응답입니다. */
 export interface ExpenseMemoDto {
   id?: number
+  expenseId?: number | string
   categoryId?: number
   categoryName?: string | null
   iconKey?: string | null
+  merchantName?: string | null
   memo?: string | null
   spentAt?: string | null
 }
@@ -28,6 +30,12 @@ export interface ExpenseMemoPageDto {
   first?: boolean
   last?: boolean
   empty?: boolean
+}
+
+export type ExpenseMemoApiResponse = ExpenseMemoPageDto | ExpenseMemoDto[] | {
+  content?: ExpenseMemoDto[]
+  memos?: ExpenseMemoPageDto
+  data?: ExpenseMemoPageDto | ExpenseMemoDto[] | { content?: ExpenseMemoDto[] }
 }
 
 export interface ExpenseMemoQuery {

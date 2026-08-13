@@ -52,6 +52,9 @@ export interface ExpenseListItemDto {
   id?: number
   expenseId?: number | string
   merchantName?: string | null
+  memo?: string | null
+  note?: string | null
+  description?: string | null
   categoryId?: number
   categoryName?: string | null
   iconKey?: string | null
