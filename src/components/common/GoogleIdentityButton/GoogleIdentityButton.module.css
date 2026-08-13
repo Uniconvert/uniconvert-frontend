@@ -7,97 +7,11 @@
 }
 
 .buttonHost {
-  width: 100%;
-  height: 3.75rem;
-  min-height: 3.75rem;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  box-sizing: border-box;
-  border: 1px solid #c8c8c8;
-  border-radius: var(--radius-md);
-  background: #fff;
-}
-
-.buttonHost > div,
-.buttonHost iframe {
-  width: min(100%, 400px) !important;
-  max-width: none !important;
+  width: auto;
+  height: auto;
+  min-height: 0;
   display: block;
-  margin: 0 auto !important;
-  border-radius: inherit !important;
-}
-
-.buttonHost > div {
-  height: 100% !important;
-  min-height: 100% !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* GIS creates an additional wrapper around the clickable surface. Keep that
-   surface as wide and centered as the surrounding login button. */
-.buttonHost > div > div {
-  width: 100% !important;
-  max-width: none !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-.buttonHost > div > div > div {
-  width: 100% !important;
-  max-width: none !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Google Identity Services adds these classes to the actual clickable
-   surface. They are global classes, so keep them unscoped and stretch the
-   surface to the same width as the native login button. */
-.buttonHost :global(.nsm7Bb-HzV7m-LgbsSe),
-.buttonHost :global(.nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb),
-.buttonHost :global(.hJDwNd-SxQuSe) {
-  width: 100% !important;
-  max-width: none !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.buttonHost :global(.nsm7Bb-HzV7m-LgbsSe) {
-  min-height: 3.75rem !important;
-  height: 100% !important;
-  text-align: center !important;
-}
-
-.buttonHost :global(div.nsm7Bb-HzV7m-LgbsSe.hJDwNd-SxQuSe),
-.buttonHost :global(div.nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb) {
-  width: 100% !important;
-  max-width: none !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.buttonHost iframe {
-  height: 100% !important;
-  min-height: 3.75rem !important;
-}
-
-.buttonHost [role='button'] {
-  border: 0 !important;
-  border-radius: calc(var(--radius-md) - 1px) !important;
+  overflow: visible;
 }
 
 .disabled {
