@@ -2,6 +2,7 @@ import { useId, useRef, useState } from 'react'
 import Button from '@/components/common/Button/Button'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import { useI18n } from '@/i18n/I18nContext'
+import { getUploadErrorMessage } from './uploadError'
 import styles from './FileUploadModal.module.css'
 
 interface FileUploadModalProps {
@@ -64,11 +65,9 @@ function FileUploadModal({ isOpen, onClose, onUpload, onError }: FileUploadModal
       await onUpload?.(selectedFile)
       resetFile()
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : t('expenseInput.uploadError')
+      const message = getUploadErrorMessage(error, t('expenseInput.uploadError'))
       setErrorMessage(message)
-      onError?.(error)
+      onError?.(new Error(message))
     } finally {
       setIsUploading(false)
     }

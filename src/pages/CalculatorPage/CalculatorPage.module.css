@@ -4,6 +4,7 @@
   min-width: 0;
   min-height: 100%;
   position: relative;
+  animation: ui-page-enter var(--motion-slow) var(--motion-ease-out) both;
 }
 
 .pageHeader {
@@ -22,6 +23,58 @@
   color: var(--color-text-muted, #9a9a9a);
   font-size: 1.05rem;
   margin-bottom: 1rem;
+}
+
+.offlineToolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.75rem;
+  max-width: 50rem;
+  margin-top: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: 0.75rem;
+  background: var(--color-surface, #fff);
+}
+
+.connectionBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.connectionOnline {
+  color: #276b45;
+  background: #e8f7ee;
+}
+
+.connectionOffline {
+  color: #8a5318;
+  background: #fff3df;
+}
+
+.connectionMessage {
+  flex: 1 1 14rem;
+  color: var(--color-text-secondary, #6f7780);
+  font-size: 0.9rem;
+}
+
+.homeButton {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.7rem;
+  color: var(--color-primary, #62a9e8);
+  border: 1px solid var(--color-primary, #62a9e8);
+  border-radius: 0.5rem;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .contentWrapper {
@@ -132,6 +185,7 @@
   border: 1px solid #a9c8e7;
   border-radius: var(--radius-md, 0.5rem);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: ui-dropdown-enter var(--motion-fast) var(--motion-ease-out) both;
 }
 
 .currencyMenu button {
@@ -225,13 +279,18 @@
   font-size: 1.1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-fast) var(--motion-ease-out), border-color var(--motion-fast) var(--motion-ease-out), transform var(--motion-fast) var(--motion-ease-out);
   text-align: center;
   white-space: nowrap;
 }
 
 .quickBtn:hover {
   background: #f4f6f8;
+  transform: translateY(-1px);
+}
+
+.quickBtn:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .swapBtn {
@@ -249,6 +308,17 @@
   height: auto;
   aspect-ratio: 1 / 1;
   display: block;
+}
+
+.swapText {
+  display: inline-flex;
+  width: clamp(36px, 2.7vw, 52px);
+  height: clamp(36px, 2.7vw, 52px);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary, #62a9e8);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  line-height: 1;
 }
 
 .swapBtn:hover {

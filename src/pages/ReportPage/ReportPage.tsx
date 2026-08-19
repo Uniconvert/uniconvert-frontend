@@ -1,234 +1,24 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { sendEmailReport } from '@/api/reports'
-import { getExpensePage } from '@/api/expenses'
+import { useMutation } from '@tanstack/react-query'
+import { ReportEmailSendError, sendReportEmail, type SendReportEmailInput } from '@/features/report/emailReportSender'
+import { captureReportImage, ReportImageCaptureError } from '@/features/report/reportImageCapture'
+import { executeManualEmailReport } from '@/features/report/manualEmailReport'
 
-import styles from './ReportPage.module.css'
+import styles from '@/features/report/report.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import { createPortal } from 'react-dom'
-import { convertCurrencyAmount } from '@/utils/exchangeRate'
-import { getOnboardingSettings } from '@/auth/session'
+import { getOnboardingSettings, getSessionUser } from '@/auth/session'
 import { getApiErrorNotice } from '@/utils/apiError'
-import { useMonthlyReportData } from '@/hooks/useMonthlyReportData'
-import { getCategoryIconPath } from '@/utils/categoryIcon'
-import type { ExpenseListItemDto } from '@/types/expense'
+import { useMonthlyReportData } from '@/features/report/hooks/useMonthlyReportData'
 import { useI18n } from '@/i18n/I18nContext'
-
-interface Expense {
-  label: string
-  amount: number
-}
-
-interface BarChartProps {
-  titlePrefix: string
-  titleSuffix: string
-  data: Expense[]
-  chartClass: string
-  type: 'date' | 'month'
-  selectorText: string
-  selectedDate: string
-  selectedMonth: string
-  monthlyList: string[]
-  onDateChange: (date: string) => void
-  onMonthChange: (month: string) => void
-  isOpen: boolean
-  onToggle: () => void
-}
-
-function BarChart({
-  titlePrefix,
-  titleSuffix,
-  data,
-  chartClass,
-  type,
-  selectorText,
-  selectedDate,
-  selectedMonth,
-  monthlyList,
-  onDateChange,
-  onMonthChange,
-  isOpen,
-  onToggle,
-}: BarChartProps) {
-  const { locale, t } = useI18n()
-  const initialCalendarMonth = (() => {
-    if (type === 'date' && selectedDate) {
-      return selectedDate.slice(0, 7)
-    }
-    return selectedMonth
-  })()
-
-  const [calendarMonth, setCalendarMonth] = useState(initialCalendarMonth)
-
-  const [calendarYear, calendarMonthNumber] = calendarMonth.split('-').map(Number)
-
-  const firstWeekday = new Date(calendarYear, calendarMonthNumber - 1, 1).getDay()
-  const daysInMonth = new Date(calendarYear, calendarMonthNumber, 0).getDate()
-
-  const moveCalendarMonth = (amount: number) => {
-    const next = new Date(calendarYear, calendarMonthNumber - 1 + amount, 1)
-    setCalendarMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`)
-  }
-
-  const maxAmount = data.length > 0 ? Math.max(...data.map((item) => item.amount)) : 0
-
-  const axisValues = [
-    maxAmount,
-    Math.round(maxAmount * 0.75),
-    Math.round(maxAmount * 0.5),
-    Math.round(maxAmount * 0.25),
-    0,
-  ]
-
-  return (
-    <section className={styles.chartCard}>
-      <div className={styles.chartHeader}>
-        <h2>
-          {titlePrefix}
-          <span className={styles.highlightTitle}>{titleSuffix}</span>
-        </h2>
-
-        {type === 'date' ? (
-          <div>
-            <button
-              type="button"
-              className={styles.selectorBtn}
-              aria-label={t('report.dateSelect')}
-              aria-expanded={isOpen}
-              onClick={onToggle}
-            >
-              <span>{selectorText}</span>
-              <span className={styles.selectorChevron} aria-hidden="true" />
-            </button>
-            {isOpen && (
-              <div className={styles.calendar} role="dialog" aria-label={t('report.calendar')}>
-                <header>
-                  <button type="button" aria-label={t('report.previousMonth')} onClick={() => moveCalendarMonth(-1)}>‹</button>
-                  <strong>{new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(new Date(calendarYear, calendarMonthNumber - 1, 1))}</strong>
-                  <button type="button" aria-label={t('report.nextMonth')} onClick={() => moveCalendarMonth(1)}>›</button>
-                </header>
-                <div className={styles.weekdays}>
-                  {['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((day) => <span key={day}>{t(`calendar.weekday.${day}`)}</span>)}
-                </div>
-                <div className={styles.days}>
-                  {Array.from({ length: firstWeekday }, (_, index) => <span key={`blank-${index}`} />)}
-                  {Array.from({ length: daysInMonth }, (_, index) => index + 1).map((day) => {
-                    const value = `${calendarMonth}-${String(day).padStart(2, '0')}`
-
-                    const isWithinRange = (() => {
-                      if (!selectedDate) return false
-                      const currentDayDate = new Date(value)
-                      const selected = new Date(selectedDate)
-                      const startRange = new Date(selected)
-                      startRange.setDate(selected.getDate() - 6)
-
-                      return currentDayDate >= startRange && currentDayDate <= selected
-                    })()
-
-                    return (
-                      <button
-                        key={day}
-                        type="button"
-                        aria-pressed={selectedDate === value}
-                        data-in-range={isWithinRange}
-                        onClick={() => {
-                          onDateChange(value)
-                          onToggle()
-                        }}
-                      >
-                        {day}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className={styles.monthPicker}>
-            <button
-              type="button"
-              className={styles.selectorBtn}
-              onClick={onToggle}
-              aria-label={t('report.monthSelect')}
-              aria-haspopup="listbox"
-              aria-expanded={isOpen}
-            >
-              <span>{selectorText}</span>
-              <span className={styles.selectorChevron} aria-hidden="true" />
-            </button>
-            {isOpen && (
-              <div className={styles.monthMenu} role="listbox" aria-label={t('report.monthSelect')}>
-                {monthlyList.map((monthStr) => {
-                  const [year, month] = monthStr.split('-').map(Number)
-                  const formattedMonth = new Intl.DateTimeFormat(locale, { year: 'numeric', month: '2-digit' })
-                    .format(new Date(year, month - 1, 1))
-                  const isSelected = monthStr === selectedMonth
-
-                  return (
-                    <button
-                      key={monthStr}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => {
-                        onMonthChange(monthStr)
-                        onToggle()
-                      }}
-                    >
-                      {formattedMonth}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.chartBody}>
-        <div className={styles.axisLabels} aria-hidden="true">
-          {axisValues.map((value, index) => (
-            <span key={`${value}-${index}`}>{value.toLocaleString(locale)}</span>
-          ))}
-        </div>
-
-        <div className={chartClass}>
-          {data.map((item, index) => {
-            const height = maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0
-
-            const isHighest = item.amount === maxAmount && maxAmount > 0
-            const isLabelHighlighted = type === 'date' ? index === data.length - 1 : isHighest
-
-            return (
-              <div className={styles.barColumn} key={item.label}>
-                <div className={styles.barArea}>
-                  {isHighest && item.amount > 0 && (
-                    <span className={styles.amountTooltip}>
-                      ₩ {item.amount.toLocaleString(locale)}
-                    </span>
-                  )}
-
-                  <span
-                    className={`${styles.bar} ${isHighest ? styles.currentBar : ''}`}
-                    style={{ height: `${height}%` }}
-                    title={`${item.label} ${item.amount.toLocaleString(locale)}`}
-                  />
-                </div>
-
-                <span className={isLabelHighlighted ? styles.currentLabel : undefined}>
-                  {item.label}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
+import LoadingState from '@/components/common/LoadingState/LoadingState'
+import ErrorState from '@/components/common/ErrorState/ErrorState'
+import { normalizeCurrencyCode } from '@/types/currency'
+import ReportBarChart from '@/features/report/components/ReportBarChart'
+import EmailReportDialog from '@/features/report/components/EmailReportDialog'
+import { useReportTransactions } from '@/features/report/hooks/useReportTransactions'
 
 function ReportPage() {
   const { locale, t } = useI18n()
@@ -242,77 +32,47 @@ function ReportPage() {
 
   const [openDropdown, setOpenDropdown] = useState<'date' | 'month' | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const reportCaptureRef = useRef<HTMLElement>(null)
+  const captureInProgressRef = useRef(false)
 
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
-  const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [isCapturingReport, setIsCapturingReport] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
-
-  const [dailyTxList, setDailyTxList] = useState<ExpenseListItemDto[]>([])
-  const [isLoadingTx, setIsLoadingTx] = useState(false)
 
   const dateReportMonth = selectedDate ? selectedDate.slice(0, 7) : currentYM
   const {
     report,
     expenseHistory: data,
     errorMessage,
+    expenseHistoryErrorMessage,
+    isInitialLoading,
+    isBackgroundFetching,
     retry,
   } = useMonthlyReportData({ reportYearMonth: dateReportMonth, budgetYearMonth: currentYM })
 
-  useEffect(() => {
-    if (!isEmailModalOpen) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsEmailModalOpen(false)
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isEmailModalOpen])
-
   const targetDate = selectedDate || todayStr
+  const transactionsQuery = useReportTransactions(targetDate, isEmailModalOpen)
+  const dailyTxList = transactionsQuery.transactions
+  const isLoadingTx = isEmailModalOpen && transactionsQuery.isLoading
+  const sendEmailMutation = useMutation({ mutationFn: (input: SendReportEmailInput) => sendReportEmail(input) })
 
   useEffect(() => {
-    if (!isEmailModalOpen || !targetDate) return
-
-    let isCancelled = false
-
-      getExpensePage({
-        startAt: `${targetDate}T00:00:00`,
-        endAt: `${targetDate}T23:59:59`,
-      })
-        .then((res) => {
-          if (!isCancelled) setDailyTxList(res.content || [])
-        })
-        .catch(() => {
-          showToast({ variant: 'error', title: t('report.transactionsError') })
-        })
-        .finally(() => {
-          if (!isCancelled) setIsLoadingTx(false)
-        })
-
-    return () => {
-      isCancelled = true
+    if (isEmailModalOpen && transactionsQuery.error) {
+      showToast({ variant: 'error', title: t('report.transactionsError') })
     }
-  }, [isEmailModalOpen, targetDate, showToast, t])
+  }, [isEmailModalOpen, showToast, t, transactionsQuery.error])
 
   const openEmailModal = () => {
-    setIsLoadingTx(true)
     setIsEmailModalOpen(true)
   }
 
   const handleReportDateChange = (date: string) => {
-    if (isEmailModalOpen) setIsLoadingTx(true)
     setSelectedDate(date)
   }
 
   useEffect(() => {
+    if (openDropdown !== 'date') return undefined
+
     const handleOutsideSelect = (event: MouseEvent) => {
       const target = event.target as HTMLElement
       if (
@@ -329,24 +89,7 @@ function ReportPage() {
     return () => {
       document.removeEventListener('click', handleOutsideSelect)
     }
-  }, [])
-
-  const handleSendEmailReport = async () => {
-    if (isSendingEmail) return
-    setIsSendingEmail(true)
-    try {
-      await sendEmailReport(locale) 
-      showToast({ variant: 'success', title: t('report.sendSuccess') })
-      setIsEmailModalOpen(false) 
-    } catch (error) {
-      showToast({
-        variant: 'error',
-        ...getApiErrorNotice(error, t('report.sendError')),
-      })
-    } finally {
-      setIsSendingEmail(false)
-    }
-  }
+  }, [openDropdown])
 
   const dateList = useMemo(() => {
     const endDateTime = new Date(targetDate)
@@ -446,17 +189,20 @@ function ReportPage() {
           <h1>{t('report.title')}</h1>
           <p>{t('report.description')}</p>
         </div>
-        <div className={styles.feedbackCard} role="alert">
+        <div className={styles.feedbackCard}>
           <h2>{t('report.errorTitle')}</h2>
-          <p>{errorMessage}</p>
-          <span>{t('report.errorDescription')}</span>
-          <button type="button" onClick={retry}>{t('common.retry')}</button>
+          <ErrorState
+            title={errorMessage}
+            description={t('report.errorDescription')}
+            retryLabel={t('common.retry')}
+            onRetry={retry}
+          />
         </div>
       </section>
     )
   }
 
-  if (!report) {
+  if (!report && isInitialLoading) {
     return (
       <section className={styles.page} aria-busy="true">
         <div className={styles.pageHeader}>
@@ -464,16 +210,59 @@ function ReportPage() {
           <p>{t('report.description')}</p>
         </div>
         <div className={styles.feedbackCard}>
-          <p aria-live="polite">{t('report.loading')}</p>
+          <LoadingState message={t('report.loading')} />
         </div>
       </section>
     )
   }
 
+  if (!report) return null
+
   const targetExpenseData = report.dailyExpenses.find(
     (expense: { date: string; amountHome: number }) => expense.date === targetDate
   )
   const targetAmount = targetExpenseData ? targetExpenseData.amountHome : 0
+
+  const handleSendEmailReport = async () => {
+    const recipientEmail = getSessionUser()?.email?.trim() ?? ''
+    if (!recipientEmail) {
+      showToast({ variant: 'error', title: t('report.sendError') })
+      return
+    }
+    if (captureInProgressRef.current || sendEmailMutation.isPending) return
+
+    captureInProgressRef.current = true
+    setIsCapturingReport(true)
+    try {
+      await executeManualEmailReport({
+        isPending: sendEmailMutation.isPending,
+        send: async () => {
+          const reportImage = await captureReportImage(reportCaptureRef.current)
+          return sendEmailMutation.mutateAsync({
+            toEmail: recipientEmail,
+            reportPeriod: targetDate,
+            reportImage,
+          })
+        },
+        onSuccess: () => {
+          showToast({ variant: 'success', title: t('report.sendSuccess') })
+          setIsEmailModalOpen(false)
+        },
+        onError: (error) => {
+          const isKnownReportError = error instanceof ReportEmailSendError || error instanceof ReportImageCaptureError
+          showToast({
+            variant: 'error',
+            ...(isKnownReportError
+              ? { title: t('report.sendError') }
+              : getApiErrorNotice(error, t('report.sendError'))),
+          })
+        },
+      })
+    } finally {
+      captureInProgressRef.current = false
+      setIsCapturingReport(false)
+    }
+  }
 
   const currentSelectedMonth = selectedMonth || currentYM
   const [selYear, selMonthNum] = currentSelectedMonth.split('-').map(Number)
@@ -504,7 +293,7 @@ function ReportPage() {
 
   const userHomeCurrency = report?.homeCurrency || data?.homeCurrency || 'KRW'
   const localCurrencies = getOnboardingSettings().localCurrencies ?? []
-  const userLocalCurrency = localCurrencies[0] || 'KRW'
+  const userLocalCurrency = normalizeCurrencyCode(localCurrencies[0], 'KRW')
 
   const currencySymbols: Record<string, string> = {
     KRW: '₩',
@@ -535,6 +324,7 @@ function ReportPage() {
   return (
     <section className={styles.page} ref={containerRef}>
       {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
+      {isBackgroundFetching && <LoadingState size="sm" variant="inline" message={t('report.loading')} />}
       <div className={styles.pageHeader}>
         <h1>{t('report.title')}</h1>
         <div className={styles.headerWrapper}>
@@ -551,7 +341,7 @@ function ReportPage() {
       </div>
 
       <div className={styles.reportContent}>
-        <BarChart
+        <ReportBarChart
           titlePrefix={`${firstDailyDate.slice(5).replace('-', '.')} - ${lastDailyDate.slice(5).replace('-', '.')}`}
           titleSuffix={t('report.dailySuffix')}
           data={timeData}
@@ -567,7 +357,7 @@ function ReportPage() {
           onToggle={() => setOpenDropdown(openDropdown === 'date' ? null : 'date')}
         />
 
-        <BarChart
+        <ReportBarChart
           titlePrefix={new Intl.DateTimeFormat(locale, { year: 'numeric' }).format(new Date(Number(displayYear), 0, 1))}
           titleSuffix={t('report.monthlySuffix')}
           data={monthlyData}
@@ -584,138 +374,24 @@ function ReportPage() {
         />
       </div>
 
-      {isEmailModalOpen && createPortal(
-        <div
-          className={styles.emailModalBackdrop}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              const isScrollbarClick = e.clientX >= e.currentTarget.clientWidth
-              if (!isScrollbarClick) {
-                setIsEmailModalOpen(false)
-              }
-            }
-          }}
-        >
-          <div className={styles.emailModalWrapper}>
-            <img
-              className={styles.emailIllustration}
-              src="/assets/illustrations/email-report.png"
-              alt=""
-              aria-hidden="true"
-            />
-
-            <div className={styles.emailModalInner}>
-
-              <header className={styles.emailHeader}>
-                <h2>
-                  {(() => {
-                    const [, m, d] = targetDate.split('-')
-                    return t('report.todayReport', { month: Number(m), day: Number(d) })
-                  })()}
-                </h2>
-                <p>{t('report.todayDescription')}</p>
-              </header>
-              <section className={styles.emailListSection}>
-                <div className={styles.emailSummary}>
-                  <div className={styles.summaryBox}>
-                    <span>{t('report.totalExpense')}</span>
-                    <strong className={styles.textBlue}>{localSymbol} {targetAmount.toLocaleString(locale)}</strong>
-                    <small>({userHomeCurrency} {Number(convertCurrencyAmount(targetAmount, userLocalCurrency, userHomeCurrency)).toFixed(2)})</small>
-                  </div>
-                  <div className={styles.summaryArrow}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path d="M13 5L20 12L13 19M5 5L12 12L5 19" stroke="#90b6d9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className={styles.summaryBox}>
-                    <span>{t('report.remainingBudget')}</span>
-                    <strong>
-                      {homeSymbol} {Number(data?.remainingBudgetHome ?? 0).toLocaleString(locale)}
-                    </strong>
-                    <small>(USD {Number(convertCurrencyAmount(data?.remainingBudgetHome ?? 0, userHomeCurrency, 'USD')).toFixed(2)})</small>
-                  </div>
-                </div>
-              </section>
-
-              <section className={styles.emailListSection}>
-                <h3>{t('report.todayExpenses')}</h3>
-                <ul className={styles.emailTxList}>
-                  {isLoadingTx ? (
-                    <li style={{ padding: '1rem', color: '#999', textAlign: 'center' }}>
-                      {t('report.loadingTransactions')}
-                    </li>
-                  ) : dailyTxList.length === 0 ? (
-                    <li style={{ padding: '1rem', color: '#999', textAlign: 'center' }}>
-                      {t('report.noTodayExpenses')}
-                    </li>
-                  ) : (
-                    dailyTxList.map((tx) => {
-                      const timeStr = tx.spentAt?.includes('T')
-                        ? tx.spentAt.split('T')[1].slice(0, 5)
-                        : ''
-
-                      return (
-                        <li key={tx.id ?? `${tx.merchantName ?? 'expense'}-${tx.spentAt ?? ''}`}>
-                          <div className={styles.txIcon}>
-                            <img src={getCategoryIconPath(tx.iconKey)} alt={tx.categoryName ?? ''} width="18" height="18" />
-                          </div>
-                          <div className={styles.txInfo}>
-                            <strong>{tx.merchantName ?? tx.categoryName ?? '-'}</strong>
-                            <span>{tx.categoryName} {timeStr ? `• ${timeStr}` : ''}</span>
-                          </div>
-                          <div className={styles.txAmount}>
-                            <strong>{localSymbol} {Number(tx.convertedAmountHome ?? 0).toLocaleString(locale)}</strong>
-                            <span>USD {Number(convertCurrencyAmount(tx.convertedAmountHome ?? 0, userHomeCurrency, 'USD')).toFixed(2)}</span>
-                          </div>
-                        </li>
-                      )
-                    })
-                  )}
-                </ul>
-              </section>
-
-              <section className={styles.emailChartSection}>
-                <h3>{t('report.weeklyTrend')}</h3>
-                <div className={styles.emailChart}>
-                  {(() => {
-                    const maxTimeAmount = timeData.length > 0 ? Math.max(...timeData.map((item) => item.amount)) : 0
-
-                    return timeData.map((item) => {
-                      const isToday = item.dateStr === targetDate
-
-                      return (
-                        <div className={styles.chartCol} key={item.dateStr}>
-                          <div
-                            className={`${styles.chartBar} ${isToday ? styles.barToday : ''} ${item.amount === maxTimeAmount && maxTimeAmount > 0 ? styles.barMax : ''}`}
-                            style={{ height: item.amount > 0 ? `${(item.amount / maxTimeAmount) * 100}%` : '0%' }}
-                          >
-                            {isToday && item.amount > 0 && (
-                              <div className={styles.chartTooltip}>
-                                {localSymbol} {item.amount.toLocaleString(locale)}
-                              </div>
-                            )}
-                          </div>
-                          <span>{item.label}</span>
-                        </div>
-                      )
-                    })
-                  })()}
-                </div>
-              </section>
-
-              <Button
-                className={styles.emailSendBtn}
-                fullWidth
-                disabled={isSendingEmail}
-                onClick={handleSendEmailReport}
-              >
-                <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
-                {isSendingEmail ? t('report.sending') : t('report.send')}
-              </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
+      {isEmailModalOpen && (
+        <EmailReportDialog
+          captureRef={reportCaptureRef}
+          targetDate={targetDate}
+          targetAmount={targetAmount}
+          remainingBudgetHome={data?.remainingBudgetHome ?? null}
+          remainingBudgetError={expenseHistoryErrorMessage}
+          localSymbol={localSymbol}
+          homeSymbol={homeSymbol}
+          userLocalCurrency={userLocalCurrency}
+          userHomeCurrency={userHomeCurrency}
+          transactions={dailyTxList}
+          isLoadingTransactions={isLoadingTx}
+          timeData={timeData}
+          isSending={sendEmailMutation.isPending || isCapturingReport}
+          onClose={() => setIsEmailModalOpen(false)}
+          onSend={handleSendEmailReport}
+        />
       )}
 
       <FloatingMascot

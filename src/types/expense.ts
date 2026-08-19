@@ -1,3 +1,5 @@
+import type { CurrencyCode } from './currency'
+
 export interface ExpenseCategorySummary {
   categoryId: string
   categoryName: string
@@ -82,7 +84,7 @@ export interface ExpensePageDto {
 
 /** Swagger GET /expenses의 data 응답입니다. */
 export interface ExpenseListResponseDto {
-  expenses?: ExpensePageDto
+  expenses?: ExpensePageDto | ExpenseListItemDto[]
   content?: ExpenseListItemDto[]
   totalPages?: number
   totalElements?: number
@@ -119,7 +121,7 @@ export interface ExpenseUserContextDto {
 
 export interface ExpenseDetail {
   expenseId: string
-  currency: 'USD' | 'EUR' | 'JPY' | 'CNY' | 'KRW'
+  currency: CurrencyCode
   originalAmount: number
   convertedAmountHome: number
   appliedRate: number
@@ -134,6 +136,12 @@ export interface CreateExpenseInput extends Omit<ExpenseDetail, 'expenseId'> {
   /** 실제 API의 카테고리 PK입니다. */
   categoryId?: number
 }
+
+/** 화면이 입력한 값과 API 저장에 필요한 계산값을 구분하기 위한 폼 모델입니다. */
+export type ExpenseFormValue = Pick<
+  CreateExpenseInput,
+  'currency' | 'originalAmount' | 'spentAt' | 'merchantName' | 'categoryName' | 'iconKey' | 'categoryId' | 'memo'
+>
 
 export interface ExpenseResponseDto {
   id?: number

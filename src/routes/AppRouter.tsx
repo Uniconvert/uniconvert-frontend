@@ -4,6 +4,9 @@ import AuthLayout from '@/layouts/AuthLayout/AuthLayout'
 import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout'
 import { DashboardRouteGuard, EmailVerificationRouteGuard, GuestRouteGuard, OnboardingRouteGuard } from './RouteGuards'
 import { ROUTE_PATHS } from './routePaths'
+import RouteErrorFallback from './RouteErrorFallback'
+import PublicCalculatorLayout from '@/layouts/PublicCalculatorLayout/PublicCalculatorLayout'
+import CalculatorPage from '@/pages/CalculatorPage/CalculatorPage'
 
 const lazyComponent = (load: () => Promise<{ default: ComponentType }>) => async () => {
   const module = await load()
@@ -13,10 +16,19 @@ const lazyComponent = (load: () => Promise<{ default: ComponentType }>) => async
 export const router = createBrowserRouter([
   {
     path: ROUTE_PATHS.landing,
+    errorElement: <RouteErrorFallback />,
     lazy: lazyComponent(() => import('@/pages/LandingPage/LandingPage')),
   },
   {
+    Component: PublicCalculatorLayout,
+    errorElement: <RouteErrorFallback />,
+    children: [
+      { path: ROUTE_PATHS.offlineCalculator, Component: CalculatorPage },
+    ],
+  },
+  {
     Component: AuthLayout,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         Component: GuestRouteGuard,
@@ -43,6 +55,7 @@ export const router = createBrowserRouter([
   },
   {
     Component: DashboardRouteGuard,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         Component: DashboardLayout,
@@ -52,7 +65,7 @@ export const router = createBrowserRouter([
           { path: ROUTE_PATHS.pots, lazy: lazyComponent(() => import('@/pages/PotsPage/PotsPage')) },
           { path: ROUTE_PATHS.report, lazy: lazyComponent(() => import('@/pages/ReportPage/ReportPage')) },
           { path: ROUTE_PATHS.reportMemos, lazy: lazyComponent(() => import('@/pages/MemoPage/MemoPage')) },
-          { path: ROUTE_PATHS.calculator, lazy: lazyComponent(() => import('@/pages/CalculatorPage/CalculatorPage')) },
+          { path: ROUTE_PATHS.calculator, Component: CalculatorPage },
           { path: ROUTE_PATHS.ocr, lazy: lazyComponent(() => import('@/pages/OcrUploadPage/OcrUploadPage')) },
           { path: ROUTE_PATHS.settings, lazy: lazyComponent(() => import('@/pages/SettingsPage/SettingsPage')) },
         ],
@@ -61,6 +74,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
+    errorElement: <RouteErrorFallback />,
     lazy: lazyComponent(() => import('@/pages/NotFoundPage/NotFoundPage')),
   },
 ])

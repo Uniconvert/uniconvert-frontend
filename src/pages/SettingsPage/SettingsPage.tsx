@@ -1,62 +1,82 @@
-import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getEmailReportPreview } from '@/api/emailReports'
-import { getEmailReportSetting, updateEmailReportSetting } from '@/api/users'
+import { useEffect, useRef, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { getEmailReportPreview } from '@/features/settings/api/emailReports'
 import { getSessionUser, saveSessionUser, updateSessionUser } from '@/auth/session'
-import Button from '@/components/common/Button/Button'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { useSessionUser } from '@/hooks/useSessionUser'
 import { useMyUserQuery } from '@/hooks/useMyUserQuery'
-import { getProfileImageKeyBySrc, getProfileImageSrc, getRandomProfileImageOption } from '@/constants/profileOptions'
-import type { EmailReportData } from '@/types/emailReport'
+import { getProfileImageKeyBySrc } from '@/constants/profileOptions'
 import { getApiErrorNotice } from '@/utils/apiError'
-import { getCategoryIconPath } from '@/utils/categoryIcon'
-import { formatCurrencyAmount } from '@/utils/currency'
 import { useI18n } from '@/i18n/I18nContext'
-import styles from './SettingsPage.module.css'
-import { sendEmailReport } from '@/api/reports'
+import styles from '@/features/settings/settings.module.css'
+import { ReportEmailSendError, sendReportEmail, type SendReportEmailInput } from '@/features/report/emailReportSender'
+import { captureReportImage, ReportImageCaptureError } from '@/features/report/reportImageCapture'
+import { executeManualEmailReport } from '@/features/report/manualEmailReport'
+import LoadingState from '@/components/common/LoadingState/LoadingState'
+import EmailReportSettingsSection, { type ReportCycle } from '@/features/settings/components/EmailReportSettingsSection'
+import EmailReportPreview from '@/features/settings/components/EmailReportPreview'
+import ProfileSettingsSection from '@/features/settings/components/ProfileSettingsSection'
+import { useEmailReportSetting } from '@/features/settings/hooks/useEmailReportSetting'
+import { emailReportKeys } from '@/features/settings/emailReportKeys'
 
 function SettingsPage() {
-  const { locale, t } = useI18n()
+  const { t } = useI18n()
   const sessionUser = useSessionUser()
-  const { data: queriedUser, update: updateQueriedUser } = useMyUserQuery()
-  const [isEmailReportEnabled, setIsEmailReportEnabled] = useState(false)
+  const {
+    data: queriedUser,
+    error: userQueryError,
+    isFetching: isUserFetching,
+    refetch: refetchUser,
+    update: updateQueriedUser,
+    isUpdating,
+  } = useMyUserQuery()
+  const [emailEnabledOverride, setEmailEnabledOverride] = useState<boolean | undefined>()
   const [savedNickname, setSavedNickname] = useState(() => getSessionUser()?.nickname ?? '')
   const [nickname, setNickname] = useState(() => getSessionUser()?.nickname ?? '')
   const [savedProfileImageKey, setSavedProfileImageKey] = useState(() => getSessionUser()?.profileImageKey ?? getProfileImageKeyBySrc(getSessionUser()?.profileImage) ?? '')
   const [profileImageKey, setProfileImageKey] = useState(savedProfileImageKey)
   const [savedPrimaryGoal, setSavedPrimaryGoal] = useState(() => getSessionUser()?.primaryGoal ?? '')
   const [primaryGoal, setPrimaryGoal] = useState(savedPrimaryGoal)
-  const emailReportQuery = useQuery<EmailReportData>({ queryKey: ['email-report-preview'], queryFn: getEmailReportPreview })
+  const emailReportQuery = useQuery({ queryKey: emailReportKeys.preview(), queryFn: getEmailReportPreview })
+  const emailSetting = useEmailReportSetting()
+  const isEmailReportEnabled = emailEnabledOverride ?? emailSetting.query.data?.enabled ?? false
   const emailReport = emailReportQuery.data ?? null
-  const reportError = emailReportQuery.error ? t('settings.previewError') : ''
-  const [reportCycle, setReportCycle] = useState<'daily' | 'weekly' | 'monthly'>('daily')
-  const [reportTime, setReportTime] = useState('09:00')
+  const reportError = emailReportQuery.error && !emailReport ? t('settings.previewError') : ''
+  const userError = userQueryError && !queriedUser
+    ? getApiErrorNotice(userQueryError, t('settings.profileUpdateError')).title
+    : ''
+  const [reportCycleOverride, setReportCycleOverride] = useState<ReportCycle | undefined>()
+  const [reportTimeOverride, setReportTimeOverride] = useState<string | undefined>()
+  const reportCycle = reportCycleOverride ?? emailSetting.query.data?.frequency?.toLowerCase() as ReportCycle | undefined ?? 'daily'
+  const reportTime = reportTimeOverride ?? emailSetting.query.data?.sendTime?.slice(0, 5) ?? '09:00'
   const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false)
   const [tempSelectedTime, setTempSelectedTime] = useState(reportTime)
   const [timePage, setTimePage] = useState(0)
-  const [isSendingReport, setIsSendingReport] = useState(false)
+  const reportCaptureRef = useRef<HTMLElement>(null)
+  const captureInProgressRef = useRef(false)
+  const [isCapturingReport, setIsCapturingReport] = useState(false)
   const { toast, showToast, closeToast } = useToastQueue()
+  const timeDropdownRef = useRef<HTMLDivElement>(null)
+  const sendReportMutation = useMutation({ mutationFn: (input: SendReportEmailInput) => sendReportEmail(input) })
 
   useEffect(() => {
-    getEmailReportSetting()
-      .then((res) => {
-        if (res) {
-          setIsEmailReportEnabled(res.enabled ?? false)
+    if (!isTimeDropdownOpen) return
 
-          if (res.frequency) {
-            setReportCycle(res.frequency.toLowerCase() as 'daily' | 'weekly' | 'monthly')
-          }
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!timeDropdownRef.current?.contains(event.target as Node)) setIsTimeDropdownOpen(false)
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsTimeDropdownOpen(false)
+    }
 
-          if (res.sendTime) {
-            setReportTime(res.sendTime.slice(0, 5))
-          }
-        }
-      })
-      .catch(() => {
-      })
-  }, [])
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isTimeDropdownOpen])
 
   useEffect(() => {
     if (queriedUser) {
@@ -87,11 +107,14 @@ function SettingsPage() {
 
   const handleSaveEmailSettings = async () => {
     try {
-      await updateEmailReportSetting({
+      await emailSetting.updateSetting({
         enabled: isEmailReportEnabled,
         frequency: (reportCycle.toUpperCase() as 'DAILY' | 'WEEKLY' | 'MONTHLY'),
         sendTime: reportTime.length === 5 ? `${reportTime}:00` : reportTime,
       })
+      setEmailEnabledOverride(undefined)
+      setReportCycleOverride(undefined)
+      setReportTimeOverride(undefined)
 
       showToast({ variant: 'success', title: t('settings.profileUpdated') })
     } catch (error) {
@@ -100,22 +123,45 @@ function SettingsPage() {
   }
 
   const handleSendReport = async () => {
-  if (isSendingReport) return
-  setIsSendingReport(true)
-  try {
-    await sendEmailReport(locale) 
-    showToast({ variant: 'success', title: t('report.sendSuccess') })
+    if (!emailReport) return
+    const recipientEmail = (sessionUser?.email ?? queriedUser?.email ?? '').trim()
+    if (!recipientEmail) {
+      showToast({ variant: 'error', title: t('settings.reportSendError') })
+      return
+    }
+    if (captureInProgressRef.current || sendReportMutation.isPending) return
+
+    captureInProgressRef.current = true
+    setIsCapturingReport(true)
+    try {
+      await executeManualEmailReport({
+        isPending: sendReportMutation.isPending,
+        send: async () => {
+          const reportImage = await captureReportImage(reportCaptureRef.current)
+          return sendReportMutation.mutateAsync({
+            toEmail: recipientEmail,
+            reportPeriod: emailReport.yearMonth,
+            reportImage,
+          })
+        },
+        onSuccess: () => {
+          showToast({ variant: 'success', title: t('report.sendSuccess') })
+        },
+        onError: (error) => {
+          const isKnownReportError = error instanceof ReportEmailSendError || error instanceof ReportImageCaptureError
+          showToast({
+            variant: 'error',
+            ...(isKnownReportError
+              ? { title: t('settings.reportSendError') }
+              : getApiErrorNotice(error, t('settings.reportSendError'))),
+          })
+        },
+      })
+    } finally {
+      captureInProgressRef.current = false
+      setIsCapturingReport(false)
+    }
   }
-  catch (error) {
-    showToast({ 
-      variant: 'error', 
-      ...getApiErrorNotice(error, t('settings.reportSendError')) 
-    })
-  }
-  finally { 
-    setIsSendingReport(false) 
-  }
-}
 
   const allTimes = Array.from({ length: 24 }, (_, index) => `${String(index + 1).padStart(2, '0')}:00`)
   const itemsPerPage = 6
@@ -124,42 +170,51 @@ function SettingsPage() {
 
   return <section className={styles.page} aria-labelledby="settings-title">
     {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
+    {isUserFetching && <LoadingState size="sm" variant="inline" />}
     <h1 id="settings-title">{t('settings.title')}</h1>
     <div className={styles.leftColumn}>
-      <section className={styles.emailSetting} aria-labelledby="email-report-setting-title">
-        <div className={styles.emailSettingHeader}>
-          <span className={styles.emailIcon} aria-hidden="true"><img src="/assets/icons/email.png" alt="" /></span>
-          <div><h2 id="email-report-setting-title">{t('settings.emailReportTitle')}</h2><p>{t('settings.emailReportDescription')}</p></div>
-          <button className={`${styles.toggle} ${isEmailReportEnabled ? styles.toggleOn : ''}`} type="button" role="switch" aria-checked={isEmailReportEnabled} aria-label={t('settings.emailReportToggle')} onClick={() => setIsEmailReportEnabled((value) => !value)}><span /></button>
-        </div>
-        {isEmailReportEnabled && <div className={styles.emailSubOptions}>
-          <div className={styles.optionRow}><span className={styles.optionLabel}>{t('settings.receiveTime')}</span><div className={styles.selectWrapper}>
-            <button type="button" className={styles.timeSelectButton} onClick={() => { setTempSelectedTime(reportTime); setIsTimeDropdownOpen((open) => !open) }}><span className={styles.timeButtonContent}><img src="/assets/icons/time-setting.png" alt="" aria-hidden="true" />{reportTime}</span><span className={styles.Chevrondown} aria-hidden="true" /></button>
-            {isTimeDropdownOpen && <div className={styles.timeDropdownPopup}>
-              <button type="button" className={styles.popupArrowUp} aria-label={t('memo.previousPage')} onClick={() => setTimePage((page) => Math.max(page - 1, 0))} />
-              <div className={styles.timeRadioList}>{displayedTimes.map((time) => <label key={time} className={styles.timeRadioItem}><input type="radio" name="reportTimeRadio" value={time} checked={tempSelectedTime === time} onChange={(event) => setTempSelectedTime(event.target.value)} /><span className={styles.timeText}>{time}</span></label>)}</div>
-              <button type="button" className={styles.popupArrowDown} aria-label={t('memo.nextPage')} onClick={() => setTimePage((page) => Math.min(page + 1, totalTimePages - 1))} />
-              <div className={styles.popupActions}><Button variant="outline" onClick={() => setIsTimeDropdownOpen(false)}>{t('common.cancel')}</Button><Button onClick={() => { setReportTime(tempSelectedTime); setIsTimeDropdownOpen(false) }}>{t('common.save')}</Button></div>
-            </div>}
-          </div></div>
-          <div className={styles.optionRow}><span className={styles.optionLabel}>{t('settings.sendCycle')}</span><div className={styles.cycleButtonGroup}>
-            {(['daily', 'weekly', 'monthly'] as const).map((cycle) => <button key={cycle} type="button" className={reportCycle === cycle ? styles.activeCycle : ''} onClick={() => setReportCycle(cycle)}>{t(`settings.${cycle}`)}</button>)}
-          </div></div>
-          <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span><div className={styles.optionActions}><Button onClick={handleSaveEmailSettings}>{t('common.save')}</Button></div></div>
-        </div>}
-      </section>
-      <section className={styles.profileCard} aria-labelledby="profile-title">
-        <h2 id="profile-title">{t('settings.profile')}</h2>
-        <div className={styles.avatarWrap}><div className={styles.profileAvatar}>{getProfileImageSrc(profileImageKey) ? <img src={getProfileImageSrc(profileImageKey)} alt={t('settings.profileImage')} /> : <span aria-hidden="true">{nickname.trim().charAt(0).toUpperCase()}</span>}</div><button type="button" className={styles.changePhotoButton} aria-label={t('settings.shuffleProfile')} onClick={() => setProfileImageKey((key) => getRandomProfileImageOption(key).key)}><img src="/assets/icons/actions/exchange-button.png" alt="" aria-hidden="true" /></button></div>
-        <div className={styles.profileFields}><label><span>{t('settings.nickname')}</span><input value={nickname} maxLength={20} onChange={(event) => setNickname(event.target.value)} /></label><label><span>{t('settings.email')}</span><input value={sessionUser?.email ?? ''} placeholder={t('settings.noEmail')} readOnly aria-readonly="true" /></label></div>
-        <div className={styles.profileActions}><Button variant="outline" onClick={() => { setNickname(savedNickname); setProfileImageKey(savedProfileImageKey); setPrimaryGoal(savedPrimaryGoal) }}>{t('common.cancel')}</Button><Button onClick={handleSave} disabled={!nickname.trim()}>{t('common.save')}</Button></div>
-      </section>
+      <EmailReportSettingsSection
+        isEnabled={isEmailReportEnabled}
+        reportCycle={reportCycle}
+        reportTime={reportTime}
+        isTimeDropdownOpen={isTimeDropdownOpen}
+        tempSelectedTime={tempSelectedTime}
+        displayedTimes={displayedTimes}
+        timePage={timePage}
+        totalTimePages={totalTimePages}
+        timeDropdownRef={timeDropdownRef}
+        onToggle={() => setEmailEnabledOverride((value) => !(value ?? isEmailReportEnabled))}
+        onToggleTimeDropdown={() => { setTempSelectedTime(reportTime); setIsTimeDropdownOpen((open) => !open) }}
+        onTimeChange={setTempSelectedTime}
+        onTimePageChange={setTimePage}
+        onCancelTime={() => setIsTimeDropdownOpen(false)}
+        onSaveTime={() => { setReportTimeOverride(tempSelectedTime); setIsTimeDropdownOpen(false) }}
+        onCycleChange={setReportCycleOverride}
+        onSaveSettings={handleSaveEmailSettings}
+        isSaving={emailSetting.isUpdating}
+      />
+      <ProfileSettingsSection
+        email={sessionUser?.email ?? ''}
+        userError={userError}
+        nickname={nickname}
+        profileImageKey={profileImageKey}
+        onNicknameChange={setNickname}
+        onProfileImageChange={setProfileImageKey}
+        onRetry={() => { void refetchUser() }}
+        onCancel={() => { setNickname(savedNickname); setProfileImageKey(savedProfileImageKey); setPrimaryGoal(savedPrimaryGoal) }}
+        onSave={handleSave}
+        isSaving={isUpdating}
+      />
     </div>
-    <aside className={styles.reportPanel} aria-label={t('settings.preview')}><img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" /><section className={styles.reportCard}>
-      <h2>{t('settings.preview')}</h2>{reportError && <p role="alert">{reportError}</p>}<p className={styles.reportMonth}>{emailReport?.yearMonth.replace('-', '.') ?? '-'}</p><div className={styles.reportTotal}><span>{t('report.totalExpense')}</span><strong>{emailReport ? formatCurrencyAmount(emailReport.totalExpenseHome, emailReport.homeCurrency) : '-'}</strong></div><hr /><h3>{t('settings.categorySpending')}</h3>
-      <ul className={styles.reportList}>{emailReport?.categories.map((category) => <li key={category.categoryId}><span className={styles.reportCategoryIcon}><img src={getCategoryIconPath(category.iconKey)} alt="" aria-hidden="true" /></span><span className={styles.reportCategoryInfo}><span><b>{category.categoryName}</b><strong>{formatCurrencyAmount(category.amountHome, emailReport.homeCurrency)}</strong></span><span className={styles.reportProgress}><i style={{ width: `${category.ratio}%` }} /></span></span></li>)}</ul>
-      <Button className={styles.sendReportButton} fullWidth disabled={isSendingReport} onClick={handleSendReport}><img src="/assets/icons/email.png" alt="" aria-hidden="true" />{isSendingReport ? t('report.sending') : t('report.send')}</Button>
-    </section></aside>
+    <EmailReportPreview
+      captureRef={reportCaptureRef}
+      emailReport={emailReport}
+      isLoading={emailReportQuery.isLoading}
+      errorMessage={reportError}
+      isSending={sendReportMutation.isPending || isCapturingReport}
+      onRetry={() => { void emailReportQuery.refetch() }}
+      onSend={handleSendReport}
+    />
   </section>
 }
 

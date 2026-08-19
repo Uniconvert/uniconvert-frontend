@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, FocusEvent, MouseEvent } from 'react'
+import { getCurrencyMetadata } from '@/types/currency'
+import { getCurrencyLocale, normalizeCurrencyAmount, normalizeCurrencyAmountInput } from '@/utils/currencyAmount'
 import styles from './CurrencyAmountInput.module.css'
 
-interface CurrencyAmountInputProps {
+// These helpers remain exported for the existing domain-input tests and callers.
+// eslint-disable-next-line react-refresh/only-export-components
+export { normalizeCurrencyAmount, normalizeCurrencyAmountInput } from '@/utils/currencyAmount'
+
+export interface CurrencyAmountInputProps {
   value: number
   currency: string
   onChange: (value: number) => void
@@ -12,27 +19,18 @@ interface CurrencyAmountInputProps {
   disabled?: boolean
 }
 
-const currencyLocales: Record<string, string> = {
-  KRW: 'ko-KR',
-  USD: 'en-US',
-  EUR: 'de-DE',
-  JPY: 'ja-JP',
-  CNY: 'zh-CN',
-  GBP: 'en-GB',
-}
-
 function getCurrencySymbol(currency: string) {
-  return new Intl.NumberFormat(currencyLocales[currency] ?? 'en-US', {
+  return new Intl.NumberFormat(getCurrencyLocale(currency), {
     style: 'currency',
     currency,
     currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 0,
+    maximumFractionDigits: getCurrencyMetadata(currency).maximumFractionDigits,
   }).formatToParts(0).find((part) => part.type === 'currency')?.value ?? currency
 }
 
 function formatNumber(value: number, currency: string) {
-  return new Intl.NumberFormat(currencyLocales[currency] ?? 'en-US', {
-    maximumFractionDigits: 0,
+  return new Intl.NumberFormat(getCurrencyLocale(currency), {
+    maximumFractionDigits: getCurrencyMetadata(currency).maximumFractionDigits,
   }).format(value)
 }
 
@@ -58,32 +56,37 @@ function CurrencyAmountInput({
 
   const handleBlur = () => {
     isEditingRef.current = false
-    const digits = draftValue.replace(/[^\d]/g, '')
+    const normalizedDraft = normalizeCurrencyAmountInput(draftValue, currency)
 
-    if (digits === '') {
+    if (!normalizedDraft || normalizedDraft === '.') {
       setDraftValue('')
       onChange(0)
       return
     }
 
-    const parsedValue = Number(digits)
-    const normalizedValue = Math.min(Math.max(parsedValue, min), max)
+    const parsedValue = Number(normalizedDraft)
+    if (!Number.isFinite(parsedValue)) {
+      setDraftValue(formatNumber(min, currency))
+      onChange(min)
+      return
+    }
 
+    const normalizedValue = normalizeCurrencyAmount(parsedValue, currency, min, max)
     setDraftValue(formatNumber(normalizedValue, currency))
     onChange(normalizedValue)
   }
 
-  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+  const handleFocus = (event: FocusEvent<HTMLInputElement>) => {
     isEditingRef.current = true
     event.currentTarget.select()
   }
 
-  const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {
+  const handleClick = (event: MouseEvent<HTMLInputElement>) => {
     event.currentTarget.select()
   }
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDraftValue(event.currentTarget.value.replace(/[^\d]/g, ''))
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setDraftValue(normalizeCurrencyAmountInput(event.currentTarget.value, currency))
   }
 
   return (
@@ -91,7 +94,7 @@ function CurrencyAmountInput({
       <input
         data-currency-input
         type="text"
-        inputMode="numeric"
+        inputMode="decimal"
         autoComplete="off"
         aria-label={ariaLabel}
         value={draftValue}

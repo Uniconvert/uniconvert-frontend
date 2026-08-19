@@ -1,19 +1,23 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createExpense, importExpenses } from '@/api/expenses'
 import Button from '@/components/common/Button/Button'
 import CurrencyDropdown from '@/components/common/CurrencyDropdown/CurrencyDropdown'
-import type { CurrencyCode } from '@/components/common/CurrencyDropdown/currencyOptions'
+import type { CurrencyCode } from '@/types/currency'
 import FileUploadModal from '@/components/common/FileUploadModal/FileUploadModal'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import { useExpenseInputData } from '@/hooks/useExpenseInputData'
-import type { ExpenseDetail } from '@/types/expense'
+import { useExpenseInputData } from '@/features/expense/hooks/useExpenseInputData'
+import type { ExpenseFormValue } from '@/types/expense'
+import { isCurrencyCode } from '@/types/currency'
 import { getApiErrorNotice } from '@/utils/apiError'
 import { formatCurrencyAmount } from '@/utils/currency'
 import { useI18n } from '@/i18n/I18nContext'
 import styles from './ExpenseInputPage.module.css'
 import { getOnboardingSettings } from '@/auth/session'
+import { expenseKeys } from '@/hooks/expenseKeys'
+import { reportKeys } from '@/hooks/reportKeys'
+import { formatCalendarDateLabel, handleCalendarKeyDown as handleSharedCalendarKeyDown } from '@/hooks/useCalendarKeyboard'
 
 const WEEKDAY_KEYS = [
   'calendar.weekday.sun',
@@ -34,7 +38,7 @@ function getTodayDateInputValue() {
 function ExpenseInputPage() {
   const { t, locale } = useI18n()
   const onboarding = getOnboardingSettings()
-  const defaultCurrency = (onboarding.localCurrencies?.[0] as CurrencyCode) || 'USD'
+  const defaultCurrency = onboarding.localCurrencies?.find(isCurrencyCode) ?? 'USD'
 
   const [currency, setCurrency] = useState<CurrencyCode>(defaultCurrency)
   const [amount, setAmount] = useState('')
@@ -42,11 +46,20 @@ function ExpenseInputPage() {
   const [merchant, setMerchant] = useState('')
   const [memo, setMemo] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [isDateOpen, setIsDateOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => getTodayDateInputValue().slice(0, 7))
   const { toast, showToast, closeToast } = useToastQueue()
   const queryClient = useQueryClient()
+  const createExpenseMutation = useMutation({
+    mutationFn: createExpense,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: reportKeys.all })
+      void queryClient.invalidateQueries({ queryKey: expenseKeys.history })
+      void queryClient.invalidateQueries({ queryKey: expenseKeys.recent })
+    },
+  })
+  const importExpensesMutation = useMutation({ mutationFn: importExpenses })
+  const isSaving = createExpenseMutation.isPending
   const showLoadWarning = useCallback((title: string) => {
     showToast({ variant: 'error', title })
   }, [showToast])
@@ -57,6 +70,9 @@ function ExpenseInputPage() {
     budgetSummary,
     rate,
     isTemporaryRate,
+    rateStatus,
+    budgetStatus,
+    isRateLoading,
     isRateError,
     retryRate,
     refetchBudget,
@@ -65,6 +81,21 @@ function ExpenseInputPage() {
     currency,
     onWarning: showLoadWarning,
   })
+
+  const resolvedRateStatus = rateStatus ?? (
+    isRateLoading
+      ? 'loading'
+      : isRateError
+        ? 'error'
+        : typeof rate === 'number' && Number.isFinite(rate) && rate > 0
+          ? 'ready'
+          : 'error'
+  )
+  const isRateReady = resolvedRateStatus === 'ready'
+    && typeof rate === 'number'
+    && Number.isFinite(rate)
+    && rate > 0
+  const isBudgetReady = budgetStatus === 'ready'
 
   const activeCurrency = currency
   const numericAmount = Number(amount) || 0
@@ -96,6 +127,36 @@ function ExpenseInputPage() {
   const [calendarYear, calendarMonthNumber] = calendarMonth.split('-').map(Number)
   const firstWeekday = new Date(calendarYear, calendarMonthNumber - 1, 1).getDay()
   const daysInMonth = new Date(calendarYear, calendarMonthNumber, 0).getDate()
+  const selectedCalendarDay = spentAt.startsWith(`${calendarMonth}-`)
+    ? Number(spentAt.slice(-2)) - 1
+    : 0
+  const focusDateTrigger = () => document.getElementById('expense-input-date-trigger')?.focus()
+  const focusCalendarDay = (index: number) => {
+    document.getElementById('expense-input-calendar')
+      ?.querySelector<HTMLButtonElement>(`[data-calendar-index="${index}"]`)
+      ?.focus()
+  }
+  const toggleDatePicker = () => {
+    setIsDateOpen((open) => {
+      const nextOpen = !open
+      window.setTimeout(() => {
+        if (nextOpen) focusCalendarDay(selectedCalendarDay)
+        else focusDateTrigger()
+      }, 0)
+      return nextOpen
+    })
+  }
+  const handleCalendarKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    const currentIndex = Number(target.dataset.calendarIndex ?? selectedCalendarDay)
+    handleSharedCalendarKeyDown(event, {
+      dayCount: daysInMonth,
+      currentIndex: Number.isFinite(currentIndex) ? currentIndex : selectedCalendarDay,
+      onClose: () => setIsDateOpen(false),
+      onFocusDay: focusCalendarDay,
+      onRestoreFocus: focusDateTrigger,
+    })
+  }
 
   const moveCalendarMonth = (amount: number) => {
     const next = new Date(calendarYear, calendarMonthNumber - 1 + amount, 1)
@@ -104,26 +165,24 @@ function ExpenseInputPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (numericAmount <= 0 || isSaving) return
-
-    setIsSaving(true)
+    if (numericAmount <= 0 || isSaving || !isBudgetReady || !isRateReady) return
 
     try {
-      await createExpense({
-        currency: activeCurrency as ExpenseDetail['currency'],
+      const formValue: ExpenseFormValue = {
+        currency: activeCurrency,
         originalAmount: numericAmount,
-        convertedAmountHome: convertedAmount,
-        appliedRate: rate,
         spentAt,
         merchantName: merchant.trim(),
         categoryName: selectedCategory.label,
         iconKey: selectedCategory.iconKey,
         categoryId: selectedCategory.serverId,
         memo: memo.trim(),
+      }
+      await createExpenseMutation.mutateAsync({
+        ...formValue,
+        convertedAmountHome: convertedAmount,
+        appliedRate: rate,
       })
-      void queryClient.invalidateQueries({ queryKey: ['monthly-report'] })
-      void queryClient.invalidateQueries({ queryKey: ['expense-history'] })
-      void queryClient.invalidateQueries({ queryKey: ['recent-expenses'] })
       const currencySymbol = activeCurrency === 'KRW' ? '₩' : activeCurrency === 'USD' ? '$' : activeCurrency === 'EUR' ? '€' : '¥'
       const formattedAmount = numericAmount.toLocaleString('en-US', {
         minimumFractionDigits: activeCurrency === 'USD' || activeCurrency === 'EUR' ? 2 : 0,
@@ -140,18 +199,21 @@ function ExpenseInputPage() {
       ) {
         showToast({ variant: 'info', title: t('expenseInput.overBudget') })
       }
-      // 지출 저장 뒤 남은 예산과 Pot 배정 반영 여부는 서버 계산값을 다시 사용한다.
-      await refetchBudget()
       setAmount('')
       setMerchant('')
       setMemo('')
+      // 지출 생성 성공과 후속 예산 갱신은 별도의 결과다. 갱신 실패가
+      // 이미 저장된 지출을 저장 실패로 재분류하거나 재시도를 유도하지 않게 한다.
+      try {
+        await refetchBudget()
+      } catch {
+        showToast({ variant: 'info', title: t('dashboard.budgetLoadError') })
+      }
     } catch (error) {
       showToast({
         variant: 'error',
         ...getApiErrorNotice(error, t('expenseInput.saveError')),
       })
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -166,7 +228,8 @@ function ExpenseInputPage() {
           </button>
         </div>
 
-        {isRateError && <p role="alert">환율을 불러오지 못했습니다. <button type="button" onClick={() => { void retryRate() }}>다시 시도</button></p>}
+        {budgetStatus === 'error' && <p role="alert">{t('dashboard.budgetLoadError')} <button type="button" onClick={() => { void refetchBudget() }}>{t('common.retry')}</button></p>}
+        {isRateError && budgetStatus !== 'error' && <p role="alert">환율을 불러오지 못했습니다. <button type="button" onClick={() => { void retryRate() }}>다시 시도</button></p>}
         <div className={styles.twoColumns}>
           <div className={styles.field}>
             <span>{t('expenseInput.currency')}</span>
@@ -174,7 +237,7 @@ function ExpenseInputPage() {
           </div>
 
           <label className={styles.field}>
-            <span className={styles.amountLabel}>{t('expenseInput.amount')} <small><b>{isTemporaryRate ? '임시 환율' : t('expenseInput.appliedRate')}</b> {rate.toLocaleString(locale, { maximumFractionDigits: 4 })} {budgetSummary.homeCurrency}</small></span>
+            <span className={styles.amountLabel}>{t('expenseInput.amount')} <small><b>{isTemporaryRate ? '임시 환율' : t('expenseInput.appliedRate')}</b> {isBudgetReady ? rate.toLocaleString(locale, { maximumFractionDigits: 4 }) : '—'} {isBudgetReady ? budgetSummary.homeCurrency : ''}</small></span>
             <span className={styles.amountInputWrap}>
               <b>{activeCurrency === 'KRW' ? '₩' : activeCurrency === 'USD' ? '$' : activeCurrency === 'EUR' ? '€' : '¥'}</b>
               <input value={amount} inputMode="decimal" aria-label={t('expenseInput.amount')} onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))} />
@@ -185,13 +248,13 @@ function ExpenseInputPage() {
           <div className={styles.field}>
             <span>{t('expenseInput.date')}</span>
             <div className={styles.datePicker}>
-              <button type="button" aria-label={t('expenseInput.selectDate')} aria-expanded={isDateOpen} onClick={() => setIsDateOpen((open) => !open)}><img src="/assets/icons/expenses/expense-calendar.png" alt="" aria-hidden="true" /><span>{spentAt.replaceAll('-', '.')}</span></button>
-              {isDateOpen && <div className={styles.calendar} role="dialog" aria-label={t('expenseInput.selectDate')}>
+              <button id="expense-input-date-trigger" type="button" aria-label={t('expenseInput.selectDate')} aria-expanded={isDateOpen} aria-controls="expense-input-calendar" onClick={toggleDatePicker}><img src="/assets/icons/expenses/expense-calendar.png" alt="" aria-hidden="true" /><span>{spentAt.replaceAll('-', '.')}</span></button>
+              {isDateOpen && <div id="expense-input-calendar" className={styles.calendar} role="dialog" aria-label={t('expenseInput.selectDate')} onKeyDown={handleCalendarKeyDown}>
                 <header><button type="button" aria-label={t('expenseInput.previousMonth')} onClick={() => moveCalendarMonth(-1)}>‹</button><strong>{new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(new Date(calendarYear, calendarMonthNumber - 1, 1))}</strong><button type="button" aria-label={t('expenseInput.nextMonth')} onClick={() => moveCalendarMonth(1)}>›</button></header>
                 <div className={styles.weekdays}>{WEEKDAY_KEYS.map((key) => <span key={key}>{t(key)}</span>)}</div>
-                <div className={styles.days}>{Array.from({ length: firstWeekday }, (_, index) => <span key={`blank-${index}`} />)}{Array.from({ length: daysInMonth }, (_, index) => index + 1).map((day) => {
+                <div className={styles.days}>{Array.from({ length: firstWeekday }, (_, index) => <span key={`blank-${index}`} />)}{Array.from({ length: daysInMonth }, (_, index) => index + 1).map((day, index) => {
                   const value = `${calendarMonth}-${String(day).padStart(2, '0')}`
-                  return <button key={day} type="button" aria-pressed={spentAt === value} onClick={() => { setSpentAt(value); setIsDateOpen(false) }}>{day}</button>
+                  return <button key={day} data-calendar-index={index} type="button" aria-label={formatCalendarDateLabel(value, locale)} aria-current={spentAt === value ? 'date' : undefined} aria-pressed={spentAt === value} onClick={() => { setSpentAt(value); setCalendarMonth(value.slice(0, 7)); setIsDateOpen(false); window.setTimeout(focusDateTrigger, 0) }}>{day}</button>
                 })}</div>
               </div>}
             </div>
@@ -239,7 +302,7 @@ function ExpenseInputPage() {
           </span>
         </label>
 
-        <Button className={styles.saveButton} type="submit" fullWidth disabled={numericAmount <= 0} isLoading={isSaving}>{t('expenseInput.save')}</Button>
+        <Button className={styles.saveButton} type="submit" fullWidth disabled={numericAmount <= 0 || !isBudgetReady || !isRateReady || isSaving} isLoading={isSaving}>{t('expenseInput.save')}</Button>
       </form>
 
       <aside className={styles.previewPanel} aria-label={t('expenseInput.preview')}>
@@ -249,7 +312,7 @@ function ExpenseInputPage() {
           <div className={styles.conversion}>
             <span><small>{activeCurrency}</small> {numericAmount.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
             <b aria-hidden="true">»</b>
-            <span><small>{budgetSummary.homeCurrency}</small> {convertedAmount.toLocaleString(locale)}</span>
+            <span><small>{isBudgetReady ? budgetSummary.homeCurrency : '—'}</small> {convertedAmount.toLocaleString(locale)}</span>
           </div>
           <div className={styles.previewRow}>
             <span>{t('expenseInput.category')}</span>
@@ -259,11 +322,11 @@ function ExpenseInputPage() {
             </strong>
           </div>
           <hr />
-          <div className={styles.budgetHeading}><span>{t('expenseInput.budgetUsage')}</span><strong>{Math.round(budgetUsagePercent)}%</strong></div>
-          <div className={styles.progressTrack}><span style={{ width: `${budgetUsagePercent}%` }} /></div>
+          <div className={styles.budgetHeading}><span>{t('expenseInput.budgetUsage')}</span><strong>{isBudgetReady ? `${Math.round(budgetUsagePercent)}%` : '—'}</strong></div>
+          <div className={styles.progressTrack}><span style={{ width: `${isBudgetReady ? budgetUsagePercent : 0}%` }} /></div>
           <div className={styles.remaining}>
             <span>{t('expenseInput.remainingBudget')}</span>
-            <strong>{formatCurrencyAmount(projectedRemainingBudgetHome, budgetSummary.homeCurrency)}</strong>
+            <strong>{isBudgetReady ? formatCurrencyAmount(projectedRemainingBudgetHome, budgetSummary.homeCurrency) : '—'}</strong>
           </div>
         </section>
       </aside>
@@ -276,7 +339,7 @@ function ExpenseInputPage() {
           ...getApiErrorNotice(error, t('expenseInput.importError')),
         })}
         onUpload={async (file) => {
-          const result = await importExpenses(file)
+          const result = await importExpensesMutation.mutateAsync(file)
           setIsUploadOpen(false)
           showToast({
             variant: 'success',

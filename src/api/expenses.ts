@@ -5,7 +5,6 @@ import type {
   ExpenseListResponseDto,
   ExpenseListItem,
   ExpenseListItemDto,
-  ExpensePageDto,
   MascotMessage,
   ExpenseResponseDto,
   ExpenseUserContextDto,
@@ -15,6 +14,7 @@ import type {
   SavedExpense,
   UniMessageBundleDto,
 } from '@/types/expense'
+import { normalizeCurrencyCode } from '@/types/currency'
 import { getBudget } from './budgets'
 import { apiRequest } from './client'
 import { cachedApiRequest } from './cachedRequests'
@@ -80,7 +80,7 @@ function mapMascotMessages(bundle?: UniMessageBundleDto | null): MascotMessage[]
   })
 }
 
-function toExpenseListItem(response: ExpenseListItemDto): ExpenseListItem {
+export function mapExpenseListItemDto(response: ExpenseListItemDto): ExpenseListItem {
   const iconKey = normalizeIconKey(response.iconKey)
   const categoryName = response.categoryName?.trim() || '기타'
 
@@ -95,7 +95,7 @@ function toExpenseListItem(response: ExpenseListItemDto): ExpenseListItem {
 }
 
 function toSavedExpense(response: ExpenseListItemDto): SavedExpense {
-  const expense = toExpenseListItem(response)
+  const expense = mapExpenseListItemDto(response)
   return {
     expenseId: expense.expenseId,
     merchantName: expense.merchantName,
@@ -170,7 +170,7 @@ function requestExpenseList(query: ExpenseListQuery) {
 
 async function requestExpensePage(query: ExpenseListQuery) {
   const response = await requestExpenseList(query)
-  const nested = response.expenses as ExpensePageDto | ExpenseListItemDto[] | undefined
+  const nested = response.expenses
   if (Array.isArray(nested)) return { content: nested }
   return nested ?? {
     content: response.content,
@@ -186,7 +186,9 @@ export function getExpensePage(query: ExpenseListQuery = {}) {
 
 async function getAllExpensePages(query: Omit<ExpenseListQuery, 'page'>) {
   const firstResponse = await requestExpenseList({ ...query, page: 0 })
-  const firstPage = firstResponse.expenses ?? {}
+  const firstPage = Array.isArray(firstResponse.expenses)
+    ? { content: firstResponse.expenses }
+    : firstResponse.expenses ?? {}
   const totalPages = Math.max(1, toFiniteNumber(firstPage.totalPages, 1))
   const remainingPages = totalPages > 1
     ? await Promise.all(
@@ -283,7 +285,6 @@ async function buildRealHistory(yearMonth: string, range: string, userContextOve
   // 집계 API가 아직 500을 반환하는 환경에서도 목록 데이터로 화면을 복구할 수 있게
   // 서로 독립적으로 요청하고 성공한 응답만 사용합니다.
   const [
-    expenseResponses,
     budget,
     remainingBudget,
     summary,
@@ -291,9 +292,6 @@ async function buildRealHistory(yearMonth: string, range: string, userContextOve
     rangeCategoryReport,
     userContext,
   ] = await Promise.all([
-    // Summary/categories are the source of truth for the dashboard. Do not
-    // walk every /expenses page just to build a fallback that is not rendered.
-    Promise.resolve({ expenses: [], mascotMessages: [] } as { expenses: ExpenseListItemDto[]; mascotMessages: MascotMessage[] }),
     resolveOrNull(getBudget(yearMonth)),
     resolveOrNull(apiRequest<number>(
       `/expenses/remaining-budget?${new URLSearchParams({ yearMonth }).toString()}`,
@@ -311,16 +309,14 @@ async function buildRealHistory(yearMonth: string, range: string, userContextOve
       : Promise.resolve(userContextOverride),
   ])
 
-  if (
-    expenseResponses === null
-    && summary === null
-    && monthCategoryReport === null
-    && rangeCategoryReport === null
-  ) {
+  const hasExpenseCoreData = summary !== null
+    || monthCategoryReport !== null
+    || rangeCategoryReport !== null
+  if (!hasExpenseCoreData) {
     throw new Error('지출 내역을 불러오지 못했습니다.')
   }
 
-  const monthExpenses = (expenseResponses?.expenses ?? []).map(toExpenseListItem)
+  const monthExpenses: ExpenseListItem[] = []
   const fallbackMonthlyCategories = buildCategorySummaryFromExpenses(monthExpenses)
   const listMonthlyTotal = monthExpenses.reduce(
     (sum, expense) => sum + expense.convertedAmountHome,
@@ -377,9 +373,7 @@ async function buildRealHistory(yearMonth: string, range: string, userContextOve
       iconKey: category.iconKey,
       spentAt: category.latestSpentAt || `${reportRange.endDate}T23:59:59`,
     })),
-    mascotMessages: expenseResponses?.mascotMessages.length
-      ? expenseResponses.mascotMessages
-      : mapMascotMessages(summary?.uniMessages),
+    mascotMessages: mapMascotMessages(summary?.uniMessages),
   }
 }
 
@@ -420,7 +414,7 @@ export async function createExpense(input: CreateExpenseInput) {
 
   return {
     expenseId: String(response.id ?? ''),
-    currency: (response.originalCurrency?.toUpperCase() || input.currency) as CreateExpenseInput['currency'],
+    currency: normalizeCurrencyCode(response.originalCurrency, input.currency),
     originalAmount: response.originalAmount ?? input.originalAmount,
     convertedAmountHome: response.convertedAmountHome ?? input.convertedAmountHome,
     appliedRate: response.appliedRate ?? input.appliedRate,

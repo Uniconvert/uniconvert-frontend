@@ -1,31 +1,44 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { allocatePotAmount, archivePot, createPot, updatePot } from '@/api/pots'
 import CurrencyAmountInput from '@/components/common/CurrencyAmountInput/CurrencyAmountInput'
 import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
-import CreatePotModal from '@/components/pots/CreatePotModal/CreatePotModal'
-import BudgetAllocationSummary from '@/components/pots/BudgetAllocationSummary/BudgetAllocationSummary'
-import PotCard from '@/components/pots/PotCard/PotCard'
-import { findPotCategory, POT_CATEGORY_OPTIONS } from '@/constants/potCategoryOptions'
+import CreatePotModal from '@/features/pots/components/CreatePotModal/CreatePotModal'
+import BudgetAllocationSummary from '@/features/pots/components/BudgetAllocationSummary/BudgetAllocationSummary'
+import PotCard from '@/features/pots/components/PotCard/PotCard'
+import { findPotCategory, POT_CATEGORY_OPTIONS } from '@/features/pots/potCategoryOptions'
 import {
   getPotRepresentativeImageSrc,
   POT_REPRESENTATIVE_IMAGE_OPTIONS,
-} from '@/constants/potRepresentativeImages'
-import { usePotsData } from '@/hooks/usePotsData'
+} from '@/features/pots/potRepresentativeImages'
+import { usePotsData } from '@/features/pots/hooks/usePotsData'
 import { useMyUserQuery } from '@/hooks/useMyUserQuery'
-import type { Pot, PotsData } from '@/types/pot'
+import type { CreatePotInput, Pot, PotsData } from '@/features/pots/types'
 import { formatCurrencyAmount } from '@/utils/currency'
+import { getPotSliderStep } from '@/types/currency'
 import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './PotsPage.module.css'
 import FloatingMascot from '@/components/common/FloatingMascot/FloatingMascot'
 import { useI18n } from '@/i18n/I18nContext'
+import LoadingState from '@/components/common/LoadingState/LoadingState'
+import EmptyState from '@/components/common/EmptyState/EmptyState'
+import ErrorState from '@/components/common/ErrorState/ErrorState'
 
 function PotsPage() {
   const { t } = useI18n()
-  const { data, errorMessage, refetch: reloadPots } = usePotsData()
+  const {
+    data,
+    errorMessage,
+    isInitialLoading,
+    isBackgroundFetching,
+    refetch: reloadPots,
+    createPot: createPotMutation,
+    updatePot: updatePotMutation,
+    allocatePotAmount: allocatePotAmountMutation,
+    archivePot: archivePotMutation,
+    isSaving,
+  } = usePotsData()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [activePot, setActivePot] = useState<Pot | null>(null)
   const [panelMode, setPanelMode] = useState<'add' | 'edit' | null>(null)
   const [amountValue, setAmountValue] = useState(0)
@@ -112,12 +125,20 @@ function PotsPage() {
     ]
   }, [data, primaryGoal, hasCompletedPot])
 
-  if (errorMessage) return <div role="alert" className={styles.loadError}><p>{errorMessage}</p><button type="button" onClick={() => { void reloadPots() }}>{t('common.retry')}</button></div>
-  if (!data) return <p aria-live="polite">{t('pots.loading')}</p>
+  if (errorMessage) {
+    return (
+      <div className={styles.loadError}>
+        <ErrorState title={errorMessage} retryLabel={t('common.retry')} onRetry={() => { void reloadPots() }} />
+      </div>
+    )
+  }
+  if (!data && isInitialLoading) return <LoadingState message={t('pots.loading')} />
+  if (!data) return null
 
   const editTargetRate = data.monthlyBudget > 0
     ? Math.min((editTargetAmount / data.monthlyBudget) * 100, 100)
     : 0
+  const sliderStep = getPotSliderStep(data.homeCurrency)
   const editTooltipRate = Math.min(Math.max(editTargetRate, 8), 92)
   const maximumAdditionalAmount = activePot
     ? Math.max(Math.min(activePot.targetAmount - activePot.savedAmount, data.availableAmount), 0)
@@ -141,34 +162,32 @@ function PotsPage() {
 
   const handlePanelSave = async () => {
     if (!activePot) return
-    setIsSaving(true)
     try {
       if (panelMode === 'add') {
         const amountToAdd = Math.min(amountValue, maximumAdditionalAmount)
         if (amountToAdd <= 0) return
         const nextSavedAmount = activePot.savedAmount + amountToAdd
-        await allocatePotAmount(activePot, amountToAdd)
+        await allocatePotAmountMutation({ pot: activePot, amount: amountToAdd })
         if (activePot.savedAmount < activePot.targetAmount && nextSavedAmount >= activePot.targetAmount) {
           showToast({ variant: 'success', title: `“${activePot.name}” 목표를 달성했어요!` })
         }
       }
       if (panelMode === 'edit') {
-        await updatePot(activePot.potId, {
+        await updatePotMutation({ potId: activePot.potId, input: {
           name: editName.trim(),
           targetAmount: editTargetAmount,
           representativeImageKey: editRepresentativeImageKey,
           icon: editIcon,
-        })
+        } })
         showToast({ variant: 'success', title: t('pots.updateSuccess') })
       }
-      await reloadPots()
       closePanel()
     } catch (error) {
       showToast({
         variant: 'error',
         ...getApiErrorNotice(error, t('pots.updateError')),
       })
-    } finally { setIsSaving(false) }
+    }
   }
 
   const handleDeletePot = (pot: Pot) => {
@@ -178,11 +197,9 @@ function PotsPage() {
   const handleArchivePot = async () => {
     if (!deleteTarget) return
 
-    setIsSaving(true)
     try {
-      const archived = await archivePot(deleteTarget.potId)
+      const archived = await archivePotMutation(deleteTarget.potId)
       if (!archived) throw new Error('Pot archive failed')
-      await reloadPots()
       setDeleteTarget(null)
     } catch (error) {
       showToast({
@@ -192,25 +209,18 @@ function PotsPage() {
           t('pots.archiveError'),
         ),
       })
-    } finally {
-      setIsSaving(false)
     }
   }
 
-  const handleCreatePot = async (input: Parameters<typeof createPot>[0]) => {
-    setIsSaving(true)
-
+  const handleCreatePot = async (input: CreatePotInput) => {
     try {
-      await createPot(input)
-      await reloadPots()
+      await createPotMutation(input)
       setIsCreateOpen(false)
     } catch (error) {
       showToast({
         variant: 'error',
         ...getApiErrorNotice(error, t('pots.createError')),
       })
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -218,6 +228,7 @@ function PotsPage() {
     <section className={styles.page} aria-labelledby="pots-title">
       <h1 id="pots-title">{t('pots.title')}</h1>
       {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
+      {isBackgroundFetching && <LoadingState size="sm" variant="inline" />}
 
       <div className={styles.dashboardGrid}>
         <div className={`${styles.mainColumn} ${data.pots.length === 0 ? styles.emptyMainColumn : ''}`}>
@@ -230,9 +241,12 @@ function PotsPage() {
           {data.pots.map((pot) => <PotCard key={pot.potId} pot={pot} currency={data.homeCurrency} onAddAmount={() => openPanel(pot, 'add')} onEdit={() => openPanel(pot, 'edit')} onDelete={() => handleDeletePot(pot)} />)}
           {data.pots.length === 0 && (
             <div className={styles.emptyState}>
-              <img src="/assets/illustrations/mascot-checklist.png" alt="" aria-hidden="true" />
-              <strong>{t('pots.empty')}</strong>
-              <p>{t('pots.emptyDescription')}</p>
+              <EmptyState
+                icon={<img src="/assets/illustrations/mascot-checklist.png" alt="" />}
+                title={t('pots.empty')}
+                description={t('pots.emptyDescription')}
+                variant="compact"
+              />
             </div>
           )}
           <button className={styles.createButton} type="button" onClick={() => setIsCreateOpen(true)}>
@@ -294,8 +308,8 @@ function PotsPage() {
                       type="range"
                       min="0"
                       max={data.monthlyBudget}
-                      step="10000"
-                      value={Math.min(Math.round(editTargetAmount / 10_000) * 10_000, data.monthlyBudget)}
+                      step={sliderStep}
+                      value={Math.min(Math.round(editTargetAmount / sliderStep) * sliderStep, data.monthlyBudget)}
                       style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${editTooltipRate}%, #e5e5e5 ${editTooltipRate}% 100%)` }}
                       onChange={(event) => setEditTargetAmount(Number(event.target.value))}
                     />
@@ -349,7 +363,7 @@ function PotsPage() {
                     type="range"
                     min="0"
                     max={maximumAdditionalAmount}
-                    step="10000"
+                    step={sliderStep}
                     value={Math.min(amountValue, maximumAdditionalAmount)}
                     style={{ background: `linear-gradient(to right, var(--color-primary) 0 ${additionalAmountRate}%, #e5e5e5 ${additionalAmountRate}% 100%)` }}
                     onChange={(event) => setAmountValue(Number(event.target.value))}

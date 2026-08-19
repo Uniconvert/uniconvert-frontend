@@ -1,0 +1,11 @@
+.layout {
+  min-height: 100svh;
+  background: linear-gradient(120deg, rgba(169, 232, 202, 0.18), transparent 42%), var(--color-background);
+}
+
+.content {
+  width: min(100%, 100rem);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 2.5rem) 2.5rem;
+}

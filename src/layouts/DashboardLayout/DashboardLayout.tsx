@@ -1,22 +1,24 @@
 import { useCallback, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 import { logout } from '@/api/auth'
 import { upsertBudget } from '@/api/budgets'
+import { getExpenseHistory } from '@/api/expenses'
 import { clearSession } from '@/auth/session'
-import ModalShell from '@/components/common/ModalShell/ModalShell'
 import Toast from '@/components/common/Toast/Toast'
 import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { useDashboardAssetSummary } from '@/hooks/useDashboardAssetSummary'
 import { useSessionUser } from '@/hooks/useSessionUser'
 import { ROUTE_PATHS } from '@/routes/routePaths'
+import { expenseKeys } from '@/hooks/expenseKeys'
+import type { ExpenseHistoryData } from '@/types/expense'
+import { getMobileBudgetMetrics } from './mobileBudgetSummary'
 import { useI18n } from '@/i18n/I18nContext'
+import Skeleton from '@/components/common/Skeleton/Skeleton'
+import BudgetEditModal from './BudgetEditModal'
+import LogoutDialog from './LogoutDialog'
+import NavigationIcon, { type NavigationIconName } from './NavigationIcon'
 import styles from './DashboardLayout.module.css'
-
-type NavigationIconName =
-  | 'home'
-  | 'report'
-  | 'calculator'
-  | 'settings'
 
 interface NavigationItem {
   labelKey: string
@@ -86,113 +88,6 @@ const reportTabs = [
   },
 ]
 
-function BudgetEditModal({
-  initialBudget,
-  maximumBudget,
-  currencySymbol,
-  onClose,
-  onSave,
-}: {
-  initialBudget: number
-  maximumBudget: number
-  currencySymbol: string
-  onClose: () => void
-  onSave: (budget: number) => void
-}) {
-  const { locale, t } = useI18n()
-  const [budget, setBudget] = useState(() => Math.min(initialBudget, maximumBudget))
-  const progress = maximumBudget > 0 ? (budget / maximumBudget) * 100 : 0
-  const rangeStep = currencySymbol === '₩' ? 10000 : 1
-
-  const updateBudget = (value: string) => {
-    const nextBudget = Math.min(Number(value.replace(/\D/g, '')) || 0, maximumBudget)
-    setBudget(nextBudget)
-  }
-
-  return (
-    <ModalShell
-      title={t('dashboard.budgetEdit')}
-      titleId="budget-modal-title"
-      closeLabel={t('dashboard.budgetEditClose')}
-      width="44rem"
-      bodyClassName={styles.budgetModalBody}
-      onClose={onClose}
-    >
-      <form onSubmit={(event) => { event.preventDefault(); onSave(budget) }}>
-          <div className={styles.budgetModalCopy}>
-            <h3>{t('dashboard.monthlyBudgetAmount')}</h3>
-            <p>{t('dashboard.budgetDescription')}</p>
-          </div>
-
-          <label className={styles.budgetInput}>
-            <span className={styles.srOnly}>{t('dashboard.monthlyBudgetAmount')}</span>
-            <span aria-hidden="true">{currencySymbol}</span>
-            <input inputMode="numeric" value={budget.toLocaleString(locale)} onChange={(event) => updateBudget(event.target.value)} />
-          </label>
-
-          <div
-            className={styles.budgetRangeWrap}
-            style={{ '--budget-progress': `${progress}%` } as React.CSSProperties}
-          >
-            <output style={{ left: `${progress}%`, transform: `translateX(-${progress}%)` }}>
-              {currencySymbol} {budget.toLocaleString(locale)}
-            </output>
-            <input
-              type="range"
-              min="0"
-              max={maximumBudget}
-              step={rangeStep}
-              value={budget}
-              aria-label={t('dashboard.budgetSlider')}
-              onChange={(event) => setBudget(Number(event.target.value))}
-            />
-            <div className={styles.budgetRangeLabels}><span>{currencySymbol} 0</span><span>{currencySymbol} {maximumBudget.toLocaleString(locale)}</span></div>
-          </div>
-
-          <div className={styles.budgetModalActions}>
-            <button type="button" onClick={onClose}>{t('common.cancel')}</button>
-            <button type="submit" disabled={budget <= 0}>{t('common.save')}</button>
-          </div>
-      </form>
-    </ModalShell>
-  )
-}
-
-function NavigationIcon({ name }: { name: NavigationIconName }) {
-  if (name === 'home') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="m3.5 10 8.5-7 8.5 7v9.5a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5Z" />
-        <path d="M9 21v-7h6v7" />
-      </svg>
-    )
-  }
-
-  if (name === 'report') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M5 20v-6M12 20V4M19 20V9" />
-      </svg>
-    )
-  }
-
-  if (name === 'calculator') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="4" y="2.5" width="16" height="19" rx="2" />
-        <path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h4" />
-      </svg>
-    )
-  }
-
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.15.38.36.72.6 1 .3.36.7.57 1.1.6h.1v4h-.1c-.4.03-.8.24-1.1.6-.24.28-.45.62-.6 1Z" />
-    </svg>
-  )
-}
-
 function DashboardLayout() {
   const { locale, t } = useI18n()
   const { pathname } = useLocation()
@@ -201,24 +96,37 @@ function DashboardLayout() {
   const currentYearMonth = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}`
   const currentYearMonthApi = currentYearMonth.replace('.', '-')
   const sessionUser = useSessionUser()
+  const isExpenseHistoryPage = pathname === ROUTE_PATHS.expenses
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false)
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [budgetVersion, setBudgetVersion] = useState(0)
   const { toast, showToast, closeToast } = useToastQueue()
+  const budgetMutation = useMutation({ mutationFn: ({ yearMonth, budget }: { yearMonth: string; budget: number }) => upsertBudget(yearMonth, budget) })
   const showBudgetLoadError = useCallback(() => {
     showToast({ variant: 'error', title: t('dashboard.budgetLoadError') })
   }, [showToast, t])
-  const { assetSummary, setAssetSummary } = useDashboardAssetSummary({
+  const {
+    assetSummary,
+    isInitialLoading: isAssetSummaryLoading,
+    isBackgroundFetching: isAssetSummaryFetching,
+    setAssetSummary,
+  } = useDashboardAssetSummary({
     yearMonth: currentYearMonthApi,
     onError: showBudgetLoadError,
     enabled: pathname !== ROUTE_PATHS.reportMemos,
   })
+  // Observe the existing Expense History cache only. ExpenseHistoryPage owns
+  // the active request; this disabled observer adds no new API call.
+  const expenseHistoryCache = useQuery<ExpenseHistoryData>({
+    queryKey: expenseKeys.historyFor(currentYearMonthApi, 'day'),
+    queryFn: () => getExpenseHistory(currentYearMonthApi, 'day', sessionUser ? { homeCurrencyCode: sessionUser.homeCurrencyCode } : null),
+    enabled: false,
+  })
   const displayName = sessionUser?.nickname || t('common.user')
-  // The shared sidebar summary only has the budget response. Page-specific
-  // expense screens provide their own live usage/remaining values.
-  const mobileBudgetUsagePercent = 0
-  const isExpenseHistoryPage = pathname === ROUTE_PATHS.expenses
+  const mobileBudgetMetrics = isExpenseHistoryPage
+    ? getMobileBudgetMetrics(expenseHistoryCache.data ?? null)
+    : null
   const activeItem =
     navigationItems.find((item) => item.matches(pathname)) ?? navigationItems[0]
   const pageTabs =
@@ -313,23 +221,23 @@ function DashboardLayout() {
           </div>
           <div className={styles.mobileAssetCopy}>
             <h2 id="mobile-asset-summary-title">{t('dashboard.monthlyBudget')}</h2>
-            <p className={styles.assetTotal}>
-              {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString(locale)}
+            <p className={styles.assetTotal} aria-busy={isAssetSummaryLoading || isAssetSummaryFetching || undefined}>
+              {isAssetSummaryLoading ? <Skeleton variant="text" width="8rem" /> : `${assetSummary.currencySymbol} ${assetSummary.totalAssetHome.toLocaleString(locale)}`}
             </p>
-            <p className={styles.assetUsd}>({assetSummary.localCurrencyAmountLabel})</p>
+            <p className={styles.assetUsd}>{isAssetSummaryLoading ? <Skeleton variant="text" width="6rem" /> : `(${assetSummary.localCurrencyAmountLabel})`}</p>
           </div>
         </div>
-        <div className={`${styles.mobileBudgetSummary} ${isExpenseHistoryPage ? '' : styles.mobileBudgetSummaryHidden}`}>
+        <div className={`${styles.mobileBudgetSummary} ${isExpenseHistoryPage ? '' : styles.mobileBudgetSummaryHidden}`} aria-busy={isExpenseHistoryPage && expenseHistoryCache.isFetching || undefined}>
           <div className={styles.mobileBudgetHeader}>
             <span>{t('dashboard.monthlyBudget')}</span>
-            <strong>{mobileBudgetUsagePercent}%</strong>
+            <strong>{mobileBudgetMetrics ? `${mobileBudgetMetrics.usagePercent}%` : '—'}</strong>
           </div>
           <div className={styles.mobileBudgetTrack}>
-            <span style={{ width: `${mobileBudgetUsagePercent}%` }} />
+            <span style={{ width: `${mobileBudgetMetrics?.usagePercent ?? 0}%` }} />
           </div>
           <div className={styles.mobileBudgetRemaining}>
             <span>{t('expenseInput.remainingBudget')}</span>
-            <strong>{assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString(locale)}</strong>
+            <strong>{mobileBudgetMetrics ? `${assetSummary.currencySymbol} ${mobileBudgetMetrics.remainingBudgetHome.toLocaleString(locale)}` : '—'}</strong>
           </div>
         </div>
       </section>
@@ -366,10 +274,10 @@ function DashboardLayout() {
                   </span>
                 </div>
                 <h2 id="asset-summary-title">{t('dashboard.monthlyBudget')}</h2>
-                <p className={styles.assetTotal}>
-                  {assetSummary.currencySymbol} {assetSummary.totalAssetHome.toLocaleString(locale)}
+                <p className={styles.assetTotal} aria-busy={isAssetSummaryLoading || isAssetSummaryFetching || undefined}>
+                  {isAssetSummaryLoading ? <Skeleton variant="text" width="8rem" /> : `${assetSummary.currencySymbol} ${assetSummary.totalAssetHome.toLocaleString(locale)}`}
                 </p>
-                <p className={styles.assetUsd}>({assetSummary.localCurrencyAmountLabel})</p>
+                <p className={styles.assetUsd}>{isAssetSummaryLoading ? <Skeleton variant="text" width="6rem" /> : `(${assetSummary.localCurrencyAmountLabel})`}</p>
               </section>
 
               <Link
@@ -421,10 +329,12 @@ function DashboardLayout() {
           initialBudget={assetSummary.totalAssetHome}
           maximumBudget={assetSummary.homeCurrency === 'KRW' ? 3_000_000 : 3_000}
           currencySymbol={assetSummary.currencySymbol}
+          isSaving={budgetMutation.isPending}
           onClose={() => setIsBudgetModalOpen(false)}
           onSave={async (budget) => {
+            if (budgetMutation.isPending) return
             try {
-              const updated = await upsertBudget(currentYearMonthApi, budget)
+              const updated = await budgetMutation.mutateAsync({ yearMonth: currentYearMonthApi, budget })
               setAssetSummary((current) => ({
                 ...current,
                 totalAssetHome: updated.monthlyLimitHome ?? budget,
@@ -440,40 +350,11 @@ function DashboardLayout() {
       )}
 
       {isLogoutModalOpen && (
-        <ModalShell
-          title={t('dashboard.logoutTitle')}
-          titleId="logout-modal-title"
-          closeLabel={t('dashboard.logoutClose')}
-          width="31rem"
-          bodyClassName={styles.logoutModalBody}
-          onClose={() => {
-            if (!isLoggingOut) setIsLogoutModalOpen(false)
-          }}
-        >
-          <img
-            className={styles.logoutMascot}
-            src="/assets/illustrations/mascot-warning.png"
-            alt=""
-            aria-hidden="true"
-          />
-          <p>{t('dashboard.logoutDescription')}</p>
-          <div className={styles.logoutModalActions}>
-            <button
-              type="button"
-              disabled={isLoggingOut}
-              onClick={() => setIsLogoutModalOpen(false)}
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="button"
-              disabled={isLoggingOut}
-              onClick={() => void handleLogout()}
-            >
-              {isLoggingOut ? t('dashboard.loggingOut') : t('nav.logout')}
-            </button>
-          </div>
-        </ModalShell>
+        <LogoutDialog
+          isLoggingOut={isLoggingOut}
+          onClose={() => { if (!isLoggingOut) setIsLogoutModalOpen(false) }}
+          onConfirm={() => { void handleLogout() }}
+        />
       )}
     </div>
   )
