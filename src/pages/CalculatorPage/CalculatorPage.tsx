@@ -102,7 +102,7 @@ function CurrencySelector({ selected, isOpen, showAssets, onToggle, onSelect }: 
 function CalculatorPage() {
   const { locale, t } = useI18n()
   const isOfflineCalculatorRoute = typeof window !== 'undefined' && window.location.pathname === ROUTE_PATHS.offlineCalculator
-  
+
   const mascotLocale = locale.toLowerCase()
   const mascotImagePath = SUPPORTED_LOCALES.includes(mascotLocale)
     ? `/assets/illustrations/mascot-${mascotLocale}.png`
@@ -368,7 +368,21 @@ function CalculatorPage() {
                   <img src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.src = '/assets/icons/currencies/currency-default.png' }} />
                   <div className={styles.historyText}>
                     <span className={styles.historySource}>
-                      {(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}
+                      {(() => {
+                        const formattedAmount = (item.amount ?? 0).toLocaleString(locale);
+
+                        if (formattedAmount.length >= 6) {
+                          return (
+                            <>
+                              <span>{formattedAmount}</span>
+                              <br />
+                              <span>{item.fromCurrency}</span>
+                            </>
+                          );
+                        }
+
+                        return `${formattedAmount} ${item.fromCurrency}`;
+                      })()}
                     </span>
                     <span className={styles.historyArrow} aria-hidden="true">→</span>
                     <span className={styles.historyResult}>
