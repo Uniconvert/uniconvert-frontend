@@ -18,8 +18,12 @@
     transform var(--transition-fast);
 }
 
+.button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
 .button:not(:disabled):active {
-  transform: translateY(1px);
+  transform: translateY(0) scale(0.99);
 }
 
 .primary {

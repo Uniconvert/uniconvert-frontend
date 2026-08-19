@@ -7,6 +7,7 @@ interface MascotProps {
   message: React.ReactNode;
   imageSrc: string;
   speechBubbleVariant?: 'default' | 'twoLine' | 'compact';
+  speechBubbleClassName?: string;
 }
 
 function renderMessage(message: React.ReactNode) {
@@ -23,12 +24,13 @@ export default function Mascot({
   message,
   imageSrc,
   speechBubbleVariant = 'default',
+  speechBubbleClassName = '',
 }: MascotProps) {
   return (
     <div className={styles.mascotContainer} aria-hidden="true">
       <div className={styles.bubbleGroup}>
         <div
-          className={`${styles.speechBubble} ${
+          className={`${styles.speechBubble} ${speechBubbleClassName} ${
             speechBubbleVariant === 'twoLine'
               ? styles.twoLine
               : speechBubbleVariant === 'compact'

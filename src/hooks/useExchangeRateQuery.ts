@@ -1,9 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { getCurrentExchangeRate } from '@/api/exchangeRates'
-export function useExchangeRateQuery(from: string, to: string) {
+import { exchangeRateKeys } from './exchangeRateKeys'
+
+interface UseExchangeRateQueryOptions {
+  enabled?: boolean
+}
+
+export function useExchangeRateQuery(from: string, to: string, options: UseExchangeRateQueryOptions = {}) {
   return useQuery({
-    queryKey: ['exchange-rate', from.toUpperCase(), to.toUpperCase()],
+    queryKey: exchangeRateKeys.current(from, to),
     queryFn: () => getCurrentExchangeRate(from, to),
-    enabled: Boolean(from && to),
+    enabled: Boolean(from && to) && (options.enabled ?? true),
   })
 }

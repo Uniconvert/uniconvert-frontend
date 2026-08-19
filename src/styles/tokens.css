@@ -48,4 +48,8 @@
   --sidebar-width: 19.875rem;
   --content-max-width: 100rem;
   --transition-fast: 150ms ease;
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --motion-slow: 280ms;
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }

@@ -9,6 +9,12 @@
   transform: translateY(1rem);
 }
 
+.memoSpeechBubble {
+  width: min(12rem, calc(100vw - 7rem));
+  max-width: min(12rem, calc(100vw - 7rem));
+  padding-inline: 0.75rem;
+}
+
 .pageHeader h1 {
   margin: 0 0 0.35rem;
   color: var(--color-primary, #62a9e8);
@@ -108,50 +114,64 @@
   font-size: 1rem;
 }
 
-.sortControl > button {
+.sortButton {
+  min-width: 8.5rem;
+  justify-content: space-between !important;
   font-weight: 500;
 }
 
-.sortControl > button span {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-right: 2px solid #333;
-  border-bottom: 2px solid #333;
-  transform: translateY(-20%) rotate(45deg);
+.sortButton:hover,
+.sortButton[aria-expanded='true'] {
+  border-color: var(--color-primary, #62a9e8);
+  box-shadow: 0 0 0 3px rgb(98 169 232 / 12%);
 }
 
-.sortControl > button[aria-expanded='true'] span {
+.sortChevron {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  border-right: 2px solid #777;
+  border-bottom: 2px solid #777;
+  transform: translateY(-20%) rotate(45deg);
+  transition: transform var(--transition-fast);
+}
+
+.sortButton[aria-expanded='true'] .sortChevron {
   transform: translateY(20%) rotate(225deg);
 }
 
 .sortMenu {
-  position: absolute;
-  z-index: 10;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  display: grid;
   width: 100%;
+  position: absolute;
+  z-index: 8;
+  top: calc(100% + 0.375rem);
+  left: 0;
   overflow: hidden;
-  border: 1px solid #a8c9e7;
+  padding: 0.25rem;
+  border: 1px solid #a9c8e7;
   border-radius: 0.5rem;
-  background: #fff;
-  box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 8%);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  animation: ui-dropdown-enter var(--motion-fast) var(--motion-ease-out) both;
 }
 
 .sortMenu button {
-  width: 100%;
-  padding: 0.8rem 1rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
   border: 0;
-  background: #fff;
-  color: #333;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--color-text-primary);
   cursor: pointer;
-  font-size: 0.95rem;
+  font: inherit;
   text-align: left;
 }
 
 .sortMenu button:hover,
 .sortMenu button[aria-selected='true'] {
-  background: #f1f7fc;
-  color: #3977ad;
+  background: #eff7ff;
+  color: var(--color-primary);
 }
 
 .bulkDeleteButton {
@@ -326,6 +346,7 @@
   border-radius: 0.5rem;
   background: #fff;
   box-shadow: 0 0.4rem 1rem rgb(0 0 0 / 10%);
+  animation: ui-dropdown-enter var(--motion-fast) var(--motion-ease-out) both;
 }
 
 .rowMenuPopup button {
@@ -446,6 +467,10 @@
 
 .editModalBody {
   padding: 0 1.9rem 1.9rem;
+}
+
+.editModalDialog {
+  width: min(100%, 44rem);
 }
 
 .modalDescription {

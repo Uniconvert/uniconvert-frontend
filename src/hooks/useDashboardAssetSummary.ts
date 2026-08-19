@@ -57,8 +57,8 @@ export function useDashboardAssetSummary({
   onError,
   enabled = true,
 }: UseDashboardAssetSummaryOptions) {
-  const budgetQuery = useBudgetQuery(yearMonth)
-  const userQuery = useMyUserQuery()
+  const budgetQuery = useBudgetQuery(yearMonth, enabled)
+  const userQuery = useMyUserQuery(enabled)
   const [assetSummary, setAssetSummary] = useState({
     homeCurrency: 'KRW',
     currencySymbol: '₩',
@@ -111,5 +111,10 @@ export function useDashboardAssetSummary({
     }
   }, [budgetQuery.data, enabled, onError, userQuery.data, yearMonth])
 
-  return { assetSummary, setAssetSummary }
+  return {
+    assetSummary,
+    setAssetSummary,
+    isInitialLoading: budgetQuery.isLoading || userQuery.isLoading,
+    isBackgroundFetching: budgetQuery.isFetching || userQuery.isFetching,
+  }
 }

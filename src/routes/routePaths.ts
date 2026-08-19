@@ -15,6 +15,7 @@ export const ROUTE_PATHS = {
   report: '/report',
   reportMemos: '/report/memos',
   calculator: '/calculator',
+  offlineCalculator: '/offline',
   ocr: '/ocr',
   settings: '/settings',
 } as const

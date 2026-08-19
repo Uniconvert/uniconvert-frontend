@@ -1,0 +1,910 @@
+.page {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 100%;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  animation: ui-page-enter var(--motion-slow) var(--motion-ease-out) both;
+}
+
+.lowerMascot {
+  transform: translateY(1rem);
+}
+
+.pageHeader h1 {
+  margin: 0 0 0.35rem;
+  font-size: calc(1.688rem - 1px);
+  color: var(--color-primary, #66a9e4);
+  font-weight: 500 !important;
+}
+
+.pageHeader {
+  width: 100%;
+  max-width: 60rem;
+}
+
+.pageHeader p {
+  margin: 0;
+  color: var(--color-text-muted, #9a9a9a);
+  font-size: calc(1rem + 1px);
+}
+
+.headerWrapper {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+}
+
+.headerWrapper p {
+  font-size: calc(1rem + 1px); 
+}
+
+.emailreportBtn {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  display: inline-flex;
+  flex: 0 0 11rem;
+  width: 11rem;
+  min-width: 11rem;
+  gap: 0.625rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--color-primary, #66a9e4);
+  border-radius: 0.625rem;
+  background: var(--color-primary, #66a9e4);
+  box-shadow: 0 2px 5px rgb(45 119 183 / 20%);
+  color: #fff;
+  font-size: 1.125rem;
+  min-height: 2.75rem;
+  height: 2.75rem;
+  line-height: 1.2;
+  font-weight: 600;
+  margin: 0;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 180ms ease;
+}
+
+.emailreportBtn:hover:not(:disabled) {
+  border-color: var(--color-primary-hover, #4d98d9);
+  background: var(--color-primary-hover, #4d98d9);
+  box-shadow: 0 4px 10px rgb(45 119 183 / 24%);
+  transform: translateY(-1px);
+}
+
+.emailreportBtn:focus-visible {
+  outline: 3px solid rgb(102 169 228 / 28%);
+  outline-offset: 2px;
+}
+
+.headerWrapper p {
+  font-size: calc(1rem + 1px);
+}
+
+.emailReportLabel {
+  display: inline-block;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.chevronright {
+  flex: 0 0 auto;
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-top: 1px solid #FFF;
+  border-right: 1px solid #FFF;
+  transform: rotate(45deg) translateY(-0.1rem);
+}
+
+@media (max-width: 48rem) {
+  .headerWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .emailreportBtn {
+    position: static;
+    margin-left: 0;
+    margin-bottom: 4px;
+  }
+}
+
+
+.reportContent {
+  display: flex;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 2;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chartCard {
+  position: relative;
+  width: 100%;
+  min-height: fit-content; 
+  box-sizing: border-box;
+  padding: clamp(1.25rem, 3vw, 1.5rem) clamp(1rem, 4vw, 1.875rem);
+  border: 1px solid var(--color-border, #d8dde1);
+  border-radius: var(--radius-md, 0.75rem);
+  background: #fff;
+  max-width: 60rem;
+}
+
+.chartCard h2 {
+  margin: 0;
+  color: var(--color-primary, #62a9e8);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.highlightTitle {
+  color: #3C688E;
+}
+
+.chartHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selectorBtn {
+  display: inline-flex;
+  gap: 0.625rem;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted, #9a9a9a);
+  cursor: pointer;
+  font-size: 1.125rem;
+}
+
+.selectorChevron {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-right: 2px solid #666;
+  border-bottom: 2px solid #666;
+  transform: translateY(-15%) rotate(45deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+.selectorBtn[aria-expanded="true"] .selectorChevron {
+  transform: translateY(25%) rotate(225deg);
+}
+
+.calendar { 
+  width: min(20rem, 100%); 
+  position: absolute; 
+  z-index: 8; 
+  top: calc(100% + 0rem);
+  right: -13rem; 
+  left: auto; 
+  padding: 0.5rem 1rem; 
+  background: white; 
+  border: 1px solid #a9c8e7; 
+  border-radius: var(--radius-md); 
+  box-shadow: var(--shadow-md); 
+  animation: ui-dropdown-enter var(--motion-fast) var(--motion-ease-out) both;
+}
+
+.calendar header { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+}
+
+.calendar header button { 
+  width: 2.5rem; 
+  height: 2.5rem; 
+  background: transparent; 
+  border: 0; 
+  font-size: 1.75rem; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.calendar header button:hover {
+  background: #eff7ff;
+}
+
+.calendar header strong {
+  font-weight: 500;
+}
+
+.weekdays, 
+.days { 
+  display: grid; 
+  grid-template-columns: repeat(7, 1fr); 
+  text-align: center; 
+}
+
+.weekdays { 
+  margin-top: .75rem; 
+  color: var(--color-text-muted); 
+  font-size: .8rem; 
+  font-weight: 600;
+}
+
+.days { 
+  margin-top: .35rem; 
+  gap: .15rem; 
+}
+
+.days > * { 
+  display: grid; 
+  aspect-ratio: 1; 
+  place-items: center; 
+}
+
+.days button { 
+  background: transparent; 
+  border: 0; 
+}
+
+.days button:hover { 
+  background: #eff7ff; 
+  border-radius: 50%; 
+}
+
+.days button[data-in-range='true'] { 
+  color: var(--color-primary);
+}
+
+.days button[aria-pressed='true'] { 
+  background: #eff7ff; 
+  border-radius: 50%; 
+}
+
+.monthPicker {
+  position: relative;
+  display: inline-block;
+}
+
+.monthMenu { 
+  display: flex; 
+  flex-direction: column;
+  width: max-content; 
+  min-width: 100%;   
+  max-height: 14rem; 
+  position: absolute; 
+  z-index: 3; 
+  top: 1.5rem; 
+  left: -1.3rem;        
+  overflow-y: auto;   
+  overflow-x: hidden; 
+  padding: .35rem 0; 
+  background: white; 
+  border: 1px solid #a9c8e7; 
+  border-radius: .5rem; 
+  box-shadow: var(--shadow-sm); 
+  animation: ui-dropdown-enter var(--motion-fast) var(--motion-ease-out) both;
+}
+
+.monthMenu button { 
+  padding: .45rem 1rem; 
+  text-align: left; 
+  background: transparent; 
+  border: 0; 
+  white-space: nowrap; 
+}
+
+.monthMenu button[aria-selected="true"] {
+  color: var(--color-primary, #62a9e8);
+  font-weight: medium;
+  background-color: #eff7ff; 
+}
+
+.chartBody {
+  display: grid;
+  height: clamp(10rem, 20vh, 11rem); 
+  grid-template-columns: clamp(3.5rem, 8vw, 4.75rem) 1fr;
+  gap: 0.75rem;
+  margin-top: clamp(3rem, 3vh, 4rem);
+  transform: translateX(-0.75em);
+}
+
+.chartSummary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.axisLabels {
+  display: flex;
+  height: calc(100% - 2rem); 
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 0.1rem;
+  color: var(--color-text-muted, #999);
+  text-align: right;
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  position: relative;
+}
+
+.axisLabels span {
+  position: relative;
+}
+
+.axisLabels span::after {
+  content: '';
+  position: absolute;
+  right: -0.8rem;
+  top: 50%;
+  width: 0.35rem;
+  height: 1px;
+  background-color: #d8dde1;
+}
+
+.timeBarChart,
+.monthlyBarChart {
+  position: relative;
+  display: grid;
+  height: 100%; 
+  grid-auto-columns: minmax(2.5rem, 1fr);
+  grid-auto-flow: column;
+  align-items: end;
+  gap: clamp(1rem, 3vw, 4rem);
+  padding: 0 1rem;
+  border-bottom: none;
+}
+
+.timeBarChart::before,
+.monthlyBarChart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 2rem; 
+  left: 0;
+  width: 1px;
+  background-color: #d8dde1;
+}
+
+.timeBarChart::after,
+.monthlyBarChart::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2rem; 
+  height: 1px;
+  background-color: #d8dde1;
+}
+
+.monthlyBarChart {
+  grid-auto-columns: minmax(2rem, 1fr);
+  gap: clamp(1rem, 2vw, 3rem);
+}
+
+.barColumn {
+  display: grid;
+  height: 100%;
+  grid-template-rows: 1fr 2rem;
+  justify-items: center;
+  color: var(--color-text-muted, #999);
+}
+
+.barArea {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: end;
+  justify-content: center;
+}
+
+.bar {
+  display: block;
+  width: 100%;
+  max-width: 3.75rem;
+  background: #a8c1d6;
+  border-radius: 0.625rem 0.625rem 0 0;
+}
+
+.currentBar {
+  background: var(--color-primary, #62a9e8);
+}
+
+.amountTooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  width: max-content;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--color-primary, #62a9e8);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--color-primary, #62a9e8);
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.barColumn > span:last-child {
+  align-self: end;
+  padding-top: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.barColumn .currentLabel {
+  color: var(--color-primary, #62a9e8);
+  font-weight: 500;
+  font-size: 1.25rem !important; 
+}
+
+.emailModalBackdrop {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* top 잘림 방지를 위해 flex-start로 변경 */
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgb(205 231 250 / 78%);
+  backdrop-filter: blur(5px);
+  padding: 6rem 1rem 3rem 1rem; /* 일러스트(-5rem) 공간 고려하여 상단 padding 6rem 확보 */
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.emailModalWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 32.5rem; 
+  margin: 0 auto; 
+  background: linear-gradient(to top, #6AADEA 0%, #ffffff 100%);
+  padding: 4rem 1.5rem 1.5rem 1.5rem; 
+  border-radius: 2rem;
+  box-sizing: border-box;
+}
+
+.emailModalDialog {
+  max-height: calc(100svh - 3rem);
+  overflow: visible;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.emailModalDialog .emailModalBody {
+  display: block;
+  overflow: visible;
+  padding: 0;
+}
+
+.emailIllustration {
+  width: 18rem;
+  height: auto;
+  position: absolute;
+  z-index: 2;
+  top: -5rem;
+  right: -5rem;
+}
+
+.emailModalInner {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  width: 90%;
+  box-sizing: border-box; 
+  margin: -2.5rem auto 0 auto;
+}
+
+.emailHeader {
+  text-align: center;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+}
+.emailHeader h2 {
+  margin: 0 0 0.5rem;
+  color: #3C688E;
+  font-size: clamp(1.2rem, 3.5vw, 1.4rem);
+  font-weight: 600;
+}
+.emailHeader p {
+  margin: 0;
+  color: #A8C1D6;
+  font-size: clamp(1.0rem, 2vw, 1.1rem);
+  font-weight: 500;
+}
+
+.emailMvpNotice,
+.mvpNotice {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(102 169 228 / 28%);
+  border-radius: 0.5rem;
+  background: rgb(102 169 228 / 8%);
+  color: #5f83a2;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.emailSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: clamp(0.25rem, 5vw, 0.75rem);
+  gap: 0.5rem;
+}
+
+.summaryBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.summaryBox span {
+  color: #A3BDD6;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.summaryBox strong {
+  font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+  font-weight: 600;
+  white-space: nowrap;
+  color: #3C688E;
+}
+.summaryBox small {
+  color: #A3BDD6;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.textBlue { color: #6AADEA !important; }
+.textDarkBlue { color: #356792; }
+
+.summaryArrow svg {
+  width: clamp(1.25rem, 3vw, 1.75rem);
+  height: clamp(1.25rem, 3vw, 1.75rem);
+  opacity: 0.7;
+  transform: translateX(-0.5rem);
+}
+
+.emailListSection h3,
+.emailChartSection h3 {
+  font-size: clamp(1rem, 3vw, 1.1rem);
+  color: #000;
+  margin: 0 0 1.25rem 0;
+  font-weight: 500;
+}
+
+.emailListSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #F0F0F0;
+}
+.emailTxList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+.emailTxList li {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+}
+.txIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #F0F0F0;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  background: white;
+  flex-shrink: 0;
+}
+.txInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  gap: 0.5rem;
+}
+.txInfo strong { 
+  color: #222; 
+  font-size: 0.95rem; 
+  font-weight: 500; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.txInfo span { color: #999; font-size: 0.75rem; }
+
+.txAmount {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+.txAmount strong { color: #222; font-size: 0.95rem; font-weight: 500; white-space: nowrap; }
+.txAmount span { color: #999; font-size: 0.75rem; white-space: nowrap; }
+
+.emailChartSection {
+  margin-bottom: 2.5rem;
+}
+.emailChart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 7.5rem;
+  gap: 0.25rem;
+}
+.chartCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+  
+  flex: 1;
+}
+.chartBar {
+  position: relative;
+  width: clamp(2rem, 2.5vw, 2.5rem);
+  background: #A8C1D6;
+  border-radius: 0.4rem 0.4rem 0 0;
+  animation: reportBarIn 220ms ease-out both;
+  transition: height var(--motion-slow) var(--motion-ease-out);
+}
+.barMax { background: #3C688E; }
+.barToday { background: #6AADEA; }
+
+.chartCol span {
+  color: #ABABAB;
+  font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+}
+
+.chartTooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  width: max-content;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.25rem;
+  border: 0.5px solid #6AADEA;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: var(--color-primary, #62a9e8);
+  font-size: 0.6rem; 
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.emailSendBtn {
+  background: #62A9E8;
+  color: white;
+  border: none;
+  border-radius: 0.8rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.emailSendBtn:hover:not(:disabled) {
+  background: #4d98d9;
+  box-shadow: 0 4px 10px rgb(45 119 183 / 24%);
+  transform: translateY(-1px);
+}
+
+.emailSendBtn img {
+  width: 1rem;
+  height: 0.75rem;
+  filter: brightness(0) invert(1);
+}
+
+.feedbackCard {
+  display: grid;
+  width: min(38rem, 100%);
+  align-self: center;
+  justify-self: center;
+  gap: 0.75rem;
+  justify-items: center;
+  padding: clamp(2rem, 5vw, 4rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.feedbackCard h2,
+.feedbackCard p {
+  margin: 0;
+}
+
+.feedbackCard h2 {
+  color: var(--color-primary);
+}
+
+@keyframes reportBarIn {
+  from { opacity: 0.3; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emailModalWrapper,
+  .emailModalInner,
+  .chartBar,
+  .emailreportBtn,
+  .emailSendBtn {
+    animation: none;
+    transition: none;
+  }
+}
+
+.feedbackCard span {
+  color: var(--color-text-muted);
+}
+
+.feedbackCard button {
+  min-width: 8rem;
+  min-height: 2.75rem;
+  margin-top: 0.5rem;
+  color: #fff;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--color-primary);
+}
+
+@media (max-width: 63.75rem) {
+  .page {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    padding-bottom: 2rem;
+  }
+
+  .pageHeader {
+    max-width: none;
+  }
+
+  .pageHeader h1 {
+    font-size: 1.5rem;
+  }
+
+  .pageHeader p,
+  .headerWrapper p {
+    font-size: 0.95rem;
+  }
+
+  .headerWrapper {
+    min-height: 3rem;
+  }
+
+  .emailreportBtn {
+    width: auto;
+    min-width: 9.5rem;
+    flex-basis: auto;
+    margin-left: auto;
+    font-size: 1rem;
+  }
+
+  .reportContent {
+    gap: 0.75rem;
+  }
+
+  .chartCard {
+    max-width: none;
+    min-width: 0;
+    padding: 1rem 0.75rem;
+    border-radius: 0.75rem;
+  }
+
+  .chartCard h2,
+  .selectorBtn {
+    font-size: 1rem;
+  }
+
+  .chartBody {
+    min-width: 0;
+    height: 10rem;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+    transform: none;
+  }
+
+  .axisLabels {
+    font-size: 0.7rem;
+  }
+
+  .timeBarChart,
+  .monthlyBarChart {
+    min-width: 0;
+    gap: 0.35rem;
+    padding: 0 0.25rem;
+  }
+
+  .calendar {
+    right: 0;
+    left: auto;
+    width: min(20rem, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
+  }
+
+  .monthMenu {
+    right: 0;
+    left: auto;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .barColumn > span:last-child {
+    padding-top: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .barColumn .currentLabel {
+    font-size: 0.875rem !important;
+  }
+
+  .amountTooltip {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.75rem;
+  }
+
+  .mascotArea {
+    display: none;
+  }
+
+  .emailModalBackdrop {
+    padding: 1rem;
+  }
+
+  .emailModalWrapper {
+    max-width: 32rem;
+    padding: 2.5rem 0.75rem 0.75rem;
+    border-radius: 1.25rem;
+  }
+
+  .emailIllustration {
+    width: 10rem;
+    top: -3rem;
+    right: -1.5rem;
+  }
+
+  .emailModalInner {
+    width: 100%;
+    padding: 1.25rem 0.75rem;
+    margin: -1rem auto 0;
+    border-radius: 1rem;
+  }
+}

@@ -38,6 +38,7 @@
   border: 1px solid #a9c8e7;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  animation: ui-dropdown-enter var(--motion-fast) var(--motion-ease-out) both;
 }
 
 .menu button {

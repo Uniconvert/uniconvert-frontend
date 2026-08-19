@@ -1,3 +1,5 @@
+import { getCurrencyMetadata } from '@/types/currency'
+
 const currencyLocales: Record<string, string> = {
   KRW: 'ko-KR',
   USD: 'en-US',
@@ -12,7 +14,7 @@ export function formatCurrencyAmount(amount: number, currency: string) {
     style: 'currency',
     currency,
     currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 0,
+    maximumFractionDigits: getCurrencyMetadata(currency).maximumFractionDigits,
   }).format(amount)
 }
 

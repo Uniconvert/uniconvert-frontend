@@ -1,0 +1,48 @@
+.page {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.page h1,
+.page p {
+  margin: 0;
+}
+
+.page h1 {
+  color: var(--color-primary);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.page p {
+  max-width: 28rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.icon {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary-light);
+  border-radius: 50%;
+  font-size: 2rem;
+}
+
+.action {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  color: var(--color-surface);
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}

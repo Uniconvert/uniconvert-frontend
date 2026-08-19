@@ -1,6 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { getSessionUser } from '@/auth/session'
 import { ROUTE_PATHS } from './routePaths'
+import OfflineFallback from '@/components/common/OfflineFallback/OfflineFallback'
+import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 
 function redirectForProtectedRoute() {
   const user = getSessionUser()
@@ -12,6 +14,8 @@ function redirectForProtectedRoute() {
 
 export function DashboardRouteGuard() {
   const location = useLocation()
+  const isOnline = useOnlineStatus()
+  if (!isOnline) return <OfflineFallback />
   const redirectPath = redirectForProtectedRoute()
   return redirectPath
     ? <Navigate to={redirectPath} replace state={{ from: location.pathname }} />

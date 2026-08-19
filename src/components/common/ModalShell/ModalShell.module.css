@@ -8,6 +8,7 @@
   padding: 1.5rem;
   background: rgb(205 231 250 / 78%);
   backdrop-filter: blur(5px);
+  animation: ui-modal-overlay-enter var(--motion-base) var(--motion-ease-out) both;
 }
 
 .shell {
@@ -41,6 +42,7 @@
   border-radius: var(--radius-md);
   box-shadow: 0 1.25rem 3.5rem rgb(37 82 119 / 20%);
   outline: 0;
+  animation: ui-modal-dialog-enter var(--motion-base) var(--motion-ease-out) both;
 }
 
 .header {
@@ -63,6 +65,24 @@
   margin: 0;
   font-size: 1.35rem;
   font-weight: 600;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .headerActions {

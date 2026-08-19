@@ -6,6 +6,7 @@ interface FloatingMascotProps {
   messages: React.ReactNode[]; // 수정: string[] -> React.ReactNode[]
   imageSrc: string;
   speechBubbleVariant?: 'default' | 'twoLine' | 'compact';
+  speechBubbleClassName?: string;
   className?: string;
 }
 
@@ -13,6 +14,7 @@ export default function FloatingMascot({
   messages,
   imageSrc,
   speechBubbleVariant,
+  speechBubbleClassName,
   className = '',
 }: FloatingMascotProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -69,6 +71,7 @@ export default function FloatingMascot({
           message={currentMessage}
           imageSrc={imageSrc}
           speechBubbleVariant={speechBubbleVariant}
+          speechBubbleClassName={speechBubbleClassName}
         />
       </div>
     </div>

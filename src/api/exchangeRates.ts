@@ -1,13 +1,19 @@
 import { apiRequest } from './client'
 
-export interface ExchangeRateDto {
-  available: boolean
+/** `apiRequest`가 공통 `{ success, code, message, data }` envelope을 해제한 뒤의 payload입니다. */
+export interface ExchangeRateResponse {
+  available?: boolean
   fromCurrency?: string
   toCurrency?: string
   rate?: number | null
   rateDate?: string | null
   changeRate?: number | null
   comparedDate?: string | null
+}
+
+/** 화면과 hook이 사용하는 정규화된 환율 모델입니다. */
+export interface ExchangeRateDto extends ExchangeRateResponse {
+  available: boolean
 }
 
 export interface ExchangeQuoteDto {
@@ -38,6 +44,18 @@ interface ExchangeQuoteHistoryPageDto {
   last?: boolean
 }
 
+function isUsableRate(value: number | null | undefined): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+export function mapExchangeRateResponse(response: ExchangeRateResponse): ExchangeRateDto {
+  return {
+    ...response,
+    // 현재 API payload에는 available이 없으므로 실제 rate의 유효성으로 availability를 확정합니다.
+    available: response.available ?? isUsableRate(response.rate),
+  }
+}
+
 export function getCurrentExchangeRate(from: string, to: string) {
   const normalizedFrom = from.toUpperCase()
   const normalizedTo = to.toUpperCase()
@@ -56,9 +74,9 @@ export function getCurrentExchangeRate(from: string, to: string) {
   const key = `${normalizedFrom}:${normalizedTo}`
   const cached = exchangeRateRequests.get(key)
   if (cached) return cached
-  const request = apiRequest<ExchangeRateDto>(
+  const request = apiRequest<ExchangeRateResponse>(
     `/exchange-rates/current?${params.toString()}`,
-  )
+  ).then(mapExchangeRateResponse)
   exchangeRateRequests.set(key, request)
   window.setTimeout(() => exchangeRateRequests.delete(key), 5_000)
   return request
