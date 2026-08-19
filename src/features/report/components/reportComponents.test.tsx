@@ -18,14 +18,15 @@ vi.mock('@/components/common/ModalShell/ModalShell', () => ({
 }))
 
 vi.mock('@/components/common/Button/Button', () => ({
-  default: ({ children, disabled }: { children: ReactNode; disabled?: boolean }) => (
-    <button type="button" disabled={disabled}>{children}</button>
+  default: ({ children, className, disabled }: { children: ReactNode; className?: string; disabled?: boolean }) => (
+    <button className={className} type="button" disabled={disabled}>{children}</button>
   ),
 }))
 
 import EmailReportDialog from './EmailReportDialog'
 import ReportTransactionList from './ReportTransactionList'
 import ReportBarChart from './ReportBarChart'
+import settingsStyles from '@/features/settings/settings.module.css'
 
 const transaction: ExpenseListItem = {
   expenseId: '1',
@@ -74,6 +75,9 @@ describe('ReportPage 분리 컴포넌트', () => {
     expect(markup).toContain('Cafe')
     expect(markup).toContain('report.send')
     expect(markup).toContain('report.mvpNotice')
+    expect(markup).toContain(settingsStyles.reportPanel)
+    expect(markup).toContain(settingsStyles.reportCard)
+    expect(markup).toContain(settingsStyles.sendReportButton)
   })
 
   it('EmailReportDialog는 잔여 예산 조회 실패를 실제 0과 구분한다', () => {

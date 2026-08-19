@@ -5,6 +5,7 @@ import { convertCurrencyAmount } from '@/utils/exchangeRate'
 import { useI18n } from '@/i18n/I18nContext'
 import type { ExpenseListItem } from '@/types/expense'
 import styles from '@/features/report/report.module.css'
+import settingsStyles from '@/features/settings/settings.module.css'
 import ReportTransactionList from '@/features/report/components/ReportTransactionList'
 
 export interface ReportTimeDataPoint {
@@ -63,12 +64,12 @@ function EmailReportDialog({
       showHeader={false}
       backdropClassName={styles.emailModalBackdrop}
       shellClassName={styles.emailModalWrapper}
-      shellRef={captureRef}
       dialogClassName={styles.emailModalDialog}
       bodyClassName={styles.emailModalBody}
     >
-      <img className={styles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
-      <div className={styles.emailModalInner}>
+      <div ref={captureRef as RefObject<HTMLDivElement | null>} className={settingsStyles.reportPanel}>
+        <img className={settingsStyles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
+        <section className={settingsStyles.reportCard}>
           <header className={styles.emailHeader}>
             <h2>{t('report.todayReport', { month: Number(month), day: Number(day) })}</h2>
             <p>{t('report.todayDescription')}</p>
@@ -133,17 +134,18 @@ function EmailReportDialog({
               })}
             </div>
           </section>
-        <Button
-          className={styles.emailSendBtn}
-          fullWidth
-          data-report-capture-ignore="true"
-          disabled={isSending}
-          isLoading={isSending}
-          onClick={() => { void onSend() }}
-        >
-          <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
-          {isSending ? t('report.sending') : t('report.send')}
-        </Button>
+          <Button
+            className={settingsStyles.sendReportButton}
+            fullWidth
+            data-report-capture-ignore="true"
+            disabled={isSending}
+            isLoading={isSending}
+            onClick={() => { void onSend() }}
+          >
+            <img src="/assets/icons/email.png" alt="" aria-hidden="true" />
+            {isSending ? t('report.sending') : t('report.send')}
+          </Button>
+        </section>
       </div>
     </ModalShell>
   )
