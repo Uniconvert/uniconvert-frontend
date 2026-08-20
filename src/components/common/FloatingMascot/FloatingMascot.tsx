@@ -61,12 +61,12 @@ export default function FloatingMascot({
   const currentMessage = messages.length > 0 ? messages[currentIndex % messages.length] : ''
 
   return (
-    <div 
-      className={`${styles.floatingMascotRail} ${className}`.trim()}
-      onClick={handleClick} 
-      style={{ cursor: 'pointer', userSelect: 'none' }}
-    >
-      <div className={styles.floatingMascot}>
+    <div className={`${styles.floatingMascotRail} ${className}`.trim()}>
+      <div
+        className={styles.floatingMascot}
+        onClick={handleClick}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+      >
         <Mascot
           message={currentMessage}
           imageSrc={imageSrc}

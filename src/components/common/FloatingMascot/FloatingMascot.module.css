@@ -5,13 +5,15 @@
   top: 0;
   right: 0;
   bottom: 0;
+  pointer-events: none;
 }
 
 .floatingMascot {
   width: 100%;
-  height: 14rem;
+  height: 11rem;
   position: sticky;
-  top: calc(100svh - 15.5rem);
+  top: calc(100svh - 12.5rem);
+  pointer-events: auto;
 }
 
 @media (max-width: 63.75rem) {

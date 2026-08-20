@@ -473,6 +473,7 @@
   font-size: 0.9rem;
   color: #ABABAB;
   margin-top: 1rem;
+  position: static;
 }
 
 .optionDescription img {
@@ -486,9 +487,10 @@
 .optionActions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1.25rem;
-  margin-left: 2rem;
+  margin-top: 0.75rem;
+  margin-left: 0;
 }
 
 .optionActions Button {
@@ -498,8 +500,8 @@
   font-size: 1rem;
   border-radius: 0.5rem;
   font-weight: 500;
-  margin-top: -1rem;
-  margin-right: 1rem;
+  margin-top: 0;
+  margin-right: 0;
 }
 
 .version {
@@ -829,5 +831,23 @@
   .emailIllustration {
     width: 9rem;
     right: 0;
+  }
+}
+
+/* Balance the settings columns and preview on QHD viewports. */
+@media (min-width: 2200px) {
+  .page {
+    width: min(100%, 120rem);
+    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(36rem, 1fr);
+    column-gap: 30rem;
+  }
+
+  .reportCard {
+    max-width: 34rem;
+  }
+
+  .emailIllustration {
+    width: 16rem;
   }
 }

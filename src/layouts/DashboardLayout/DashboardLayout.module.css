@@ -1,13 +1,20 @@
 .layout {
+  width: 100%;
+  min-height: 100svh;
+  position: relative;
+  background: #edf6fd;
+  overflow: clip;
+}
+
+.scene {
   display: grid;
+  width: 100%;
   min-height: 100svh;
   position: relative;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   grid-template-rows: 9.375rem minmax(0, 1fr);
   background: #edf6fd;
-
   max-width: 1920px;
-  width: 100%;
   margin: 0 auto;
   overflow: clip;
 }
@@ -396,7 +403,7 @@
 .logoutModalActions button:disabled { cursor: not-allowed; opacity: .55; }
 
 @media (max-width: 75rem) {
-  .layout {
+  .scene {
     --sidebar-width: 15rem;
     grid-template-columns: 15rem minmax(0, 1fr);
   }
@@ -459,7 +466,7 @@
 }
 
 @media (max-width: 63.75rem) {
-  .layout {
+  .scene {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto auto minmax(0, 1fr);
     overflow-x: hidden;
@@ -730,5 +737,12 @@
 @media (max-width: 64.0625rem) {
   .assetSummary {
     padding-bottom: 1.25rem;
+  }
+}
+
+/* Use the full QHD viewport for the Dashboard scene without scaling the UI. */
+@media (min-width: 2200px) {
+  .scene {
+    max-width: none;
   }
 }

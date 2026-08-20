@@ -83,6 +83,15 @@ describe('ExpenseHistoryPage 분리 컴포넌트', () => {
     expect(markup).not.toContain('expenseHistory.noRecentExpenses')
   })
 
+  it('요약은 데이터가 비어도 주요 카드 레이아웃을 유지한다', () => {
+    const markup = renderToStaticMarkup(<ExpenseHistorySummary {...summaryProps} />)
+
+    expect(markup).toContain('aria-labelledby="total-assets-title"')
+    expect(markup).toContain('aria-labelledby="recent-expenses-title"')
+    expect(markup).toContain('aria-labelledby="monthly-expenses-title"')
+    expect(markup).toContain('aria-labelledby="saved-expenses-title"')
+  })
+
   it('저장 지출 모달은 정상 데이터를 표시한다', () => {
     const markup = renderToStaticMarkup(
       <SavedExpenseDialog

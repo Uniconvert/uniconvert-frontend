@@ -438,9 +438,13 @@ function CalculatorPage() {
         </div>
       </ModalShell>}
 
-      {!isOfflineCalculatorRoute && <div className={styles.mascotArea}>
-        <FloatingMascot messages={mascotMessages} imageSrc={mascotImagePath} />
-      </div>}
+      {!isOfflineCalculatorRoute && (
+        <FloatingMascot
+          messages={mascotMessages}
+          imageSrc={mascotImagePath}
+          className={styles.lowerMascot}
+        />
+      )}
     </section>
   )
 }

@@ -4,7 +4,9 @@ import styles from './AuthLayout.module.css'
 function AuthLayout() {
   return (
     <main className={styles.layout}>
-      <Outlet />
+      <div className={styles.scene}>
+        <Outlet />
+      </div>
     </main>
   )
 }

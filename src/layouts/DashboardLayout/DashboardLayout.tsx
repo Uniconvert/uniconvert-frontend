@@ -172,8 +172,9 @@ function DashboardLayout() {
 
   return (
     <div className={styles.layout}>
-      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
-      <header className={styles.topbar}>
+      <div className={styles.scene}>
+        {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
+        <header className={styles.topbar}>
         <Link className={styles.brand} to={ROUTE_PATHS.home}>
           <span className={styles.brandMarkFrame} aria-hidden="true">
             <img
@@ -202,9 +203,9 @@ function DashboardLayout() {
           </span>
           <span>{displayName}</span>
         </div>
-      </header>
+        </header>
 
-      <section
+        <section
         className={styles.mobileAssetSummary}
         aria-labelledby="mobile-asset-summary-title"
       >
@@ -240,9 +241,9 @@ function DashboardLayout() {
             <strong>{mobileBudgetMetrics ? `${assetSummary.currencySymbol} ${mobileBudgetMetrics.remainingBudgetHome.toLocaleString(locale)}` : '—'}</strong>
           </div>
         </div>
-      </section>
+        </section>
 
-      <aside className={styles.sidebar}>
+        <aside className={styles.sidebar}>
         <nav className={styles.navigation} aria-label={t('dashboard.mainMenu')}>
           <div className={styles.upperNavigation}>
             <div className={styles.sidebarCap} aria-hidden="true" />
@@ -296,9 +297,9 @@ function DashboardLayout() {
             </div>
           </div>
         </nav>
-      </aside>
+        </aside>
 
-      <nav
+        <nav
         className={styles.pageTabs}
         aria-label={activeItem.icon === 'home' ? t('dashboard.homeMenu') : t('dashboard.currentScreen')}
       >
@@ -316,15 +317,15 @@ function DashboardLayout() {
             </Link>
           )
         })}
-      </nav>
+        </nav>
 
-      <div className={styles.workspace}>
-        <main className={styles.content}>
-          <Outlet key={budgetVersion} />
-        </main>
-      </div>
+        <div className={styles.workspace}>
+          <main className={styles.content}>
+            <Outlet key={budgetVersion} />
+          </main>
+        </div>
 
-      {isBudgetModalOpen && (
+        {isBudgetModalOpen && (
         <BudgetEditModal
           initialBudget={assetSummary.totalAssetHome}
           maximumBudget={assetSummary.homeCurrency === 'KRW' ? 3_000_000 : 3_000}
@@ -349,13 +350,14 @@ function DashboardLayout() {
         />
       )}
 
-      {isLogoutModalOpen && (
+        {isLogoutModalOpen && (
         <LogoutDialog
           isLoggingOut={isLoggingOut}
           onClose={() => { if (!isLoggingOut) setIsLogoutModalOpen(false) }}
           onConfirm={() => { void handleLogout() }}
         />
       )}
+      </div>
     </div>
   )
 }
