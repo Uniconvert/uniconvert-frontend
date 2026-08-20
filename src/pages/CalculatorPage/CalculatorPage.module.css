@@ -7,6 +7,11 @@
   animation: ui-page-enter var(--motion-slow) var(--motion-ease-out) both;
 }
 
+/* Keep the calculator mascot aligned with the shared Pots/Report/Memo placement. */
+.lowerMascot {
+  transform: translateY(1rem);
+}
+
 .pageHeader {
   margin-bottom: 2rem;
 }
@@ -595,16 +600,6 @@
   justify-content: center;
 }
 
-.mascotArea {
-  position: absolute;
-  bottom: 12rem;
-  right: 0rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  z-index: 9999;
-}
-
 @media (max-width: 63.75rem) {
   .pageHeader {
     margin-bottom: 1rem;
@@ -735,8 +730,49 @@
     flex: 0 0 auto;
     font-size: 0.8rem;
   }
+}
 
-  .mascotArea {
-    display: none;
+/* Use a wider, centered calculator workspace on QHD viewports. */
+@media (min-width: 2200px) {
+  /* Keep the mascot rail on the full page width, like Pots. */
+  .page {
+    width: 100%;
+    max-width: none;
+    margin-inline: auto;
+  }
+
+  .pageHeader,
+  .contentWrapper {
+    width: 100%;
+    max-width: 112rem;
+    margin-inline: auto;
+  }
+
+  .contentWrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(28rem, 1fr);
+    align-items: start;
+    gap: clamp(2.5rem, 3vw, 5rem);
+  }
+
+  .exchangeArea {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .calcCard,
+  .historyArea {
+    width: auto;
+    min-width: 0;
+    height: clamp(24rem, 38vh, 28rem);
+  }
+
+  .lowerMascot img {
+    transform-origin: bottom center;
+    transform: scale(0.93);
   }
 }

@@ -47,6 +47,19 @@ describe('exchange rate cache', () => {
     expect(getCachedExchangeRate('USD', 'KRW')).toBeNull()
   })
 
+  it('does not let an invalid response overwrite a valid pair cache', () => {
+    setCachedExchangeRate({
+      available: true,
+      fromCurrency: 'USD',
+      toCurrency: 'KRW',
+      rate: 1415.2,
+      rateDate: '2026-08-18',
+    })
+
+    expect(setCachedExchangeRate({ available: false, fromCurrency: 'USD', toCurrency: 'KRW', rate: 999 })).toBeNull()
+    expect(getCachedExchangeRate('USD', 'KRW')).toMatchObject({ rate: 1415.2, rateDate: '2026-08-18' })
+  })
+
   it('ignores malformed stored values', () => {
     const storage = (window as Window).localStorage
     storage.setItem('uniconvert:exchange-rate:USD:KRW', '{not-json')

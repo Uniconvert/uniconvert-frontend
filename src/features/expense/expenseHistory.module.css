@@ -1,3 +1,4 @@
+/* Keep the route content visible while its initial query resolves. */
 .page {
   position: relative;
   display: grid;
@@ -5,7 +6,6 @@
   min-height: 100%;
   grid-template-columns: minmax(min(100%, 22rem), 32rem) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 3rem); 
-  animation: ui-page-enter var(--motion-slow) var(--motion-ease-out) both;
 }
 
 .lowerMascot {
@@ -641,5 +641,23 @@
   .categorySummary li {
     grid-template-columns: 1fr 3rem auto;
     font-size: 0.95rem;
+  }
+}
+
+/* Center the monthly donut within its expanded QHD chart column. */
+@media (min-width: 2200px) {
+  .donutWrap {
+    width: clamp(18rem, 16vw, 22rem);
+    height: clamp(18rem, 16vw, 22rem);
+    justify-self: center;
+  }
+
+  .donutCenter {
+    width: 10.5rem;
+    height: 10.5rem;
+  }
+
+  .donut text {
+    font-size: 1.05rem;
   }
 }

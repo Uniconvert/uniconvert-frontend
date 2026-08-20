@@ -1,0 +1,25 @@
+{
+  "name": "Uniconvert",
+  "short_name": "Uniconvert",
+  "description": "환율 계산과 외화 지출을 한곳에서 관리하는 Uniconvert",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#66a9e4",
+  "background_color": "#f5f8fc",
+  "icons": [
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

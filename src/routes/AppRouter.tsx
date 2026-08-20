@@ -7,6 +7,7 @@ import { ROUTE_PATHS } from './routePaths'
 import RouteErrorFallback from './RouteErrorFallback'
 import PublicCalculatorLayout from '@/layouts/PublicCalculatorLayout/PublicCalculatorLayout'
 import CalculatorPage from '@/pages/CalculatorPage/CalculatorPage'
+import ExpenseHistoryPage from '@/pages/ExpenseHistoryPage/ExpenseHistoryPage'
 
 const lazyComponent = (load: () => Promise<{ default: ComponentType }>) => async () => {
   const module = await load()
@@ -61,7 +62,7 @@ export const router = createBrowserRouter([
         Component: DashboardLayout,
         children: [
           { path: ROUTE_PATHS.home, lazy: lazyComponent(() => import('@/pages/ExpenseInputPage/ExpenseInputPage')) },
-          { path: ROUTE_PATHS.expenses, lazy: lazyComponent(() => import('@/pages/ExpenseHistoryPage/ExpenseHistoryPage')) },
+          { path: ROUTE_PATHS.expenses, Component: ExpenseHistoryPage },
           { path: ROUTE_PATHS.pots, lazy: lazyComponent(() => import('@/pages/PotsPage/PotsPage')) },
           { path: ROUTE_PATHS.report, lazy: lazyComponent(() => import('@/pages/ReportPage/ReportPage')) },
           { path: ROUTE_PATHS.reportMemos, lazy: lazyComponent(() => import('@/pages/MemoPage/MemoPage')) },

@@ -59,7 +59,7 @@ function EmailReportDialog({
       titleId="report-email-modal-title"
       onClose={onClose}
       closeLabel={t('common.close')}
-      width="32.5rem"
+      width="38rem"
       showBookmark={false}
       showHeader={false}
       backdropClassName={styles.emailModalBackdrop}
@@ -67,13 +67,12 @@ function EmailReportDialog({
       dialogClassName={styles.emailModalDialog}
       bodyClassName={styles.emailModalBody}
     >
-      <div ref={captureRef as RefObject<HTMLDivElement | null>} className={settingsStyles.reportPanel}>
+      <div ref={captureRef as RefObject<HTMLDivElement | null>} className={`${settingsStyles.reportPanel} ${styles.emailReportPanel}`}>
         <img className={settingsStyles.emailIllustration} src="/assets/illustrations/email-report.png" alt="" aria-hidden="true" />
-        <section className={settingsStyles.reportCard}>
+        <section className={`${settingsStyles.reportCard} ${styles.emailReportCard}`}>
           <header className={styles.emailHeader}>
             <h2>{t('report.todayReport', { month: Number(month), day: Number(day) })}</h2>
             <p>{t('report.todayDescription')}</p>
-            <p className={styles.emailMvpNotice}>{t('report.mvpNotice')}</p>
           </header>
 
           <section className={styles.emailListSection}>
@@ -134,6 +133,7 @@ function EmailReportDialog({
               })}
             </div>
           </section>
+          <p className={styles.emailMvpNotice}>{t('report.mvpNotice')}</p>
           <Button
             className={settingsStyles.sendReportButton}
             fullWidth

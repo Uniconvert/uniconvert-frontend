@@ -82,8 +82,9 @@ function EmailReportSettingsSection({
             {(['daily', 'weekly', 'monthly'] as const).map((cycle) => <button key={cycle} type="button" className={reportCycle === cycle ? styles.activeCycle : ''} onClick={() => onCycleChange(cycle)}>{t(`settings.${cycle}`)}</button>)}
           </div>
         </div>
-        <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span><div className={styles.optionActions}><Button onClick={onSaveSettings} isLoading={isSaving}>{t('common.save')}</Button></div></div>
+        <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span></div>
         <p className={styles.mvpScheduleNotice}>{t('settings.mvpScheduleNotice')}</p>
+        <div className={styles.optionActions}><Button onClick={onSaveSettings} isLoading={isSaving}>{t('common.save')}</Button></div>
       </div>}
     </section>
   )

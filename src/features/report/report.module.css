@@ -467,7 +467,7 @@
 .emailModalWrapper {
   position: relative;
   width: 100%;
-  max-width: 32.5rem; 
+  max-width: 38rem;
   margin: 0 auto; 
   padding: 0;
   background: transparent;
@@ -526,6 +526,14 @@
   font-weight: 500;
 }
 
+.emailReportPanel {
+  padding-inline: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+.emailReportCard {
+  max-width: 34rem;
+}
+
 .emailMvpNotice,
 .mvpNotice {
   margin: 0.75rem 0 0;
@@ -537,6 +545,10 @@
   font-size: 0.78rem;
   line-height: 1.45;
   text-align: center;
+}
+
+.emailMvpNotice {
+  margin: 0 0 1.25rem;
 }
 
 .emailSummary {
@@ -906,5 +918,53 @@
     padding: 1.25rem 0.75rem;
     margin: -1rem auto 0;
     border-radius: 1rem;
+  }
+}
+
+/* Give the report cards a balanced reading width on QHD viewports. */
+@media (min-width: 2200px) {
+  .page {
+    width: min(100%, 120rem);
+    margin-inline: auto;
+  }
+
+  .pageHeader,
+  .reportContent {
+    width: 100%;
+    max-width: 110rem;
+    margin-inline: auto;
+  }
+
+  .pageHeader h1 {
+    font-size: 1.9rem;
+  }
+
+  .lowerMascot img {
+    transform-origin: bottom center;
+    transform: scale(0.93);
+  }
+
+  /* Align the visible character with the Pots right edge on QHD screens. */
+  .lowerMascot {
+    right: -7rem;
+  }
+
+  .pageHeader p,
+  .headerWrapper p {
+    font-size: 1.1rem;
+  }
+
+  .chartCard {
+    max-width: none;
+    padding: 2rem 2.25rem;
+  }
+
+  .chartCard h2,
+  .selectorBtn {
+    font-size: 1.25rem;
+  }
+
+  .chartBody {
+    height: clamp(12rem, 22vh, 16rem);
   }
 }

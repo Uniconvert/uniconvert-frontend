@@ -1,18 +1,38 @@
 .layout {
   display: grid;
+  width: 100%;
   min-height: 100svh;
   place-items: center;
   position: relative;
   padding: var(--space-6);
   background: linear-gradient(110deg, #f0fbf7 0%, #eaf8f6 32%, #dcefff 100%);
-  max-width: 1920px;
-  width: 100%;
-  margin: 0 auto;
   overflow-x: clip;
+}
+
+.scene {
+  display: grid;
+  width: 100%;
+  min-height: calc(100svh - (var(--space-6) * 2));
+  place-items: center;
+  position: relative;
+  max-width: 1920px;
+  margin: 0 auto;
 }
 
 @media (max-width: 40rem) {
   .layout {
     padding: var(--space-4);
+  }
+
+  .scene {
+    min-height: calc(100svh - (var(--space-4) * 2));
+  }
+}
+
+/* Enlarge the complete auth composition modestly on QHD-sized viewports. */
+@media (min-width: 2200px) {
+  .scene {
+    transform: scale(1.08);
+    transform-origin: center;
   }
 }

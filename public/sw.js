@@ -1,11 +1,49 @@
-const CACHE_NAME = 'uniconvert-app-shell-v1'
+const CACHE_NAME = 'uniconvert-app-shell-v2'
+
+// These resources are app-shell dependencies only. API responses are never
+// part of this list or of the runtime cache strategy below.
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/favicon.ico',
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/favicon-512x512.png',
+  '/apple-touch-icon.png',
+  '/og-image.png',
+  '/fonts/Helvetica.ttc',
+  '/fonts/Helvetica(TeX_Gyre_Heros)/texgyreheros-regular.otf',
+  '/fonts/Helvetica(TeX_Gyre_Heros)/texgyreheros-bold.otf',
+  '/fonts/Pretendard/Pretendard-Regular.woff2',
+  '/fonts/Pretendard/Pretendard-Bold.woff2',
+]
 
 function extractAssetUrls(source) {
   const urls = []
-  const pattern = /["'`](\/assets\/[^"'`\s)]+)["'`]/g
+  const pattern = /["'`](\/(?:assets|fonts)\/[^"'`\s)]+)["'`]/g
   let match
   while ((match = pattern.exec(source))) urls.push(match[1])
+
+  const rootAssetPattern = /["'`](\/(?:favicon-[^"'`\s)]+\.png|favicon\.ico|apple-touch-icon\.png|og-image\.png|manifest\.webmanifest))["'`]/g
+  while ((match = rootAssetPattern.exec(source))) urls.push(match[1])
   return urls
+}
+
+function isCacheableStaticRequest(request, url) {
+  if (url.origin !== self.location.origin) return false
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/auth')) return false
+  return ['script', 'style', 'image', 'font', 'manifest'].includes(request.destination)
+}
+
+async function cacheStaticAsset(cache, url) {
+  try {
+    const response = await fetch(url, { cache: 'no-store' })
+    if (response.ok) await cache.put(url, response.clone())
+    return response
+  } catch {
+    return null
+  }
 }
 
 async function precacheAppShell() {
@@ -17,23 +55,19 @@ async function precacheAppShell() {
   await cache.put('/index.html', new Response(indexText, { headers: indexResponse.headers }))
   await cache.put('/', new Response(indexText, { headers: indexResponse.headers }))
 
-  const queue = extractAssetUrls(indexText)
+  const queue = [...STATIC_ASSETS, ...extractAssetUrls(indexText)]
   const visited = new Set()
   while (queue.length) {
     const url = queue.shift()
     if (!url || visited.has(url)) continue
     visited.add(url)
-    try {
-      const response = await fetch(url)
-      if (!response.ok) continue
-      const responseCopy = response.clone()
-      await cache.put(url, responseCopy)
-      const contentType = response.headers.get('content-type') || ''
-      if (contentType.includes('javascript') || contentType.includes('css')) {
-        queue.push(...extractAssetUrls(await response.text()))
-      }
-    } catch {
-      // An optional lazy asset can be fetched again when the app is online.
+
+    const response = await cacheStaticAsset(cache, url)
+    if (!response?.ok) continue
+
+    const contentType = response.headers.get('content-type') || ''
+    if (contentType.includes('javascript') || contentType.includes('css')) {
+      queue.push(...extractAssetUrls(await response.text()))
     }
   }
 }
@@ -58,14 +92,14 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
 
   const url = new URL(request.url)
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api')) return
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api') || url.pathname.startsWith('/auth')) return
 
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).catch(() => caches.match('/index.html')))
     return
   }
 
-  if (!['script', 'style', 'image', 'font'].includes(request.destination)) return
+  if (!isCacheableStaticRequest(request, url)) return
 
   event.respondWith(
     caches.match(request).then((cached) => {

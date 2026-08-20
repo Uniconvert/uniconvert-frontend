@@ -82,6 +82,7 @@ describe('public offline calculator states', () => {
 
     const markup = renderToStaticMarkup(<CalculatorPage />)
 
+    expect(useExchangeRateQueryMock).toHaveBeenCalledWith('USD', 'KRW', { enabled: false })
     expect(markup).toContain('calculator.noRateCacheDescription')
   })
 
