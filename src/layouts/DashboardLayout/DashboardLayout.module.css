@@ -201,10 +201,10 @@
 .assetSummary {
   width: 100%;
   max-width: 14.5625rem;
-  height: 19.125rem;
+  height: 18.5rem;
   position: relative;
   margin-top: 0;
-  padding: 1.125rem 1.25rem 1.125rem;
+  padding: 1.125rem 1.25rem 0.5rem;
   color: var(--color-text-primary);
   background: var(--color-surface);
   border-radius: 1.25rem;

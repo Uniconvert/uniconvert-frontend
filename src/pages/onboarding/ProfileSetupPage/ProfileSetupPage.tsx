@@ -18,6 +18,8 @@ import { getApiErrorNotice } from '@/utils/apiError'
 import styles from './ProfileSetupPage.module.css'
 import { useI18n } from '@/i18n/I18nContext'
 
+const PROFILE_SETUP_MIN_LOADING_DURATION_MS = 3000
+
 function ProfileSetupPage() {
   const { t } = useI18n()
   const navigate = useNavigate()
@@ -57,6 +59,7 @@ function ProfileSetupPage() {
 
     setIsSubmitting(true)
     setStatusMessage('')
+    const loadingStartedAt = Date.now()
 
     try {
       // 닉네임은 온보딩 완료 요청과 분리된 사용자 API로 저장합니다.
@@ -75,6 +78,11 @@ function ProfileSetupPage() {
 
       if (!onboarding.onboardingCompleted) {
         throw new Error('온보딩 완료 상태를 확인하지 못했습니다. 다시 시도해 주세요.')
+      }
+
+      const remainingLoadingTime = PROFILE_SETUP_MIN_LOADING_DURATION_MS - (Date.now() - loadingStartedAt)
+      if (remainingLoadingTime > 0) {
+        await new Promise<void>((resolve) => { window.setTimeout(resolve, remainingLoadingTime) })
       }
 
       sessionStorage.setItem('uniconvert.profileGoals', JSON.stringify(goals))

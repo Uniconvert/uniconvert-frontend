@@ -24,6 +24,7 @@
   min-width: 0;
   grid-column: 1;
   grid-row: 2;
+  align-self: start;
   flex-direction: column;
   padding: 1.5rem;
   border: 1px solid var(--color-border);
@@ -361,7 +362,7 @@
   width: clamp(5.5rem, 12vw, 9.5rem);
   height: clamp(5.5rem, 12vw, 9.5rem);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 0.75rem;
   margin: clamp(1rem, 2vh, 1.5rem) auto clamp(1.25rem, 3vh, 2rem);
 }
@@ -391,8 +392,8 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: 0.75rem;
-  bottom: 0.75rem;
+  right: -0.35rem;
+  bottom: -0.35rem;
   padding: 0;
   background: transparent; 
   border: none;            
