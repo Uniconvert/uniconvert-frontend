@@ -83,7 +83,6 @@ function EmailReportSettingsSection({
         </div>
         <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span></div>
         <p className={styles.mvpScheduleNotice}>{t('settings.mvpScheduleNotice')}</p>
-        <div className={styles.optionActions}><Button onClick={onSaveSettings} isLoading={isSaving}>{t('common.save')}</Button></div>
       </div>}
     </section>
   )
