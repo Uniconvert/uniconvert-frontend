@@ -106,7 +106,7 @@ function ProfileSetupPage() {
       <AuthPanelShell
         as="form"
         width="47.5rem"
-        height="clamp(42rem, 76svh, 48rem)"
+        showBookmark={false}
         className={styles.card}
         ariaLabelledBy="profile-title"
         onSubmit={handleSubmit}

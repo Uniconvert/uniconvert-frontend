@@ -267,18 +267,20 @@ function DashboardLayout() {
                 <button className={styles.assetEditButton} type="button" aria-label={t('dashboard.editMonthlyBudget')} onClick={() => setIsBudgetModalOpen(true)}>
                   <img src="/assets/icons/actions/action-edit-assets.png" alt="" aria-hidden="true" />
                 </button>
-                <div className={styles.assetRing} aria-hidden="true">
-                  <img className={styles.assetRingGraphic} src="/assets/illustrations/asset-ring.png" alt="" />
-                  <span className={styles.assetRingContent}>
-                    <img className={styles.assetRingWallet} src="/assets/icons/pots/pot-wallet.png" alt="" />
-                    <small>{currentYearMonth}</small>
-                  </span>
+                <div className={styles.assetSummaryContent}>
+                  <div className={styles.assetRing} aria-hidden="true">
+                    <img className={styles.assetRingGraphic} src="/assets/illustrations/asset-ring.png" alt="" />
+                    <span className={styles.assetRingContent}>
+                      <img className={styles.assetRingWallet} src="/assets/icons/pots/pot-wallet.png" alt="" />
+                      <small>{currentYearMonth}</small>
+                    </span>
+                  </div>
+                  <h2 id="asset-summary-title">{t('dashboard.monthlyBudget')}</h2>
+                  <p className={styles.assetTotal} aria-busy={isAssetSummaryLoading || isAssetSummaryFetching || undefined}>
+                    {isAssetSummaryLoading ? <Skeleton variant="text" width="8rem" /> : `${assetSummary.currencySymbol} ${assetSummary.totalAssetHome.toLocaleString(locale)}`}
+                  </p>
+                  <p className={styles.assetUsd}>{isAssetSummaryLoading ? <Skeleton variant="text" width="6rem" /> : `(${assetSummary.localCurrencyAmountLabel})`}</p>
                 </div>
-                <h2 id="asset-summary-title">{t('dashboard.monthlyBudget')}</h2>
-                <p className={styles.assetTotal} aria-busy={isAssetSummaryLoading || isAssetSummaryFetching || undefined}>
-                  {isAssetSummaryLoading ? <Skeleton variant="text" width="8rem" /> : `${assetSummary.currencySymbol} ${assetSummary.totalAssetHome.toLocaleString(locale)}`}
-                </p>
-                <p className={styles.assetUsd}>{isAssetSummaryLoading ? <Skeleton variant="text" width="6rem" /> : `(${assetSummary.localCurrencyAmountLabel})`}</p>
               </section>
 
               <Link

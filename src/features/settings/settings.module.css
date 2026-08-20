@@ -25,14 +25,16 @@
   grid-column: 1;
   grid-row: 2;
   flex-direction: column;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
 }
 
 .emailSetting {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 1rem 1.75rem;
+  padding: 0;
   gap: 0;
 }
 
@@ -344,9 +346,8 @@
 .profileCard {
   min-height: fit-content;
   margin-top: clamp(1.5rem, 3vh, 2.5rem);
-  padding: clamp(0.5rem, 3vw, 1rem);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  padding: clamp(1.5rem, 3vw, 2rem) 0 0;
+  border-top: 1px solid var(--color-border);
 }
 
 .profileCard h2 {
@@ -360,6 +361,8 @@
   width: clamp(5.5rem, 12vw, 9.5rem);
   height: clamp(5.5rem, 12vw, 9.5rem);
   position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
   margin: clamp(1rem, 2vh, 1.5rem) auto clamp(1.25rem, 3vh, 2rem);
 }
 
@@ -370,7 +373,7 @@
   overflow: hidden;
   place-items: center;
   color: #366894;
-  background: linear-gradient(145deg, #fff4cc, #d9efff);
+  background: transparent;
   border: 0;
   border-radius: 0.75rem;
   font-weight: var(--font-weight-bold);
@@ -388,8 +391,8 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: -1rem;
-  bottom: -0.25rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
   padding: 0;
   background: transparent; 
   border: none;            
@@ -398,8 +401,8 @@
 }
 
 .changePhotoButton img {
-  width: 2.75rem;          
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   object-fit: contain;
 }
 
@@ -795,6 +798,10 @@
   }
 
   .emailSetting {
+    padding: 0;
+  }
+
+  .leftColumn {
     padding: 1rem;
   }
 

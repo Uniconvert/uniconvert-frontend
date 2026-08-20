@@ -22,7 +22,8 @@ interface EmailReportSettingsSectionProps {
   onCancelTime: () => void
   onSaveTime: () => void
   onCycleChange: (cycle: ReportCycle) => void
-  onSaveSettings: () => void | Promise<void>
+  /** Kept for compatibility with existing callers; settings are saved by the shared form action. */
+  onSaveSettings?: () => void | Promise<void>
   isSaving?: boolean
 }
 
@@ -43,8 +44,6 @@ function EmailReportSettingsSection({
   onCancelTime,
   onSaveTime,
   onCycleChange,
-  onSaveSettings,
-  isSaving = false,
 }: EmailReportSettingsSectionProps) {
   const { t } = useI18n()
 
@@ -84,7 +83,6 @@ function EmailReportSettingsSection({
         </div>
         <div className={styles.optionDescription}><img src="/assets/icons/info.png" alt="" aria-hidden="true" /><span>{t('settings.scheduleDescription')}</span></div>
         <p className={styles.mvpScheduleNotice}>{t('settings.mvpScheduleNotice')}</p>
-        <div className={styles.optionActions}><Button onClick={onSaveSettings} isLoading={isSaving}>{t('common.save')}</Button></div>
       </div>}
     </section>
   )

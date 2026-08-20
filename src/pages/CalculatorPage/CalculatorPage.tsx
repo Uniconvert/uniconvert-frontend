@@ -32,14 +32,16 @@ function convertAmount(amount: number, rate: number | null): number | null {
 
 interface CurrencySelectorProps {
   selected: CurrencyCode
+  disabledCurrency?: CurrencyCode
   isOpen: boolean
   showAssets: boolean
   onToggle: () => void
   onSelect: (currency: CurrencyCode) => void
 }
 
-function CurrencySelector({ selected, isOpen, showAssets, onToggle, onSelect }: CurrencySelectorProps) {
+function CurrencySelector({ selected, disabledCurrency, isOpen, showAssets, onToggle, onSelect }: CurrencySelectorProps) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const disabledIndices = disabledCurrency === undefined ? [] : [currencies.indexOf(disabledCurrency)]
   const {
     listboxId,
     activeDescendantId,
@@ -52,6 +54,7 @@ function CurrencySelector({ selected, isOpen, showAssets, onToggle, onSelect }: 
     open: isOpen,
     optionCount: currencies.length,
     selectedIndex: currencies.indexOf(selected),
+    disabledIndices,
     onOpen: () => { if (!isOpen) onToggle() },
     onClose: () => { if (isOpen) onToggle() },
     onSelect: (index) => onSelect(currencies[index]),
@@ -86,6 +89,8 @@ function CurrencySelector({ selected, isOpen, showAssets, onToggle, onSelect }: 
               id={getOptionId(index)}
               tabIndex={-1}
               aria-selected={selected === currency}
+              aria-disabled={currency === disabledCurrency}
+              disabled={currency === disabledCurrency}
               onMouseEnter={() => onOptionPointerMove(index)}
               onClick={() => onOptionClick(index)}
             >
@@ -299,6 +304,7 @@ function CalculatorPage() {
             <h2 className={styles.cardTitle}>From</h2>
             <CurrencySelector
               selected={fromCurrency}
+              disabledCurrency={toCurrency}
               isOpen={isFromOpen}
               showAssets={!isOfflineCalculatorRoute}
               onToggle={() => { setIsFromOpen((open) => !open); setIsToOpen(false) }}
@@ -324,6 +330,7 @@ function CalculatorPage() {
             <h2 className={styles.cardTitle}>To</h2>
             <CurrencySelector
               selected={toCurrency}
+              disabledCurrency={fromCurrency}
               isOpen={isToOpen}
               showAssets={!isOfflineCalculatorRoute}
               onToggle={() => { setIsToOpen((open) => !open); setIsFromOpen(false) }}

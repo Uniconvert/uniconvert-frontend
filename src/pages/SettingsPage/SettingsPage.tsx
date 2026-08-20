@@ -90,28 +90,24 @@ function SettingsPage() {
     }
   }, [queriedUser])
 
-  const handleSave = async () => {
+  const handleSaveAll = async () => {
     const nextNickname = nickname.trim()
     if (!nextNickname) return
+
     try {
-      const updatedUser = await updateQueriedUser({ nickname: nextNickname, profileImageKey: profileImageKey || undefined, primaryGoal: primaryGoal || undefined })
+      const [updatedUser] = await Promise.all([
+        updateQueriedUser({ nickname: nextNickname, profileImageKey: profileImageKey || undefined, primaryGoal: primaryGoal || undefined }),
+        emailSetting.updateSetting({
+          enabled: isEmailReportEnabled,
+          frequency: reportCycle.toUpperCase() as 'DAILY' | 'WEEKLY' | 'MONTHLY',
+          sendTime: reportTime.length === 5 ? `${reportTime}:00` : reportTime,
+        }),
+      ])
+
       setSavedNickname(updatedUser.nickname); setNickname(updatedUser.nickname)
       setSavedProfileImageKey(updatedUser.profileImageKey ?? ''); setProfileImageKey(updatedUser.profileImageKey ?? '')
       setSavedPrimaryGoal(updatedUser.primaryGoal ?? ''); setPrimaryGoal(updatedUser.primaryGoal ?? '')
       updateSessionUser(updatedUser)
-      showToast({ variant: 'success', title: t('settings.profileUpdated') })
-    } catch (error) {
-      showToast({ variant: 'error', ...getApiErrorNotice(error, t('settings.profileUpdateError')) })
-    }
-  }
-
-  const handleSaveEmailSettings = async () => {
-    try {
-      await emailSetting.updateSetting({
-        enabled: isEmailReportEnabled,
-        frequency: (reportCycle.toUpperCase() as 'DAILY' | 'WEEKLY' | 'MONTHLY'),
-        sendTime: reportTime.length === 5 ? `${reportTime}:00` : reportTime,
-      })
       setEmailEnabledOverride(undefined)
       setReportCycleOverride(undefined)
       setReportTimeOverride(undefined)
@@ -120,6 +116,17 @@ function SettingsPage() {
     } catch (error) {
       showToast({ variant: 'error', ...getApiErrorNotice(error, t('settings.profileUpdateError')) })
     }
+  }
+
+  const handleCancelAll = () => {
+    setNickname(savedNickname)
+    setProfileImageKey(savedProfileImageKey)
+    setPrimaryGoal(savedPrimaryGoal)
+    setEmailEnabledOverride(undefined)
+    setReportCycleOverride(undefined)
+    setReportTimeOverride(undefined)
+    setTempSelectedTime(emailSetting.query.data?.sendTime?.slice(0, 5) ?? '09:00')
+    setIsTimeDropdownOpen(false)
   }
 
   const handleSendReport = async () => {
@@ -190,8 +197,6 @@ function SettingsPage() {
         onCancelTime={() => setIsTimeDropdownOpen(false)}
         onSaveTime={() => { setReportTimeOverride(tempSelectedTime); setIsTimeDropdownOpen(false) }}
         onCycleChange={setReportCycleOverride}
-        onSaveSettings={handleSaveEmailSettings}
-        isSaving={emailSetting.isUpdating}
       />
       <ProfileSettingsSection
         email={sessionUser?.email ?? ''}
@@ -201,9 +206,9 @@ function SettingsPage() {
         onNicknameChange={setNickname}
         onProfileImageChange={setProfileImageKey}
         onRetry={() => { void refetchUser() }}
-        onCancel={() => { setNickname(savedNickname); setProfileImageKey(savedProfileImageKey); setPrimaryGoal(savedPrimaryGoal) }}
-        onSave={handleSave}
-        isSaving={isUpdating}
+        onCancel={handleCancelAll}
+        onSave={handleSaveAll}
+        isSaving={isUpdating || emailSetting.isUpdating}
       />
     </div>
     <EmailReportPreview
