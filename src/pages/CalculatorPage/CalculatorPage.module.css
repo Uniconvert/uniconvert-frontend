@@ -213,6 +213,19 @@
   background: #eff7ff;
 }
 
+.currencyMenu button:disabled,
+.currencyMenu button[aria-disabled="true"] {
+  color: var(--color-text-muted, #9aa3ad);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.currencyMenu button:disabled:hover,
+.currencyMenu button[aria-disabled="true"]:hover {
+  color: var(--color-text-muted, #9aa3ad);
+  background: transparent;
+}
+
 .currencyMenu img {
   width: 2.5rem;
   height: 1.5rem;

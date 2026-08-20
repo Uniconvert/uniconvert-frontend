@@ -36,7 +36,8 @@
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  overflow-y: hidden;
+  max-height: calc(100svh - 2rem);
+  overflow-y: auto;
   padding: 3.25rem 3.75rem;
 }
 
@@ -221,10 +222,9 @@
   }
 }
 
-/* 데스크톱 저높이 화면에서는 고정 패널이 화면을 넘지 않게 압축합니다. */
+/* 데스크톱 저높이 화면에서는 콘텐츠 간격을 압축합니다. */
 @media (min-width: 40.0625rem) and (max-height: 60rem) {
   .card {
-    overflow-y: auto;
     padding: 2rem 3rem;
   }
 

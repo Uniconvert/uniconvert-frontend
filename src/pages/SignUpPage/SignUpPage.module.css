@@ -13,7 +13,7 @@
 .divider { display: flex; align-items: center; gap: 1rem; color: var(--color-text-muted); font-size: .875rem; }
 .divider::before,.divider::after { height: 1px; flex: 1; content: ''; background: var(--color-border); }
 .status { color: var(--color-text-secondary); font-size: .875rem; text-align: center; }
-.loginPrompt { margin-top: 1.5rem; color: var(--color-text-muted); }
+.loginPrompt { margin-top: 29px; color: var(--color-text-muted); }
 .loginPrompt a { color: var(--color-primary); font-weight: var(--font-weight-bold); }
 .coinDecoration,.exchangeDecoration { position: absolute; height: auto; pointer-events: none; }
 .coinDecoration { top: 13.5%; left: 2.5%; width: clamp(16rem,18vw,21rem); }
