@@ -2,19 +2,19 @@
 
 ## 1. 기준 정보
 
-- 기준일: 2026-08-20
+- 기준일: 2026-08-21
 - 저장소: `Uniconvert/uniconvert-frontend`
-- 최근 반영: PR [#30](https://github.com/Uniconvert/uniconvert-frontend/pull/30)
-- `main` 병합 커밋: `82def12`
-- 기능 브랜치 커밋: `be1becf`
-- 보고서 작성 전 기능 변경분 작업 트리: 변경 없음(clean)
-- 현재 변경: 본 현황 보고서 파일 1개 추가
+- 최근 반영: PR [#34](https://github.com/Uniconvert/uniconvert-frontend/pull/34)
+- PR #34 병합 커밋: `4358ba7`
+- 기능 브랜치 기준 커밋: `2c703ba`
+- PR #34 내용: CSP 적용, 계산기 최근 내역 긴 값 말줄임 및 전체 값 툴팁 제공
+- 테스트용 CSV(`sample_japanese_student_expenses_2026-08-20.csv`)는 저장소 변경에 포함하지 않는다.
 
 ## 2. 종합 상태
 
 **상태: READY WITH ISSUES**
 
-프론트엔드 코드와 자동 검증은 정상이며, 최근 UX·반응형·오프라인 기능 개선은 `main`에 반영되었다. 다만 실제 운영 전에는 브라우저/배포 환경 검증과 일부 데이터 무결성·백엔드 계약 확인이 남아 있다.
+프론트엔드 코드와 자동 검증은 정상이며, CSP와 계산기 긴 텍스트 처리까지 `main`에 반영되었다. 다만 실제 운영 전에는 브라우저/배포 환경 검증과 일부 데이터 무결성·백엔드 계약 확인이 남아 있다.
 
 ## 3. 기술 환경
 
@@ -62,6 +62,8 @@
 - Pots 기준으로 FloatingMascot 위치를 통일하고 계산기·리포트·메모에 반영
 - `/offline` 공개 오프라인 계산기와 PWA manifest/service worker 구성
 - 설정 및 리포트의 수동 이메일 리포트 미리보기/전송 UI 정리
+- `index.html`에 API·Google 로그인·Google Apps Script origin을 제한하는 CSP 적용
+- 계산기 최근 계산 내역의 긴 금액·환산 결과를 한 줄 말줄임으로 표시하고 전체 값은 `title`로 제공
 
 ## 6. 이메일 리포트 현재 상태
 
@@ -94,6 +96,7 @@
 
 ## 9. 보안 상태
 
+- 상세 검증 결과는 `docs/security/`의 위협 모델·Burp API·세션/CSP·PWA 캐시·최종 보안 보고서에 정리되어 있다.
 - 저장소에서 즉시 확인되는 Critical XSS, open redirect, 번들 내 private credential은 발견되지 않았다.
 - 파일 업로드 오류 원문 노출은 공통 사용자 문구로 제한되도록 수정되었다.
 - access/refresh token은 현재 `sessionStorage`에 저장된다. HttpOnly cookie 전환은 백엔드 인증 계약과 함께 검토해야 한다.
@@ -128,4 +131,4 @@
 3. 백엔드와 인증 cookie, 이메일 수신자 검증, 보안 헤더 계약을 확정한다.
 4. 운영 배포 후 모니터링과 실제 사용자 흐름을 점검한다.
 
-현재 상태는 자동화된 코드 검증과 `main` 반영까지 완료된 상태이며, 운영 출시 전에는 위 수동 QA와 백엔드/배포 계약 확인이 필요하다.
+현재 상태는 자동화된 코드 검증과 PR #34의 `main` 반영까지 완료된 상태이며, 운영 출시 전에는 위 수동 QA와 백엔드/배포 계약 확인이 필요하다.

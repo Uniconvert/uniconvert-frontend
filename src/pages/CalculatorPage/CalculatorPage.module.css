@@ -7,7 +7,6 @@
   animation: ui-page-enter var(--motion-slow) var(--motion-ease-out) both;
 }
 
-/* Keep the calculator mascot aligned with the shared Pots/Report/Memo placement. */
 .lowerMascot {
   transform: translateY(1rem);
 }
@@ -513,7 +512,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 480px; /* 모달 내부 고정 공간감 확보 */
+  min-height: 480px;
   padding: 1rem 0;
 }
 
@@ -521,7 +520,7 @@
   display: flex;
   min-height: 30rem;
   flex-direction: column;
-  gap: 1.25rem; /* 아이템 간격을 넉넉하게 설정 */
+  gap: 1.25rem;
 }
 
 .modalHistoryItem {
@@ -530,7 +529,7 @@
   min-width: 0;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 1.5rem; /* 리스트 아이템 높이와 내부 여백을 큼직하게 확장 */
+  padding: 1.25rem 1.5rem;
   border: 1px solid var(--color-border, #d8dde1);
   border-radius: 1rem;
   background: #fff;
@@ -621,7 +620,6 @@
   font-weight: 600;
 }
 
-/* 하단 페이지네이션 스타일 */
 .pagination {
   display: flex;
   align-items: center;
@@ -786,9 +784,7 @@
   }
 }
 
-/* Use a wider, centered calculator workspace on QHD viewports. */
 @media (min-width: 2200px) {
-  /* Keep the mascot rail on the full page width, like Pots. */
   .page {
     width: 100%;
     max-width: none;

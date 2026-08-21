@@ -29,7 +29,6 @@
   }
 }
 
-/* Enlarge the complete auth composition modestly on QHD-sized viewports. */
 @media (min-width: 2200px) {
   .scene {
     transform: scale(1.12);

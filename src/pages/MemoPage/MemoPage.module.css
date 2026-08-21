@@ -708,7 +708,6 @@
   }
 }
 
-/* Center and widen the memo workspace on QHD viewports. */
 @media (min-width: 2200px) {
   .page {
     width: min(100%, 120rem);
@@ -732,7 +731,6 @@
     transform: scale(0.93);
   }
 
-  /* Align the visible character with the Pots right edge on QHD screens. */
   .lowerMascot {
     right: -7rem;
   }
