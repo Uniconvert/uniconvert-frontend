@@ -463,13 +463,14 @@
 }
 
 .historySource {
+  display: block;
   min-width: 0;
   max-width: 100%;
   color: #333;
   font-weight: 500;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: 1rem;
 }
 
@@ -482,17 +483,16 @@
 }
 
 .historyResult {
-  display: flex;
-  flex-direction: column;
+  display: block;
   color: var(--color-primary, #62a9e8);
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.1;
   min-width: 0;
   max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .historyResult span:last-child {
