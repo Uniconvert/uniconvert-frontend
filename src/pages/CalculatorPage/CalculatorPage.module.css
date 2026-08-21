@@ -422,9 +422,11 @@
 .modalHistoryEmptyState p { margin: 0; }
 
 .historyItem {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   padding: 1.25rem 1.25rem;
   border: 1px solid var(--color-border, #d8dde1);
   border-radius: 0.75rem;
@@ -437,7 +439,9 @@
 }
 
 .historyInfo {
-  display: flex;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  min-width: 0;
   align-items: center;
   gap: 1rem;
 }
@@ -449,7 +453,9 @@
 }
 
 .historyText {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  min-width: 0;
   align-items: center;
   gap: 0.7rem;
   font-size: 0.95rem;
@@ -457,9 +463,13 @@
 }
 
 .historySource {
+  min-width: 0;
+  max-width: 100%;
   color: #333;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-size: 1rem;
 }
 
@@ -478,7 +488,11 @@
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.1;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .historyResult span:last-child {
@@ -486,8 +500,13 @@
 }
 
 .historyTime {
+  min-width: 0;
+  max-width: 5rem;
   font-size: 0.85rem;
   color: #999;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: right;
 }
 
 .modalHistoryContainer {
@@ -506,9 +525,11 @@
 }
 
 .modalHistoryItem {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   padding: 1.25rem 1.5rem; /* 리스트 아이템 높이와 내부 여백을 큼직하게 확장 */
   border: 1px solid var(--color-border, #d8dde1);
   border-radius: 1rem;
@@ -517,7 +538,9 @@
 }
 
 .modalHistoryInfo {
-  display: flex;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(4rem, auto) minmax(0, 1fr);
+  min-width: 0;
   align-items: center;
   gap: 1.25rem;
 }
@@ -530,6 +553,7 @@
 }
 
 .currencyTextGroup {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -547,12 +571,24 @@
 }
 
 .modalHistoryCalcText {
+  min-width: 0;
+  max-width: 100%;
   font-size: calc(1.225rem + 2px);
   color: #333;
-  margin-left: 5rem;
-  display: flex;
+  margin-left: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 0.5rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.modalHistorySourceText,
+.modalHistoryCalcText .resultText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .modalHistoryCalcText span {
@@ -566,8 +602,13 @@
 }
 
 .modalHistoryTime {
+  min-width: 0;
+  max-width: 5rem;
   font-size: calc(1.075rem + 2px);
   color: #999;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: right;
 }
 
 .modalTitle {
@@ -721,9 +762,10 @@
   }
 
   .modalHistoryInfo {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(3.5rem, auto) minmax(0, 1fr);
     min-width: 0;
-    flex: 1;
-    flex-wrap: wrap;
+    flex: none;
     gap: 0.5rem 0.75rem;
   }
 
@@ -736,11 +778,10 @@
     min-width: 0;
     margin-left: 0;
     gap: 0.25rem;
-    flex-wrap: wrap;
   }
 
   .modalHistoryTime {
-    flex: 0 0 auto;
+    flex: none;
     font-size: 0.8rem;
   }
 }
