@@ -12,6 +12,8 @@ import { getCachedExchangeRate, setCachedExchangeRate } from '@/features/calcula
 import LoadingState from '@/components/common/LoadingState/LoadingState'
 import EmptyState from '@/components/common/EmptyState/EmptyState'
 import ErrorState from '@/components/common/ErrorState/ErrorState'
+import Toast from '@/components/common/Toast/Toast'
+import { useToastQueue } from '@/components/common/Toast/useToastQueue'
 import { useListboxKeyboard } from '@/hooks/useListboxKeyboard'
 import { normalizeCurrencyCode, type CurrencyCode } from '@/types/currency'
 import { ROUTE_PATHS } from '@/routes/routePaths'
@@ -106,6 +108,7 @@ function CurrencySelector({ selected, disabledCurrency, isOpen, showAssets, onTo
 
 function CalculatorPage() {
   const { locale, t } = useI18n()
+  const { toast, showToast, closeToast } = useToastQueue()
   const isOfflineCalculatorRoute = typeof window !== 'undefined' && window.location.pathname === ROUTE_PATHS.offlineCalculator
 
   const mascotLocale = locale.toLowerCase()
@@ -200,8 +203,8 @@ function CalculatorPage() {
     retry: false,
   })
   const isQuoteLoading = isOnline && quoteAmount > 0 && quoteQuery.isFetching
-  const quoteError = isOnline && (quoteQuery.error || quoteQuery.data?.available === false) ? t('calculator.quoteLoadError') : ''
   const hasAmountInput = Number(fromAmount.replaceAll(',', '')) > 0
+  const quoteError = isOnline && hasAmountInput && (quoteQuery.error || quoteQuery.data?.available === false) ? t('calculator.calculationError') : ''
   const quoteResult = quoteQuery.data?.available === false ? undefined : quoteQuery.data
   const liveRate = isUsableRate(quoteResult?.appliedRate)
     ? quoteResult.appliedRate
@@ -210,6 +213,8 @@ function CalculatorPage() {
       : null
   const liveRateDate = quoteResult?.rateDate ?? currentRateQuery.data?.rateDate ?? ''
   const currentRateError = isOnline && currentRateQuery.error ? t('calculator.rateLoadError') : ''
+  const calculatorError = quoteError || currentRateError
+  const shownErrorRef = useRef('')
   const isCurrentRateLoading = isOnline && currentRateQuery.isLoading
   const offlineRate = !isOnline ? cachedRate?.rate ?? null : null
   const convertedAmount = !hasAmountInput
@@ -234,6 +239,16 @@ function CalculatorPage() {
       ? { date: cachedRate.rateDate, rate: cachedRate.rate, source: 'cached' as const }
       : null
   const offlineRateUnavailable = !isOnline && !cachedRate
+
+  useEffect(() => {
+    if (!calculatorError) {
+      shownErrorRef.current = ''
+      return
+    }
+    if (shownErrorRef.current === calculatorError) return
+    shownErrorRef.current = calculatorError
+    showToast({ variant: 'error', title: calculatorError })
+  }, [calculatorError, showToast])
 
   useEffect(() => {
     if (!isOfflineCalculatorRoute && quoteQuery.data && quoteQuery.data.available !== false) void refetchHistory()
@@ -282,6 +297,7 @@ function CalculatorPage() {
 
   return (
     <section className={styles.page}>
+      {toast && <Toast key={toast.id} {...toast} onClose={closeToast} />}
       <div className={styles.pageHeader}>
         <h1>{t(isOfflineCalculatorRoute ? 'calculator.offlineTitle' : 'calculator.title')}</h1>
         <p>{t(isOfflineCalculatorRoute ? 'calculator.offlineDescription' : 'calculator.description')}</p>
@@ -341,7 +357,6 @@ function CalculatorPage() {
               <div className={styles.amountBox}><input id="calculator-to-amount" type="text" value={toAmount === CALCULATION_ERROR ? t('calculator.error') : toAmount} readOnly /></div>
             </div>
             {(isCurrentRateLoading || isQuoteLoading) && <LoadingState size="sm" variant="inline" message={t('calculator.rateLoading')} />}
-            {(currentRateError || quoteError) && <p className={styles.statusMessage} role="alert">{currentRateError || quoteError}</p>}
             {offlineRateUnavailable && <p className={styles.statusMessage} role="status">{t('calculator.noRateCacheDescription')}</p>}
             <div className={styles.statusMessage} style={{ visibility: rateInfo ? 'visible' : 'hidden' }}>
               <span className={styles.statusDot} />
@@ -436,7 +451,7 @@ function CalculatorPage() {
                 <div className={styles.modalHistoryInfo}>
                   <img src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.src = '/assets/icons/currencies/currency-default.png' }} />
                   <div className={styles.currencyTextGroup}><span className={styles.currencyCodeText}>{item.fromCurrency}</span><span className={styles.currencySubText}>{item.fromCurrency ? t(`currency.${item.fromCurrency}`) : ''}</span></div>
-                  <div className={styles.modalHistoryCalcText}>{(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}<span>→</span><span className={styles.resultText}>{(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })} {item.toCurrency}</span></div>
+                  <div className={styles.modalHistoryCalcText}><span className={styles.modalHistorySourceText}>{(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}</span><span aria-hidden="true">→</span><span className={styles.resultText}>{(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })} {item.toCurrency}</span></div>
                 </div>
                 <span className={styles.modalHistoryTime}>{formatHistoryTime(item.createdAt)}</span>
               </div>
