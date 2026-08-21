@@ -73,8 +73,6 @@ describe('getExpenseHistory critical regression tests', () => {
     cachedApiRequestMock.mockRejectedValue(new Error('categories unavailable'))
     apiRequestMock.mockRejectedValue(new Error('core API unavailable'))
 
-    // This is expected to fail against the current implementation: the service
-    // substitutes an always-resolved empty expense response before checking failure.
     await expect(getExpenseHistory('2099-03', 'month', null))
       .rejects.toThrow('지출 내역을 불러오지 못했습니다.')
   })

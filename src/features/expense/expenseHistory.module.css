@@ -1,4 +1,3 @@
-/* Keep the route content visible while its initial query resolves. */
 .page {
   position: relative;
   display: grid;
@@ -534,7 +533,6 @@
   }
 }
 
-/* Mobile layout follows the compact single-column dashboard wireframe. */
 @media (max-width: 63.75rem) {
   .page {
     display: flex;
@@ -548,7 +546,6 @@
   }
 
   .assetCard {
-    /* The shared mobile summary in DashboardLayout replaces the desktop-only card. */
     display: none;
   }
 
@@ -657,7 +654,6 @@
   }
 }
 
-/* Center the monthly donut within its expanded QHD chart column. */
 @media (min-width: 2200px) {
   .donutWrap {
     width: clamp(18rem, 16vw, 22rem);

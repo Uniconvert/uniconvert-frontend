@@ -464,7 +464,6 @@
   }
 }
 
-/* Mobile expense entry: preview first, then a single-column form. */
 @media (max-width: 63.75rem) {
   .page {
     display: flex;

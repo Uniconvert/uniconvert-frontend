@@ -222,7 +222,6 @@
   }
 }
 
-/* 데스크톱 저높이 화면에서는 콘텐츠 간격을 압축합니다. */
 @media (min-width: 40.0625rem) and (max-height: 60rem) {
   .card {
     padding: 2rem 3rem;

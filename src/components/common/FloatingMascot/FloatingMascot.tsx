@@ -3,7 +3,7 @@ import Mascot from '@/components/common/Mascot/Mascot'
 import styles from './FloatingMascot.module.css'
 
 interface FloatingMascotProps {
-  messages: React.ReactNode[]; // 수정: string[] -> React.ReactNode[]
+  messages: React.ReactNode[]
   imageSrc: string;
   speechBubbleVariant?: 'default' | 'twoLine' | 'compact';
   speechBubbleClassName?: string;

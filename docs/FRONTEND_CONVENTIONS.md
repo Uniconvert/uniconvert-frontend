@@ -25,6 +25,17 @@
 - 영어와 숫자는 Helvetica를 우선하고, 한글은 Pretendard로 표시한다.
 - 전역 `index.ts` 배럴 파일은 만들지 않고 실제 파일을 직접 import한다.
 - 다른 폴더의 모듈은 `@/` 경로 별칭을 사용하고, 같은 폴더의 CSS Module은 상대경로를 사용한다.
+- 공통 비동기 상태는 `LoadingState`, `EmptyState`, `ErrorState`, `Skeleton`을 사용하고, 도메인 문구는 페이지에서 전달한다.
+- 초기 로딩과 background fetching을 구분한다. 기존 데이터가 있으면 전체 화면을 로딩 상태로 교체하지 않는다.
+- 버튼의 비동기 동작은 `Button`의 `isLoading`과 disabled 상태를 사용해 중복 실행을 막는다.
+- 시각적인 상태뿐 아니라 `role`, `aria-live`, `aria-busy`, label·focus 연결을 함께 검토한다.
+- 사용자/API 값을 HTML 문자열로 렌더링하지 않으며, `dangerouslySetInnerHTML`과 직접적인 `innerHTML` 사용을 금지한다.
+
+## 데이터·보안 경계
+
+- API request/response 계약과 Query key는 실제 백엔드 계약을 근거로 유지한다. 확인되지 않은 Query invalidation이나 데이터 필드를 추가하지 않는다.
+- CSP 허용 origin과 API base URL은 `index.html` 및 환경변수 설정을 함께 확인한다.
+- 이메일 리포트는 사용자가 직접 클릭한 경우에만 현재 화면의 리포트와 수신자 이메일을 전송한다. access token, refresh token, 비밀번호, API key, 전체 `sessionStorage`는 전송하지 않는다.
 
 ## 주석
 
@@ -61,3 +72,11 @@
 - 닉네임 입력 위치와 필수 여부
 - 최초 지갑 잔액의 필수 여부와 입력 위치
 - 월 예산과 최초 지갑 잔액을 같은 화면에서 받을지 여부
+
+## 현재 검증 기준
+
+- TypeScript 오류 0개
+- ESLint 오류·경고 0개
+- Vitest 전체 통과
+- Production build 통과
+- PR CI 통과 후 `main`에 병합한다.

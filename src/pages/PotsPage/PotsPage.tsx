@@ -73,12 +73,10 @@ function PotsPage() {
     }
   }, [data, showToast, t])
 
-  // 목표 달성 여부 판단을 상단에서 먼저 정의
   const hasCompletedPot = useMemo(() => {
     return Boolean(data && data.pots.length > 0 && data.pots.some((pot) => pot.savedAmount >= pot.targetAmount))
   }, [data])
 
-  // 마스코트 멘트 설정 (목표 달성 시 진짜 멘트 출력)
   const mascotMessages = useMemo(() => {
     if (!data || !data.pots) return ["돈을 저축해보는 건 어때요?"]
 
