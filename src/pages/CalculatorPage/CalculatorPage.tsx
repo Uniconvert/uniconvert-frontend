@@ -389,40 +389,9 @@ function CalculatorPage() {
                 <div className={styles.historyInfo}>
                   <img src={`/assets/icons/currencies/currency-${(item.fromCurrency || 'default').toLowerCase()}.png`} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.src = '/assets/icons/currencies/currency-default.png' }} />
                   <div className={styles.historyText}>
-                    <span className={styles.historySource}>
-                      {(() => {
-                        const formattedAmount = (item.amount ?? 0).toLocaleString(locale);
-
-                        if (formattedAmount.length >= 6) {
-                          return (
-                            <>
-                              <span>{formattedAmount}</span>
-                              <br />
-                              <span>{item.fromCurrency}</span>
-                            </>
-                          );
-                        }
-
-                        return `${formattedAmount} ${item.fromCurrency}`;
-                      })()}
-                    </span>
+                    <span className={styles.historySource} title={`${(item.amount ?? 0).toLocaleString(locale)} ${item.fromCurrency}`}>{(item.amount ?? 0).toLocaleString(locale)} {item.fromCurrency}</span>
                     <span className={styles.historyArrow} aria-hidden="true">→</span>
-                    <span className={styles.historyResult}>
-                      {(() => {
-                        const formattedNum = (item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 });
-
-                        if (formattedNum.length >= 6) {
-                          return (
-                            <>
-                              <span>{formattedNum}</span>
-                              <span>{item.toCurrency}</span>
-                            </>
-                          );
-                        }
-
-                        return `${formattedNum} ${item.toCurrency}`;
-                      })()}
-                    </span>
+                    <span className={styles.historyResult} title={`${(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })} ${item.toCurrency}`}>{(item.convertedAmount ?? 0).toLocaleString(locale, { maximumFractionDigits: 2 })} {item.toCurrency}</span>
                   </div>
                 </div>
                 <span className={styles.historyTime}>{formatHistoryTime(item.createdAt)}</span>
